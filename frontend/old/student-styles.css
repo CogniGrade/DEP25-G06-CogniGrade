@@ -1,0 +1,132 @@
+/* ===== SCRIPT PAGE ===== */
+.viewer-container {
+  display: flex;
+  max-width: 1200px;
+  height: 80vh;
+  margin: 20px auto;
+  border: 1px solid #ccc;
+  box-shadow: 0 0 10px rgba(0,0,0,0.1);
+  overflow: hidden;
+}
+
+.viewer-image {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #f9f9f9;
+}
+
+.viewer-image img {
+  max-width: 90%;
+  height: auto;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.viewer-text {
+  flex: 1;
+  padding: 20px;
+  overflow-y: auto;
+  background-color: #fff;
+  box-sizing: border-box;
+}
+
+.viewer-text h3 {
+  margin-top: 0;
+}
+
+.viewer-text p {
+  margin-bottom: 1em;
+}
+
+.viewer-text ul {
+  margin: 0;
+  padding-left: 20px;
+}
+
+.viewer-text li {
+  margin-bottom: 0.5em;
+}
+
+@media (max-width: 768px) {
+  .viewer-container {
+    flex-direction: column;
+  }
+}
+
+/* ===== EVALUATION TABLE ===== */
+.evaluation-table {
+  width: 80%;
+  margin: 20px auto;
+  border-collapse: collapse;
+}
+
+.evaluation-table th,
+.evaluation-table td {
+  border: 1px solid #ccc;
+  padding: 8px 12px;
+  text-align: left;
+}
+
+.evaluation-table th {
+  background-color: #f0f0f0;
+}
+
+/* ===== POST QUERY BUTTON ===== */
+.post-query-btn {
+  background-color: #6c5ce7;
+  color: #fff;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.post-query-btn:hover {
+  background-color: #5a4cc5;
+}
+
+.post-query-btn:disabled {
+  background-color: gray;
+  cursor: not-allowed;
+}
+
+/* ===== MODAL ===== */
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 1000;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+.modal-content {
+  background-color: #fff;
+  margin: 15% auto;
+  padding: 20px;
+  width: 80%;
+  max-width: 400px;
+  border: 1px solid #888;
+  border-radius: 5px;
+  text-align: center;
+}
+
+.close {
+  float: right;
+  font-size: 28px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+textarea {
+  width: 100%;
+  height: 100px;
+  margin-bottom: 10px;
+}

@@ -1,0 +1,214 @@
+/* RESET */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+  
+  /* BODY & FONT */
+  body {
+    font-family: 'Poppins', sans-serif;
+    background: linear-gradient(135deg, #6b46c1, #8b5cf6);
+    color: #2d3748;
+  }
+  
+  /* PAGE CONTAINER */
+  .login-page {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 2rem;
+  }
+  
+  /* CARD */
+  .login-card {
+    background: #fff;
+    border-radius: 16px;
+    max-width: 400px;
+    width: 100%;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    animation: fadeInUp 0.5s ease;
+  }
+  
+  .card-body {
+    padding: 2rem;
+  }
+  
+  /* HEADING SECTION */
+  .heading-section {
+    text-align: center;
+    margin-bottom: 1.5rem;
+  }
+  
+  .heading-section .auth-icon {
+    font-size: 3rem;
+    color: #6b46c1;
+    margin-bottom: 1rem;
+  }
+  
+  .heading-section h2 {
+    margin-bottom: 0.25rem;
+    font-weight: 600;
+  }
+  
+  .heading-section p {
+    color: #718096;
+    font-size: 0.9rem;
+  }
+  
+  /* FORM GROUPS */
+  .form-group {
+    margin-bottom: 1rem;
+  }
+  
+  /* INPUT GROUP */
+  .input-group {
+    display: flex;
+    align-items: center;
+  }
+  
+  .input-group-text {
+    width: 48px;
+    height: 48px;
+    background-color: #f8f8fc;
+    border: 2px solid #e2e8f0;
+    border-right: none;
+    border-radius: 12px 0 0 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #6b46c1;
+  }
+  
+  .form-control {
+    flex: 1;
+    height: 48px;
+    border: 2px solid #e2e8f0;
+    border-left: none;
+    border-radius: 0 12px 12px 0;
+    padding: 0 1rem;
+    font-size: 0.95rem;
+    background-color: #f8f8fc;
+    transition: border-color 0.2s ease;
+  }
+  
+  .form-control:focus {
+    outline: none;
+    border-color: #6b46c1;
+    background-color: #fff;
+    box-shadow: 0 0 0 4px rgba(107, 70, 193, 0.1);
+  }
+  
+  .form-control::placeholder {
+    color: #a0aec0;
+  }
+  
+  /* REMEMBER & FORGOT */
+  .row-between {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .checkbox {
+    display: flex;
+    align-items: center;
+  }
+  
+  .checkbox input[type="checkbox"] {
+    margin-right: 0.4rem;
+    accent-color: #6b46c1; /* For modern browsers */
+  }
+  
+  .checkbox label {
+    font-size: 0.9rem;
+    color: #4a5568;
+  }
+  
+  .forgot-password {
+    font-size: 0.9rem;
+    color: #6b46c1;
+    text-decoration: none;
+    transition: color 0.2s ease;
+  }
+  
+  .forgot-password:hover {
+    color: #553c9a;
+  }
+  
+  /* BUTTON */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    border: none;
+    outline: none;
+    border-radius: 12px;
+    font-size: 1rem;
+    font-weight: 500;
+    transition: background-color 0.2s ease, box-shadow 0.2s ease;
+  }
+  
+  .btn-primary {
+    width: 100%;
+    height: 48px;
+    background-color: #6b46c1;
+    color: #fff;
+  }
+  
+  .btn-primary i {
+    margin-left: 8px;
+  }
+  
+  .btn-primary:hover {
+    background-color: #553c9a;
+    box-shadow: 0 4px 12px rgba(107, 70, 193, 0.3);
+  }
+  
+  /* BOTTOM TEXT */
+  .bottom-text {
+    text-align: center;
+    margin-top: 1rem;
+  }
+  
+  .bottom-text a {
+    color: #6b46c1;
+    font-weight: 500;
+    text-decoration: none;
+  }
+  
+  .bottom-text a:hover {
+    color: #553c9a;
+  }
+  
+  /* ANIMATION */
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(15px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  /* RESPONSIVE */
+  @media (max-width: 480px) {
+    .card-body {
+      padding: 1.5rem;
+    }
+  
+    .input-group-text,
+    .form-control,
+    .btn-primary {
+      height: 44px;
+    }
+  
+    .input-group-text {
+      width: 44px;
+    }
+  }
+  

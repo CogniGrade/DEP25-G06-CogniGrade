@@ -1,0 +1,225 @@
+/* style.css */
+body {
+    font-family: 'Poppins', sans-serif;
+    margin: 0;
+    display: flex;
+    flex-direction: column; /* Changed to column for logo placement */
+    background-color: #f4f4f4;
+    color: #333;
+}
+
+.logo-container {
+    background-color: #fff;
+    padding: 20px;
+    text-align: center;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    z-index: 1; /* Ensure it's above the sidebar */
+}
+
+.logo {
+    font-size: 1.6rem;
+    font-weight: 600;
+    color: #007bff;
+}
+
+.sidebar {
+    width: 200px;
+    background-color: #fff;
+    padding: 20px;
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+    position: relative;
+    transition: width 0.3s ease;
+    display: flex; /* Use flexbox for vertical alignment */
+    flex-direction: column; /* Align items vertically */
+}
+
+.sidebar.collapsed {
+    width: 60px;
+}
+
+.sidebar .navigation { /* Target the ul element directly */
+    list-style: none;
+    padding: 0;
+    flex-grow: 1; /* Allow navigation to take up available space */
+}
+
+.sidebar .logo span,
+.sidebar .navigation li a span {
+    display: inline;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.sidebar.collapsed .logo span,
+.sidebar.collapsed .navigation li a span {
+    opacity: 0;
+    transform: translateX(-20px);
+    display: none;
+}
+
+.sidebar.collapsed .logo {
+    text-align: center;
+}
+
+.toggle-btn {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: #555;
+    padding: 5px;
+    border-radius: 5px;
+    z-index: 2;
+    transition: color 0.2s ease;
+}
+
+.toggle-btn:hover {
+    color: #007bff;
+}
+
+.sidebar.collapsed .toggle-btn i::before {
+    content: "\f00d";
+}
+
+.navigation li a {
+    display: block;
+    padding: 12px;
+    text-decoration: none;
+    color: #555;
+    transition: background-color 0.2s;
+    border-radius: 5px;
+    margin-bottom: 8px;
+}
+
+.navigation li a:hover,
+.navigation li a.active {
+    background-color: #e9ecef;
+    color: #007bff;
+}
+
+.navigation li a i {
+    margin-right: 10px;
+    width: 20px;
+    text-align: center;
+}
+
+.logout {
+    margin-top: auto; /* Push logout to the bottom */
+    margin-bottom: 20px; /* Add some margin at the bottom */
+    color: #dc3545;
+    padding: 12px; /* Add padding for better touch area */
+    text-align: center; /* Center the text */
+    border-top: 1px solid #eee; /* Add a separator line */
+}
+
+
+.content {
+    flex: 1;
+    padding: 30px;
+    overflow-y: auto;
+    transition: margin-left 0.3s ease;
+    margin-left: 220px; /* Initial margin to account for sidebar */
+}
+
+.content.collapsed {
+    margin-left: 80px;
+}
+
+.top-bar {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 30px;
+}
+
+.profile img {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+h1 {
+    margin-bottom: 20px;
+    color: #333;
+}
+
+.card {
+    background-color: #fff;
+    border-radius: 8px;
+    padding: 30px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+}
+
+.card h2 {
+    color: #333;
+    margin-top: 0;
+    margin-bottom: 20px;
+}
+
+.drop-area {
+    border: 2px dashed #ccc;
+    padding: 30px;
+    margin-bottom: 20px;
+    text-align: center;
+    cursor: pointer;
+    border-radius: 8px;
+    transition: border-color 0.2s;
+}
+
+.drop-area:hover {
+    border-color: #007bff;
+}
+
+.drop-area i {
+    font-size: 2.5rem;
+    margin-bottom: 15px;
+    color: #888;
+}
+
+.drop-area p {
+    color: #666;
+}
+
+.file-input {
+    display: none;
+}
+
+.buttons {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.upload-btn,
+.view-btn {
+    background-color: #007bff;
+    color: white;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 5px;
+    margin-left: 10px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.upload-btn:hover,
+.view-btn:hover {
+    background-color: #0056b3;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .content {
+        margin-left: 60px; /* Adjust content margin */
+        padding: 20px; /* Reduce padding */
+    }
+
+    /* other styles... */
+}

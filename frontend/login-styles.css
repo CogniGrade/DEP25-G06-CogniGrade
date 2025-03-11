@@ -1,0 +1,273 @@
+body {
+    background-color: white;
+    font-family: 'Roboto', sans-serif;
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+    display: flex;
+}
+
+.left-section {
+    width: 60%;
+    background-color: #e8f0fe;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 2rem;
+    margin-right: -5%;
+    clip-path: polygon(0 0, 100% 0, 85% 100%, 0% 100%);
+}
+
+.brand-name {
+    color: #1a73e8;
+    font-size: 3.5rem;
+    font-weight: bold;
+    text-align: center;
+    letter-spacing: 2px;
+}
+
+.right-section {
+    width: 60%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 2rem;
+}
+
+header {
+    display: none;
+}
+
+.login-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    max-width: 400px;
+    width: 100%;
+}
+
+.login-container>span {
+    margin: 20px 0;
+    font-size: 14px;
+    color: #5F6368;
+    text-align: center;
+    position: relative;
+    width: 320px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.login-container>span::before,
+.login-container>span::after {
+    content: "";
+    height: 1px;
+    background-color: #dadce0;
+    flex: 1;
+    margin: 0 16px;
+}
+
+.email-login {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.email-login h2 {
+    font-size: 2.5rem;
+    font-weight: bold;
+    color: #1A73E8;
+    margin: 0;
+}
+
+.email-login p {
+    font-size: 1rem;
+    color: #5F6368;
+    margin: 10px 0;
+}
+
+.email-login p a {
+    color: #1A73E8;
+    text-decoration: none;
+}
+
+.email-login form {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.email-login input {
+    border: none;
+    border-bottom: 1px solid #DADCE0;
+    width: 320px;
+    padding: 8px 0;
+    margin: 8px 0;
+    font-size: 1rem;
+}
+
+.email-login input:focus {
+    outline: none;
+    border-bottom: 1px solid #1A73E8;
+}
+
+.error-message {
+    color: #dc3545;
+    margin: 10px 0;
+    text-align: center;
+    font-size: 0.9rem;
+}
+.options-container {
+    display: flex;
+    align-items: center;
+    margin: 5px 0;
+}
+
+/* Grouping the checkbox + label together */
+.checkbox-remember {
+    display: flex;
+    align-items: center;
+}
+
+/* Slight spacing between the checkbox and label */
+.checkbox-remember input[type="checkbox"] {
+    width: 15px;
+    height: 15px;
+    margin-right: 5px;
+    accent-color: #1A73E8; /* For modern browsers */
+    cursor: pointer;
+}
+
+.checkbox-remember label {
+    font-family: 'Roboto', sans-serif;
+    font-size: 0.9rem;
+    margin-right: 70px;
+    color: #333; /* Adjust color as needed */
+    cursor: pointer;
+}
+
+/* Push the 'Forgot Password?' link to the right */
+.forgot-password {
+    margin-left: auto; 
+    font-family: 'Roboto', sans-serif;
+    font-size: 0.9rem;
+    color: #1A73E8; /* Matches your brand's link color */
+    text-decoration: none;
+    cursor: pointer;
+  }
+
+.forgot-password:hover {
+    text-decoration: underline;
+}
+
+
+.email-login button {
+    background-color: #1A73E8;
+    color: white;
+    border: none;
+    padding: 10px 24px;
+    border-radius: 25px;
+    cursor: pointer;
+    font-size: 1rem;
+    margin-top: 12px;
+    display: flex;
+    align-items: center;
+    transition: all 0.3s ease;
+    font-weight: 500;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    width: 320px;
+    justify-content: center;
+}
+
+.email-login button:hover {
+    background-color: #1557B0;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    transform: translateY(-1px);
+}
+
+.social-login {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.social-login button {
+    width: 320px;
+    height: 44px;
+    padding: 0 24px;
+    margin-bottom: 18px;
+    border-radius: 25px;
+    cursor: pointer;
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    font-weight: 500;
+}
+
+.google-btn {
+    background-color: white;
+    color: #3c4043;
+    border: 1px solid #dadce0;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.google-btn:hover {
+    background-color: #f8f9fa;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    transform: translateY(-1px);
+}
+
+.google-btn img {
+    width: 33px !important;
+    height: 33px !important;
+    margin-right: 12px !important;
+}
+
+footer {
+    text-align: center;
+    font-size: 0.75rem;
+    color: #5F6368;
+    margin-top: 50px;
+}
+
+footer a {
+    color: #1A73E8;
+    text-decoration: none;
+    margin: 0 5px;
+}
+
+.form-group {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 10px 0;
+}
+  
+.form-group input[type="checkbox"] {
+    width: 17px;
+    height: 17px;
+    margin-right: 10px;
+    accent-color: #007bff; /* Applies a custom color on supported browsers */
+    cursor: pointer;
+}
+  
+.form-group label {
+    font-size: 1rem;
+    color: #333;
+    cursor: pointer;
+}
+
+
+@media (max-width: 600px) {
+    .login-container {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .social-login {
+        margin-top: 30px;
+    }
+}

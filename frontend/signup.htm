@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cognigrade Sign Up</title>
+  <link rel="stylesheet" href="login-styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+</head>
+<body>
+  <section class="left-section">
+    <h1 class="brand-name" style="font-family: 'Playfair Display', serif; font-style: italic; font-weight: 400;">COGNIGRADE</h1>
+  </section>
+  <section class="right-section">
+    <div class="login-container">
+      <div class="email-login">
+        <h2 style="font-size: 3rem;">Sign Up</h2>
+        <p style="font-size: 0.8rem;">Already have an account? <a href="login.htm">Log In</a></p>
+        <form id="signupForm">
+          <input type="text" id="full_name" name="full_name" placeholder="Enter your full name" required style="text-align: center;">
+          <input type="email" id="email" name="email" placeholder="Enter your email" required autocomplete="email" style="text-align: center;">
+          <input type="password" id="password" name="password" placeholder="Enter password" required autocomplete="new-password" style="text-align: center;">
+          <input type="password" id="confirm_password" name="confirm_password" placeholder="Confirm password" required autocomplete="new-password" style="text-align: center;">
+          <div class="form-group">
+            <input type="checkbox" id="is_professor" name="is_professor" />
+            <label for="is_professor">Sign up as Professor</label>
+          </div>
+          <div id="error-message" class="error-message"></div>
+          <button type="submit">Create Account</button>
+        </form>
+      </div>
+      <span>or</span>
+      <div class="social-login" role="group" aria-label="More sign-up options">
+        <button onclick="window.location.href='/login/google'" class="google-btn">
+          <img src="google-logo.png" alt="Google">
+          Sign up with Google
+        </button>
+      </div>
+    </div>
+    <footer>
+      <a href="#">Terms of Use</a> | <a href="#">Privacy Policy</a>
+    </footer>
+  </section>
+  <script>
+    document.addEventListener("visibilitychange", function() {
+      if (document.visibilityState === "visible") {
+        fetch("/check-session")
+          .then(response => {
+            if (response.ok) {
+              // User is logged in, redirect to dashboard
+              window.location.href = "dashboard.htm";
+            }
+          })
+          .catch(() => {});
+      }
+    });
+    
+    document.getElementById("signupForm").addEventListener("submit", async function(e) {
+      e.preventDefault();
+      const fullName = document.getElementById("full_name").value;
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
+      const confirmPassword = document.getElementById("confirm_password").value;
+      const isProfessor = document.getElementById("is_professor").checked;
+      
+      const errorMessage = document.getElementById('error-message');
+      errorMessage.textContent = '';
+
+      if (password != confirmPassword) {
+        errorMessage.textContent = 'Passwords do not match';
+        return;
+      }
+      try {
+        const response = await fetch("/signup", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ 
+            full_name: fullName, 
+            email, 
+            password, 
+            confirm_password: confirmPassword, 
+            is_professor: isProfessor 
+          })
+        });
+        
+        const result = await response.json();
+        if (response.ok && result.success) {
+          window.location.href = "dashboard.htm";
+        } else {
+          errorMessage.textContent = result.error || 'Signup failed. Please try again.';
+        }
+      } catch (error) {
+        errorMessage.textContent = 'An error occurred. Please try again.';
+      }
+    });
+  </script>
+  <style>
+    .error-message {
+      color: #dc3545;
+      margin: 10px 0;
+      text-align: center;
+      font-size: 0.9rem;
+    }
+  </style>
+</body>
+</html>

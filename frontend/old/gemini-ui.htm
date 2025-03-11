@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AutoGrade</title>
+    <link rel="stylesheet" href="gemini-style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" integrity="sha512-9usAa10IRO0HhonpyAIVpjrylPvoDwiPUiKdWk5t3PyolY1cOd4DSE0Ga+ri4AuTroPR5aQvXU9xC6qOPnzFeg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+</head>
+<body>
+    <div class="logo-container">
+        <div class="logo">AutoGrade</div>
+    </div>
+    <div class="sidebar">
+        <button class="toggle-btn">
+            <i class="fas fa-bars"></i>
+        </button>
+        <ul class="navigation">
+            <li><a href="#"><i class="fas fa-home"></i> Home</a></li>
+            <li><a href="#" class="active"><i class="fas fa-upload"></i> Upload</a></li>
+            <li><a href="#"><i class="fas fa-graduation-cap"></i> Teaching</a></li>
+            <li><a href="#"><i class="fas fa-user-graduate"></i> Enrolled</a></li>
+            <li><a href="#"><i class="fas fa-archive"></i> Archived</a></li>
+            <li><a href="#"><i class="fas fa-cog"></i> Settings</a></li>
+            <li><a href="#" class="logout"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+        </ul>
+    </div>
+    <main class="content">
+        <div class="top-bar">
+            <div class="profile">
+                <img src="profile.jpg" alt="Profile Picture">
+            </div>
+        </div>
+        <h1>Upload Files</h1>
+
+        <div class="card">
+            <h2>Upload Questions Paper</h2>
+            <div class="drop-area">
+                <i class="fas fa-cloud-upload-alt"></i>
+                <p>Drag & drop file here or click to browse</p>
+                <input type="file" class="file-input">
+            </div>
+            <div class="buttons">
+                <button class="upload-btn">Upload</button>
+                <button class="view-btn">View</button>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>Upload Solution Script</h2>
+            <div class="drop-area">
+                <i class="fas fa-cloud-upload-alt"></i>
+                <p>Drag & drop file here or click to browse</p>
+                <input type="file" class="file-input">
+            </div>
+            <div class="buttons">
+                <button class="upload-btn">Upload</button>
+                <button class="view-btn">View</button>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>Upload Marking Scheme</h2>
+            <div class="drop-area">
+                <i class="fas fa-cloud-upload-alt"></i>
+                <p>Drag & drop file here or click to browse</p>
+                <input type="file" class="file-input">
+            </div>
+            <div class="buttons">
+                <button class="upload-btn">Upload</button>
+                <button class="view-btn">View</button>
+            </div>
+        </div>
+    </main>
+
+    <script src="script.js"></script>
+</body>
+</html>

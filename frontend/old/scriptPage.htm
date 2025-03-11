@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Script Viewer</title>
+  <link rel="stylesheet" href="student-styles-new.css" />
+  <link rel="stylesheet" href="professor-styles.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+  <!-- Placeholder for Topbar -->
+  <div id="topbar-container"></div>
+
+
+  <div class="dashboard-container">
+    <!-- Placeholder for Sidebar -->
+    <div id="sidebar-container"></div>  
+
+    <!-- Main Content -->
+    <main class="content">
+      <!-- Script Viewer -->
+      <div class="viewer-container">
+        <!-- Left side: Forwarded Script (image or PDF embed) -->
+        <div class="viewer-image">
+          <!-- Replace src with your script image or embed a PDF if needed -->
+          <img src="path_to_your_script.jpg" alt="Forwarded Script" />
+        </div>
+
+        <!-- Right side: Text/Notes/Analysis -->
+        <div class="viewer-text">
+          <h3>Structured Representation</h3>
+          <p>
+            Here’s a structured representation of the text and references,
+            explaining the captured and intended details:
+          </p>
+          <ul>
+            <li><strong>APS:</strong> The overall site</li>
+            <li><strong>Proximal Sensing:</strong> Sensor is in direct contact with the sample</li>
+            <li><strong>Remote Sensing:</strong> Sensor is away from the sample</li>
+            <li><strong>Contact Measurement Technique:</strong> ...</li>
+            <li><strong>Non-Contact Measurement Technique:</strong> ...</li>
+            <li><strong>Time Domain Reflectometry (TDR):</strong> ...</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Evaluation Table (without an outer container box) -->
+      <h3 style="text-align: center;">Question-wise Marks</h3>
+      <table class="evaluation-table">
+        <thead>
+          <tr>
+            <th>Question</th>
+            <th>Marks</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Row for Q1 -->
+          <tr>
+            <td>Q1: S/W development security related</td>
+            <td>10/10</td>
+            <td>
+              <button class="post-query-btn" id="query-btn-1" onclick="openModal(1)">Post Query</button>
+            </td>
+          </tr>
+          <!-- Row for Q2 -->
+          <tr>
+            <td>Q2: Design patterns</td>
+            <td>8/10</td>
+            <td>
+              <button class="post-query-btn" id="query-btn-2" onclick="openModal(2)">Post Query</button>
+            </td>
+          </tr>
+          <!-- Row for Q3 -->
+          <tr>
+            <td>Q3: Lab quiz 1</td>
+            <td>9/10</td>
+            <td>
+              <button class="post-query-btn" id="query-btn-3" onclick="openModal(3)">Post Query</button>
+            </td>
+          </tr>
+          <!-- Add more rows as needed -->
+        </tbody>
+      </table>
+    </main>
+  </div>
+
+  <!-- Modal for Post/Edit Query -->
+  <div id="queryModal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closeModal()">&times;</span>
+      <h3>Post Your Query</h3>
+      <textarea id="queryText" placeholder="Write your query here..."></textarea>
+      <br>
+      <button id="sendQueryBtn" onclick="sendQuery()">Send</button>
+    </div>
+  </div>
+
+
+<!-- JavaScript -->
+<script src="load-components.js"></script>
+<script>
+  // Object to store queries per question.
+  let queryData = {};
+  // Current question number for which the modal is open.
+  let currentQuestion = null;
+
+  function openModal(questionNum) {
+    currentQuestion = questionNum;
+    const textArea = document.getElementById("queryText");
+    // If a query exists for the question, pre-fill the text area.
+    textArea.value = queryData[questionNum] || "";
+    document.getElementById("queryModal").style.display = "block";
+  }
+
+  function closeModal() {
+    document.getElementById("queryModal").style.display = "none";
+    document.getElementById("queryText").value = "";
+  }
+
+  function sendQuery() {
+    const query = document.getElementById("queryText").value.trim();
+    if (query === "") {
+      alert("Please write a query before sending.");
+      return;
+    }
+    // Save or update the query for the current question.
+    queryData[currentQuestion] = query;
+    alert("Query for Q" + currentQuestion + " saved: " + query);
+    // Update the button text to indicate that the query can now be edited.
+    document.getElementById("query-btn-" + currentQuestion).innerText = "Edit Query";
+    closeModal();
+  }
+</script>
+
+</body>
+</html>

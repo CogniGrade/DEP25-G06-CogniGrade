@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Markdown to HTML Converter</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 2em;
+      background-color: #f0f0f0;
+    }
+    h1, h2 {
+      color: #333;
+    }
+    textarea {
+      width: 100%;
+      height: 200px;
+      padding: 0.5em;
+      font-size: 1em;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      resize: vertical;
+    }
+    #output, #html-code {
+      border: 1px solid #ccc;
+      background-color: #fff;
+      padding: 1em;
+      margin-top: 1em;
+      border-radius: 4px;
+    }
+    pre {
+      white-space: pre-wrap; /* Allows long lines to wrap */
+      word-wrap: break-word;
+    }
+    button {
+      padding: 0.5em 1em;
+      font-size: 1em;
+      border: none;
+      background-color: #007bff;
+      color: white;
+      border-radius: 4px;
+      cursor: pointer;
+      margin-top: 0.5em;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+  </style>
+</head>
+<body>
+  <h1>Markdown to HTML Converter</h1>
+  <textarea id="markdown-input" placeholder="Enter your Markdown text here..."></textarea>
+  <br>
+  <button id="convert-button">Convert</button>
+  
+  <h2>Rendered Output:</h2>
+  <div id="output"></div>
+
+  <h2>HTML Code:</h2>
+  <pre id="html-code"></pre>
+
+  <!-- Include Marked.js from CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script>
+    const input = document.getElementById('markdown-input');
+    const output = document.getElementById('output');
+    const htmlCode = document.getElementById('html-code');
+    const button = document.getElementById('convert-button');
+
+    button.addEventListener('click', () => {
+      // Get Markdown text from the textarea
+      const markdownText = input.value;
+      // Convert Markdown to HTML using marked
+      const html = marked.parse(markdownText);
+      // Render the HTML in the output div
+      output.innerHTML = html;
+      // Also display the HTML code as text in the pre block
+      htmlCode.textContent = html;
+    });
+  </script>
+</body>
+</html>

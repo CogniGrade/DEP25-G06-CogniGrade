@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Course Details | AutoGrade</title>
+    <link rel="stylesheet" href="professor-styles.css">
+    <link rel="stylesheet" href="student-styles.css">
+    <link rel="stylesheet" href="announcement-styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .join-btn {
+            background: #1a73e8;
+            color: #fff;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+        .join-btn:hover {
+            background: #1557b0;
+        }
+        /* Add Exam Button in Exams Tab Header */
+        #addExamBtn {
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            padding: 8px 16px;
+            font-size: 1rem;
+            display: none;
+        }
+        #addExamBtn:hover {
+            background-color: #0056b3;
+        }
+        /* Modal styling for Add Exam */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 9999;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.4);
+        }
+        .modal-content {
+            background-color: #fff;
+            margin: 80px auto;
+            padding: 20px;
+            width: 400px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+        }
+        .modal-content h2 {
+            margin-top: 0;
+            margin-bottom: 10px;
+            font-weight: 500;
+            font-size: 1.25rem;
+        }
+        .modal-content label {
+            display: block;
+            margin-top: 10px;
+            font-weight: 500;
+        }
+        .modal-content input {
+            width: 100%;
+            margin-top: 5px;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 1rem;
+            font-family: inherit;
+        }
+        .button-row {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+        .button-row button,
+        .button-row a {
+            background-color: #007bff;
+            color: #fff;
+            text-decoration: none;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+        .button-row button:hover,
+        .button-row a:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <!-- Placeholder for Topbar -->
+    <div id="topbar-container"></div>
+
+
+    <div class="dashboard-container">
+        <!-- Placeholder for Sidebar -->
+        <div id="sidebar-container"></div>
+
+        <!-- Main Content -->
+        <main class="content">
+            <nav class="tabs">
+                <button class="tab-link active" onclick="openTab(event, 'announcements')">Announcements</button>
+                <button class="tab-link" onclick="openTab(event, 'exams')">Exams</button>
+                <button class="tab-link" onclick="openTab(event, 'people')">People</button>
+            </nav>
+            
+            <!-- ANNOUNCEMENTS TAB (unchanged) -->
+            <div id="announcements" class="tab-content" style="display: block;">
+                <div class="announcement-container">
+                    <div id="announceInput" class="announce-input" contenteditable="true" onfocus="expandAnnouncement()" data-placeholder="Announce something to your class..."></div>
+                    <div class="toolbar" id="toolbar">
+                        <div>
+                            <button onclick="formatText('bold', this)"><b>B</b></button>
+                            <button onclick="formatText('italic', this)"><i>I</i></button>
+                            <button onclick="formatText('underline', this)"><u>U</u></button>
+                            <button onclick="formatText('strikeThrough', this)"><s>S</s></button>
+                        </div>
+                        <div>
+                            <button class="cancel-btn" onclick="cancelAnnouncement()">Cancel</button>
+                            <button class="post-btn" onclick="postAnnouncement()">Post</button>
+                        </div>
+                    </div>
+                    <div id="announcementList" class="announcement-list"></div>
+                </div>
+            </div>
+
+            <!-- EXAMS TAB -->
+            <div id="exams" class="tab-content" style="display: none;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                    <h2>Exams</h2>
+                    <button id="addExamBtn">Add Exam</button>
+                </div>
+                <div id="profExamsList" class="prof-exam-container">
+                    <!-- Exams will be loaded dynamically here -->
+                </div>
+                <div id="studentExamsList" class="student-exam-container">
+                    <!-- Exams will be loaded dynamically here -->
+                </div>
+            </div>
+            
+            <!-- PEOPLE TAB (unchanged) -->
+            <div id="people" class="tab-content" style="display: none;">
+                <h3>Teachers</h3>
+                <ul class="people-list">
+                    <li>????? Puneet Goyal</li>
+                </ul>
+                <h3>Students</h3>
+                <ul class="people-list">
+                    <li>????? Rahul Sharma</li>
+                    <li>????? Ananya Singh</li>
+                    <li>????? Rohan Mehta</li>
+                </ul>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal for Adding an Exam -->
+    <div id="addExamModal" class="modal">
+        <div class="modal-content">
+            <h2>Add New Exam</h2>
+            <label for="examName">Exam Name</label>
+            <input type="text" id="examName" placeholder="e.g. Final Exam">
+            <label for="examDate">Exam Date</label>
+            <input type="date" id="examDate">
+            <label for="totalMarks">Total Marks</label>
+            <input type="number" id="totalMarks" placeholder="e.g. 100">
+            <div class="button-row">
+                <button onclick="createExam()">Add Exam</button>
+                <a href="#" onclick="closeAddExamModal()">Cancel</a>
+            </div>
+        </div>
+    </div>
+
+    <script src="load-components.js"></script>
+    <script src="authorize.js"></script>
+    <script>
+        // Tab switching functionality
+        function openTab(event, tabName) {
+            let tabs = document.getElementsByClassName("tab-content");
+            for (let tab of tabs) {
+                tab.style.display = "none";
+            }
+            document.getElementById(tabName).style.display = "block";
+
+            let tabLinks = document.getElementsByClassName("tab-link");
+            for (let tabLink of tabLinks) {
+                tabLink.classList.remove("active");
+            }
+            event.currentTarget.classList.add("active");
+        }
+        document.getElementById("announcements").style.display = "block";
+
+        // Helper to get query parameter
+        function getQueryParam(param) {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get(param);
+        }
+
+        // Modal functions for Add Exam
+        function openAddExamModal() {
+            document.getElementById("addExamModal").style.display = "block";
+        }
+        function closeAddExamModal() {
+            document.getElementById("addExamModal").style.display = "none";
+        }
+
+
+        function enterExam(examId) {
+            console.log("YOOO");
+            window.location.href = `exam.htm?exam_id=${examId}`;
+        }
+        function viewScripts(examId){
+            window.location.href = `scriptPage.htm?exam_id=${examId}`;
+        }
+
+        // Create a new exam via POST
+        async function createExam() {
+            const examName = document.getElementById("examName").value.trim();
+            const examDate = document.getElementById("examDate").value;
+            const totalMarks = document.getElementById("totalMarks").value.trim();
+            if (!examName || !examDate || !totalMarks) {
+                alert("Please fill in all exam details.");
+                return;
+            }
+            const classId = getQueryParam("class_id");
+            if (!classId) {
+                alert("Class ID not provided.");
+                return;
+            }
+            try {
+                const formData = new FormData();
+                formData.append("title", examName);
+                formData.append("exam_date", examDate);
+                formData.append("points_possible", totalMarks);
+                const response = await authFetch(`/classes/${classId}/exams`, {
+                    method: "POST",
+                    body: formData
+                });
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    alert(errorData.error || "Error adding exam");
+                    return;
+                }
+                closeAddExamModal();
+                loadCourseDetails();
+            } catch (error) {
+                console.error("Error creating exam:", error);
+                alert("An error occurred while adding the exam.");
+            }
+        }
+
+        // Load course details and exams dynamically
+        async function loadCourseDetails() {
+            const classId = getQueryParam("class_id");
+            if (!classId) {
+                alert("Class ID not provided");
+                return;
+            }
+            try {
+                const response = await authFetch(`/classes/${classId}`, {
+                    headers: { "Content-Type": "application/json" }
+                });
+                const data = await response.json();
+                if (data.user && data.user.full_name) {
+                    document.getElementById("userName").innerText = "Welcome, " + data.user.full_name;
+                }
+                console.log(data);
+                // Process exams
+                const examsList = data.user.is_professor ? document.getElementById("profExamsList") : document.getElementById("studentExamsList");
+                examsList.innerHTML = "";
+                if (data.exams && data.exams.length > 0) {
+                    data.exams.forEach((exam) => {
+                        const examHTML = 
+                            data.user.is_professor ? 
+                            `<div class="exam-box" onclick="enterExam(${exam.id})">
+                            
+                                <div class="exam-header">
+                                    <div class="exam-title">
+                                        <h2>${exam.title}</h2>
+                                        <p>${exam.exam_date ? new Date(exam.exam_date).toLocaleDateString() : ""}</p>
+                                    </div>
+                                    <div class="exam-status">
+                                        <img src="checkmark.svg" alt="Completed" width="24" height="24">
+                                    </div>
+                                </div>
+                                <div class="info-box">
+                                    <h3>Answer Scripts</h3>
+                                    <div class="stats-grid">
+                                        <div class="stat-item"><span>Uploaded:</span><span>45</span></div>
+                                        <div class="stat-item"><span>Checked:</span><span>42</span></div>
+                                    </div>
+                                </div>
+                                <div class="info-box">
+                                    <h3>Marks Overview</h3>
+                                    <div class="stats-grid">
+                                        <div class="stat-item"><span>Total Marks:</span><span>${exam.points_possible}</span></div>
+                                        <div class="stat-item"><span>Average Marks:</span><span>25</span></div>
+                                    </div>
+                                </div>
+                            
+                            </div>`
+                            :
+                            `<div class="student-exam-card" onclick="viewScripts(${exam.id})">
+                                <div class="exam-info">
+                                    <div class="exam-name">
+                                        <span class="exam-icon"></span>
+                                        ${exam.title}
+                                    </div>
+                                    <div class="date">
+                                        <span class="date-icon">📅</span>
+                                        ${exam.exam_date ? new Date(exam.exam_date).toLocaleDateString() : ""}
+                                    </div>
+                                </div>
+                                
+                                <div class="marks-section">
+                                    <div class="marks-column">
+                                        <div class="marks-label">
+                                        <span class="marks-icon"></span>
+                                        Your Score
+                                        </div>
+                                        <div class="your-score">
+                                        <div>${exam.points_possible*3/4}</div>
+                                        <div class="total">/${exam.points_possible}</div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="marks-column">
+                                        <div class="marks-label">
+                                        <span class="marks-icon"></span>
+                                        Highest
+                                        </div>
+                                        <div class="marks-value">${exam.points_possible*7/8}</div>
+                                    </div>
+                                    
+                                    <div class="marks-column">
+                                        <div class="marks-label">
+                                        <span class="marks-icon"></span>
+                                        Average
+                                        </div>
+                                        <div class="marks-value">${exam.points_possible/2}</div>
+                                    </div>
+                                </div>
+                                
+                                <div class="graded-label">Graded</div>
+                            </div>`
+                            ;
+                        examsList.innerHTML += examHTML;
+                    });
+                } else {
+                    examsList.innerHTML = "<p>No exams available for this course.</p>";
+                }
+
+                // Show the "Add Exam" button if the user is a professor
+                if (data.user && data.user.is_professor) {
+                    document.getElementById("addExamBtn").style.display = "inline-block";
+                    document.getElementById("addExamBtn").onclick = openAddExamModal;
+                } else {
+                    document.getElementById("addExamBtn").style.display = "none";
+                }
+            } catch (error) {
+                console.error("Error loading course details:", error);
+            }
+        }
+        document.addEventListener("DOMContentLoaded", loadCourseDetails);
+
+        // Toggle sidebar menu
+        document.addEventListener("DOMContentLoaded", function () {
+            const menuButton = document.querySelector(".menu-btn");
+            const sidebar = document.querySelector(".sidebar");
+            menuButton.addEventListener("click", function () {
+                sidebar.classList.toggle("collapsed");
+            });
+        });
+    </script>
+    <script src="announcements.js"></script>
+</body>
+</html>

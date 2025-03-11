@@ -1,0 +1,420 @@
+/* General Styles */
+body {
+    font-family: 'Poppins', sans-serif;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    margin: 0;
+    overflow: hidden; /* Prevent overall page scrolling */  
+    padding: 0;
+    background-color: #f8f9fa;
+}
+
+/* Sidebar Default State */
+.sidebar {
+    width: 200px;
+    background: white;
+    padding: 20px;
+    box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+    height: 100vh;
+    position: fixed;
+    transition: width 0.3s ease-in-out;
+}
+
+/* Collapsed Sidebar */
+.sidebar.collapsed {
+    width: 85px;
+    padding: 20px;
+    overflow: hidden;
+}
+
+
+/* .sidebar.collapsed .menu-item{
+    text-align: center;
+    padding: 10px 5px;
+    opacity: 0;
+    padding-right: 20px;
+} */
+.sidebar.collapsed .menu-text {
+    opacity: 0;
+    font-size: 0;
+}
+
+/* .sidebar.collapsed .menu-item::before {
+    font-size: 18px;
+    content: attr(data-icon);
+} */
+
+.sidebar.collapsed .logout{
+    padding-left: 6px;
+    padding-right: 0px;
+}
+
+.sidebar:not(.collapsed) .menu-text {
+    /* font-size: 18px; */
+    transition: opacity 0.3s ease-in-out 0.3s, font-size 0s ease-in-out 0.3s;
+    
+    opacity: 1;
+}
+
+
+
+/* Adjust main content when sidebar is collapsed */
+.dashboard-container {
+    display: flex;
+    height: calc(100vh - 60px); /* Full height */
+    transition: margin-left 0.3s ease-in-out;
+}
+
+.sidebar.collapsed ~ .content {
+    margin-left: 85px;
+}
+
+.logo {
+    text-align: center;
+    font-size: 22px;
+    font-weight: bold;
+    color: #007bff;
+}
+.navigation li a {
+    display: block;
+    padding: 12px;
+    text-decoration: none;
+    color: #555;
+    transition: background-color 0.2s;
+    border-radius: 5px;
+    margin-bottom: 8px;
+}
+
+.navigation li a:hover,
+.navigation li a.active {
+    background-color: #e9ecef;
+    color: #007bff;
+}
+
+.navigation li a i {
+    margin-right: 10px;
+    width: 20px;
+    text-align: center;
+}
+.sidebar .navigation { /* Target the ul element directly */
+    list-style: none;
+    padding: 0;
+    flex-grow: 1; /* Allow navigation to take up available space */
+}
+
+.navigation li .logout {
+    margin-top: auto; /* Push logout to the bottom */
+    margin-bottom: 20px; /* Add some margin at the bottom */
+    color: #dc3545;
+    padding: 12px; /* Add padding for better touch area */
+    text-align: center; /* Center the text */
+    border-top: 2px solid #eee; /* Add a separator line */
+}
+
+
+/* Main Content */
+.content {
+    flex: 1;
+    margin-left: 225px; /* Ensures content doesn't overlap sidebar */
+    overflow-y: auto; /* Allows scrolling inside content */
+    padding: 20px 50px 20px 10px;
+    transition: margin-left 0.3s ease-in-out;
+}
+
+h1 {
+    margin-bottom: 20px;
+}
+
+/* Course Grid */
+/* 
+.course-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+} */
+
+/* Course Card */
+/* .course-card {
+    display: block;
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
+    text-decoration: none;
+    color: black;
+    transition: transform 0.3s;
+} */
+
+/* .course-card:hover {
+    transform: scale(1.05);
+}
+
+.course-header {
+    font-weight: bold;
+    font-size: 18px;
+    margin-bottom: 5px;
+}  */
+
+***/
+
+/* Reset */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* Header */
+.topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 20px;
+    background: white;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+
+/* Left Side */
+.left {
+    display: flex;
+    align-items: center;
+}
+
+.menu-btn {
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    margin-right: 10px;
+}
+
+.logo {
+    height: 30px;
+    margin-right: 10px;
+}
+
+/* Search Bar */
+.search-bar {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+}
+
+.search-bar input {
+    width: 40%;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 20px;
+    font-size: 16px;
+}
+
+/* Right Side */
+.right {
+    display: flex;
+    align-items: center;
+}
+
+.add-btn, .grid-btn {
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    margin-right: 15px;
+}
+
+/* Profile Picture */
+.profile-pic {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    cursor: pointer;
+}
+
+
+/* Reset */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* Header */
+.topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 20px;
+    background: white;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+
+.left {
+    display: flex;
+    align-items: center;
+}
+
+.back-btn {
+    background: none;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+    margin-right: 10px;
+}
+
+/* Tabs */
+.tabs {
+    display: flex;
+    border-bottom: 2px solid #ddd;
+    background: white;
+}
+
+.tab-link {
+    padding: 10px 20px;
+    border: none;
+    cursor: pointer;
+    background: none;
+    font-size: 16px;
+    flex: 1;
+    text-align: center;
+}
+
+.tab-link.active {
+    border-bottom: 3px solid blue;
+    font-weight: bold;
+}
+
+/* Tab Content */
+.tab-content {
+    display: none;
+    padding: 20px;
+}
+
+
+.announcement-card {
+    background: #f9f9f9;
+    padding: 10px;
+    margin: 10px 0;
+    border-radius: 5px;
+}
+
+/* Exams */
+.exam-list {
+    list-style: none;
+    padding-left: 0;
+}
+
+.exam-list li {
+    background: #f4f4f4;
+    padding: 10px;
+    margin: 5px 0;
+    border-radius: 5px;
+}
+
+/* People List */
+.people-list {
+    list-style: none;
+    padding-top: 5px;
+    padding-left: 0;
+    padding-bottom: 40px;
+}
+
+.people-list li {
+    background: #e3f2fd;
+    padding: 10px;
+    margin: 5px 0;
+    border-radius: 5px;
+}
+
+
+
+
+
+
+
+
+/* Exams Section */
+.prof-exam-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px; /* Adjust spacing between boxes */
+    justify-content: space-between; /* Ensures even spacing */
+}
+
+/* Exam Box */
+.exam-box {
+    flex: 1 1 calc(50% - 20px); /* Two per row with spacing */
+    max-width: 500px;
+    background: white;
+    padding: 1.5rem;
+    border-radius: 0.5rem;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    cursor: pointer;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .exam-box {
+        flex: 1 1 100%; /* Stack on smaller screens */
+    }
+}
+
+/* Header section */
+.exam-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1.5rem;
+}
+.exam-title h2 {
+    font-size: 1.25rem;
+    margin-bottom: 0.25rem;
+}
+.exam-title p {
+    color: #6c757d;
+    margin: 0;
+}
+.exam-status {
+    color: #198754;
+}
+/* Info boxes */
+.info-box {
+    background-color: #f8f9fa;
+    padding: 1.25rem;
+    border-radius: 0.5rem;
+    margin-bottom: 1.5rem;
+}
+.info-box:last-child {
+    margin-bottom: 0;
+}
+.info-box h3 {
+    font-size: 0.875rem;
+    color: #6c757d;
+    margin-bottom: 1rem;
+}
+/* Stats grid */
+.stats-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+.stat-item {
+    display: flex;
+    justify-content: space-between;
+}
+.stat-item span:last-child {
+    font-weight: 500;
+}
+/* Responsive */
+/* @media (min-width: 768px) {
+    .exam-box {
+        max-width: 450px;
+    }
+}   */
+   

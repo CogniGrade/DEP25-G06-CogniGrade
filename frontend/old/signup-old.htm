@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Signup | Automated Grading</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+  <!-- Font Awesome -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+  <!-- Custom CSS (using same stylesheet as login for similar look) -->
+  <link rel="stylesheet" href="login-styles.css">
+</head>
+<body>
+  <div class="login-page">
+    <div class="login-card">
+      <div class="card-body">
+        <!-- Heading Section -->
+        <div class="heading-section">
+          <i class="fas fa-user-plus auth-icon"></i>
+          <h2>Create Account</h2>
+          <p>Please sign up to create your account</p>
+        </div>
+        <form id="signupForm">
+          <!-- Full Name Field -->
+          <div class="form-group">
+            <input type="text" class="form-control" id="full_name" name="full_name" placeholder="Full Name" required />
+          </div>
+          <!-- Email Field -->
+          <div class="form-group">
+            <input type="email" class="form-control" id="email" name="email" placeholder="Email address" required />
+          </div>
+          <!-- Password Field -->
+          <div class="form-group">
+            <input type="password" class="form-control" id="password" name="password" placeholder="Password" required />
+          </div>
+          <!-- Confirm Password Field -->
+          <div class="form-group">
+            <input type="password" class="form-control" id="confirm_password" name="confirm_password" placeholder="Confirm Password" required />
+          </div>
+          <!-- Checkbox: Sign up as Professor -->
+          <div class="form-group">
+            <input type="checkbox" id="is_professor" name="is_professor" />
+            <label for="is_professor">Sign up as Professor</label>
+          </div>
+          <!-- Signup Button -->
+          <div class="form-group">
+            <button type="submit" class="btn btn-primary">
+              Sign Up <i class="fas fa-arrow-right"></i>
+            </button>
+          </div>
+          <!-- Link to Login Page -->
+          <div class="bottom-text">
+            <p>Already have an account? <a href="login.htm">Login</a></p>
+          </div>
+        </form>
+        <div id="signupError" style="color:red;"></div>
+      </div>
+    </div>
+  </div>
+  <script>
+    document.addEventListener("visibilitychange", function() {
+      if (document.visibilityState === "visible") {
+        fetch("/check-session")
+          .then(response => {
+            if (response.ok) {
+              // User is logged in, redirect to dashboard
+              window.location.href = "dashboard.htm";
+            }
+          })
+          .catch(() => {});
+      }
+    });
+
+    document.getElementById("signupForm").addEventListener("submit", async function(e) {
+      e.preventDefault();
+      const fullName = document.getElementById("full_name").value;
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
+      const confirmPassword = document.getElementById("confirm_password").value;
+      const isProfessor = document.getElementById("is_professor").checked;
+      console.log("YEH")
+      const response = await fetch("/signup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ 
+          full_name: fullName, 
+          email, 
+          password, 
+          confirm_password: confirmPassword, 
+          is_professor: isProfessor 
+        })
+      });
+      
+      const result = await response.json();
+      if (response.ok && result.success) {
+        window.location.href = "dashboard.htm";
+      } else {
+        document.getElementById("signupError").innerText = result.error || "Signup failed";
+      }
+    });
+  </script>
+</body>
+</html>

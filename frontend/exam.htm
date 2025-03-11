@@ -1,0 +1,1759 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Course - CP301</title>
+  <link rel="stylesheet" href="professor-styles.css" />
+  <!-- <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin> -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+    integrity="sha512-9usAa10IRO0HhonpyAIVpjrylPvoDwiPUiKdWk5t3PyolY1cOd4DSE0Ga+ri4AuTroPR5aQvXU9xC6qOPnzFeg=="
+    crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <style>
+    /* General Upload Section Styles */
+    .upload-section {
+      margin: 20px 0;
+      padding: 20px;
+      border: 1px solid #ddd;
+      background: #ffffff;
+      border-radius: 18px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      text-align: left;
+    }
+
+    .upload-section h2 {
+      color: #333;
+      margin-top: 0;
+      margin-bottom: 20px;
+    }
+
+    /* Drop Zone Styles */
+    .drop-zone {
+      border: 2px dashed #ccc;
+      padding: 30px;
+      margin-bottom: 20px;
+      text-align: center;
+      cursor: pointer;
+      border-radius: 8px;
+      transition: border-color 0.2s;
+      position: relative;
+      min-height: 150px;
+      /* Ensures drop zone remains larger than preview */
+    }
+
+    .drop-zone:hover {
+      border-color: #007bff;
+    }
+
+    .drop-zone i {
+      font-size: 2.5rem;
+      margin-bottom: 15px;
+      color: #888;
+    }
+
+    .drop-zone p {
+      color: #666;
+    }
+
+    .image-count {
+      position: absolute;
+      top: 5px;
+      right: 5px;
+      background: red;
+      color: white;
+      padding: 2px 8px;
+      border-radius: 50%;
+      font-size: 12px;
+      font-weight: bold;
+    }
+
+    /* Clear Button */
+    .clear-btn {
+      position: absolute;
+      top: 5px;
+      left: 5px;
+      background: transparent;
+      border: none;
+      font-size: 18px;
+      color: #555;
+      cursor: pointer;
+    }
+
+    /* Button Styles */
+    .upload-btn{
+      border: none;
+      display: flex;
+      padding: 0.65rem 1rem;
+      background-color: #488aec;
+      color: #ffffff;
+      font-size: 0.75rem;
+      line-height: 1rem;
+      font-weight: 700;
+      text-align: center;
+      justify-content: center;
+      cursor: pointer;
+      text-transform: uppercase;
+      vertical-align: middle;
+      align-items: center;
+      border-radius: 0.5rem;
+      user-select: none;
+      gap: 0.75rem;
+      box-shadow:
+        0 4px 6px -1px #488aec31,
+        0 2px 4px -1px #488aec17;
+      transition: all 0.3s ease;
+    }
+
+    .view-extracted {
+      border: none;
+      display: flex;
+      padding: 0.65rem 1rem;
+      background-color: #69B262;
+      color: #ffffff;
+      font-size: 0.75rem;
+      line-height: 1rem;
+      font-weight: 700;
+      text-align: center;
+      justify-content: center;
+      cursor: pointer;
+      text-transform: uppercase;
+      vertical-align: middle;
+      align-items: center;
+      border-radius: 0.5rem;
+      user-select: none;
+      gap: 0.75rem;
+      box-shadow:
+        0 4px 6px -1px #488aec31,
+        0 2px 4px -1px #488aec17;
+      transition: all 0.3s ease;
+    }
+
+    .view-extracted:disabled {
+      background-color: #ccc;
+      cursor: not-allowed;
+    }
+
+    .upload-btn:hover {
+      background-color: rgb(108, 108, 108);
+    }
+
+        
+    .button-container {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      margin: 5px auto;
+    }
+
+    .file-input {
+      display: none;
+    }
+
+    /* Table Styles for Student Answer Scripts */
+    #studentScriptsTable {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+
+    #studentScriptsTable th,
+    #studentScriptsTable td {
+      border: 1px solid #ccc;
+      padding: 10px;
+      text-align: center;
+    }
+
+    #studentScriptsTable th {
+      background: #f0f0f0;
+    }
+
+    /* ------------------------------------
+       EXTRACTED TEXT MODAL (Dark Themed)
+       ------------------------------------ */
+    .extracted-modal {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+      background-color: rgba(0, 0, 0, 0.5);
+    }
+
+    .extracted-modal-content {
+      background-color: #fff;
+      margin: 5% auto;
+      padding: 0;
+      width: 80%;
+      max-width: 1000px;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    /* The close button for the extracted modal */
+    .extracted-modal .close-button {
+      position: absolute;
+      top: 10px;
+      right: 20px;
+      font-size: 24px;
+      cursor: pointer;
+      color: #fff;
+      z-index: 10;
+    }
+
+    .extracted-modal .modal-body {
+      display: flex;
+      flex-direction: row;
+      height: 600px;
+      background: #2f2f2f;
+      color: #f0f0f0;
+    }
+
+    .extracted-modal .modal-image-container {
+      flex: 1.2;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #1c1c1c;
+      border-right: 1px solid #444;
+      position: relative;
+      padding: 20px;
+    }
+
+    .extracted-modal .modal-image-container img {
+      max-height: 90%;
+      max-width: 90%;
+      border: 1px solid #555;
+      box-shadow: 0 0 6px rgba(0, 0, 0, 0.5);
+      object-fit: contain;
+    }
+
+    .extracted-modal .arrow-btn {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      background: rgba(255, 255, 255, 0.15);
+      color: #fff;
+      border: none;
+      padding: 12px;
+      cursor: pointer;
+      border-radius: 50%;
+      font-size: 1rem;
+      transition: background 0.2s;
+    }
+
+    .extracted-modal .arrow-btn:hover {
+      background: rgba(255, 255, 255, 0.3);
+    }
+
+    #prevBtn {
+      left: 10px;
+    }
+
+    #nextBtn {
+      right: 10px;
+    }
+
+    .extracted-modal .modal-text-container {
+      flex: 1;
+      background: #2f2f2f;
+      padding: 20px;
+      overflow-y: auto;
+      font-family: 'Poppins', sans-serif;
+    }
+
+    .extracted-modal .modal-text-container p {
+      margin-bottom: 1rem;
+      line-height: 1.6;
+      font-size: 0.95rem;
+      color: #f0f0f0;
+    }
+
+    /* ------------------------------------
+       MODIFY MODAL (As per your screenshot)
+       ------------------------------------ */
+    .modify-modal {
+      display: none;
+      position: fixed;
+      z-index: 1001;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+      background-color: rgba(0, 0, 0, 0.5);
+    }
+
+    .modify-modal-content {
+      background: #fff;
+      margin: 5% auto;
+      width: 80%;
+      max-width: 900px;
+      border-radius: 8px;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      padding: 20px;
+    }
+
+    .modify-modal .close-button {
+      font-size: 24px;
+      cursor: pointer;
+      color: #333;
+    }
+
+    /* Header for the modify modal: "Uploads" on left, "N items" on right */
+    .modify-modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+
+    .modify-modal-header h2 {
+      margin: 0;
+      align-self: flex-start;
+      font-size: 1.5rem;
+      font-weight: 500;
+      color: #333;
+    }
+
+    .modify-modal-header .right-group {
+      align-self: flex-end;
+      font-size: 1rem;
+      color: #555;
+    }
+
+    /* Table inside the modify modal */
+    .modify-modal-table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #fff;
+    }
+
+    .modify-modal-table th,
+    .modify-modal-table td {
+      padding: 12px;
+      border-bottom: 1px solid #eee;
+      text-align: left;
+    }
+
+    .modify-modal-table thead th {
+      background: #f7f7f7;
+      font-weight: 600;
+      color: #333;
+    }
+
+    .modify-modal-table tbody tr:hover {
+      background: #f9f9f9;
+    }
+
+    .modify-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .btn-extract {
+      background-color: #69B262;
+      color: #fff;
+      border: none;
+      padding: 6px 10px;
+      border-radius: 4px;
+      font-size: 0.85rem;
+      cursor: pointer;
+    }
+
+    .btn-extract:hover {
+      background-color: #5da457;
+    }
+
+    .btn-extract:disabled {
+      cursor: not-allowed;
+    }
+
+    .btn-view {
+      background-color: #69B262;
+      color: #fff;
+      border: none;
+      padding: 6px 10px;
+      border-radius: 4px;
+      font-size: 0.85rem;
+      cursor: pointer;
+    }
+
+    .btn-view:disabled {
+      background-color: #ccc;
+      cursor: not-allowed;
+    }
+
+    .btn-view:hover {
+      background-color: #5da457;
+    }
+
+    .btn-view:disabled:hover {
+      background-color: #ccc;
+      cursor: not-allowed;
+    }
+
+    .btn-delete {
+      background-color: #e74c3c;
+      color: #fff;
+      border: none;
+      padding: 6px 10px;
+      border-radius: 4px;
+      font-size: 0.85rem;
+      cursor: pointer;
+    }
+
+    .btn-delete:hover {
+      background-color: #c0392b;
+    }
+
+    .button-row {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      margin: 20px 0;
+    }
+
+    .button-row button {
+      padding: 12px 20px;
+      font-size: 1rem;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+      display: inline-flex;
+      align-items: center;
+    }
+
+    /* Save Files Button - green theme */
+    .btn-save {
+      background-color: #4CAF50;
+      color: white;
+    }
+
+    .btn-save:hover {
+      background-color: #45a049;
+    }
+
+    /* Reset Files Button - red theme */
+    .btn-reset {
+      background-color: #f44336;
+      color: white;
+    }
+
+    .btn-reset:hover {
+      background-color: #da190b;
+    }
+
+    /* Submit Button - blue theme */
+    .btn-submit {
+      background-color: #008CBA;
+      color: white;
+    }
+
+    .btn-submit:hover {
+      background-color: #007bb5;
+    }
+
+
+    
+
+
+    /* --- Responsive for modals, etc. --- */
+    @media only screen and (max-width: 768px) {
+      .sidebar {
+        display: none;
+      }
+
+      .content {
+        width: 100%;
+        padding: 10px;
+        margin-left: 0;
+      }
+
+      .modify-modal-content {
+        width: 90%;
+      }
+
+      .modify-modal-table th,
+      .modify-modal-table td {
+        padding: 8px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Placeholder for Topbar -->
+  <div id="topbar-container"></div>
+
+  <div class="dashboard-container">
+    <!-- Placeholder for Sidebar -->
+    <div id="sidebar-container"></div>
+
+    <!-- Main Content -->
+    <main class="content">
+      <!-- Section 1: Upload Question Paper -->
+      <section class="upload-section" id="upload-questions">
+        <h2>Upload Question Paper</h2>
+        <div class="drop-zone" id="dropZoneQuestions">
+          <i class="fas fa-cloud-upload-alt"></i>
+          <p>Drag & drop files here</p>
+        </div>
+        <input type="file" id="questionInput" accept="image/*,application/pdf" multiple class="file-input">
+        <div class="button-container">
+          <button class="upload-btn" onclick="triggerFileInput('questionInput')">
+            <img src="add-file-icon.svg" width="18" height="18" alt="Add File">
+            ADD FILE
+          </button>
+          <button class="upload-btn" id="uploadBtnQuestions" onclick="openModifyModal('Questions','questionInput')">
+            <img src="modify-icon-2.svg" width="18" height="18" alt="Upload">Modify
+          </button>
+          <button class="view-extracted" id="viewExtractedQuestions" onclick="openModal('Questions')" disabled>
+            EXTRACT TEXT
+          </button>
+        </div>
+      </section>
+
+      <!-- Section 2: Upload Correct Solution Script -->
+      <section class="upload-section" id="upload-solution">
+        <h2>Upload Solution Script</h2>
+        <div class="drop-zone" id="dropZoneSolution">
+          <i class="fas fa-cloud-upload-alt"></i>
+          <p>Drag & drop files here</p>
+        </div>
+        <input type="file" id="solutionInput" accept="image/*,application/pdf" multiple class="file-input">
+        <div class="button-container">
+          <button class="upload-btn" onclick="triggerFileInput('solutionInput')">
+            <img src="add-file-icon.svg" width="18" height="18" alt="Add File">
+            ADD FILE
+          </button>
+          <button class="upload-btn" id="uploadBtnSolution" onclick="openModifyModal('Solution','solutionInput')">
+            <img src="modify-icon-2.svg" width="18" height="18" alt="Upload">Modify
+          </button>
+          <button class="view-extracted" id="viewExtractedSolution" onclick="openModal('Solution')" disabled>
+            EXTRACT TEXT
+          </button>
+        </div>
+      </section>
+
+      <!-- Section 3: Upload Marking Scheme -->
+      <section class="upload-section" id="upload-marking">
+        <h2>Upload Marking Scheme</h2>
+        <div class="drop-zone" id="dropZoneMarking">
+          <i class="fas fa-cloud-upload-alt"></i>
+          <p>Drag & drop files here</p>
+        </div>
+        <input type="file" id="markingInput" accept="image/*,application/pdf" multiple class="file-input">
+        <div class="button-container">
+          <button class="upload-btn" onclick="triggerFileInput('markingInput')">
+            <img src="add-file-icon.svg" width="18" height="18" alt="Add File">
+            ADD FILE
+          </button>
+          <button class="upload-btn" id="uploadBtnMarking" onclick="openModifyModal('Marking','markingInput')">
+            <img src="modify-icon-2.svg" width="18" height="18" alt="Upload">Modify
+          </button>
+          <button class="view-extracted" id="viewExtractedMarking" onclick="openModal('Marking')" disabled>
+            EXTRACT TEXT
+          </button>
+        </div>
+      </section>
+
+      <!-- Section 4: Student Answer Scripts (Table Format) -->
+      <section class="upload-section" id="upload-student">
+        <h2>Student Answer Scripts</h2>
+        <table id="studentScriptsTable">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Email ID</th>
+              <th>Files Uploaded</th>
+              <th>Files</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- These rows will be dynamically loaded -->
+          </tbody>
+        </table>
+      </section>
+
+      <div class="button-row">
+        <button id="saveBtn" class="btn-save" onclick="saveAllFiles()">Save Files</button>
+        <button id="resetBtn" class="btn-reset" onclick="resetExamFiles()">Reset Files</button>
+        <button id="submitBtn" class="btn-submit" onclick="submitExam()">Submit</button>
+      </div>
+      
+      
+
+    </main>
+  </div>
+
+  <!-- EXTRACTED TEXT MODAL (dark theme) -->
+  <div id="extractedModal" class="extracted-modal">
+    <div class="extracted-modal-content">
+      <span class="close-button" id="modalCloseBtn">&times;</span>
+      <div class="modal-body">
+        <div class="modal-image-container">
+          <button class="arrow-btn" id="prevBtn">&#9664;</button>
+          <img id="modalImage" src="" alt="Image Preview">
+          <button class="arrow-btn" id="nextBtn">&#9654;</button>
+        </div>
+        <div class="modal-text-container">
+          <p id="modalText"></p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODIFY MODAL (table-based, like your screenshot) -->
+  <div id="modifyModal" class="modify-modal">
+    <div class="modify-modal-content">
+      <!-- Header: "Uploads" and "N items" -->
+      <div class="modify-modal-header">
+        <h2>Uploads</h2>
+        <div class="right-group">
+          <span class="item-count" id="modifyItemCount"></span>
+          <span class="close-button" id="modifyModalCloseBtn">&times;</span>
+        </div>
+      </div>
+      <!-- Table: Name | File size | Actions -->
+      <table class="modify-modal-table" id="modifyModalTable">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>File size</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="modifyModalTableBody">
+          <!-- Populated by JS -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Marked library (optional usage) -->
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script src="load-components.js"></script>
+  <script src="authorize.js"></script>
+  <script>
+    /* 
+      =======================================
+      Global JS variables & data structures
+      =======================================
+    */
+    var uploadedFiles = {};  // e.g. { "Questions": [File, File], "Solution": [...], "Student0": [...] }
+    window.extractedTexts = {};
+    window.currentSection = null;
+    window.currentImageIndex = 0;
+    window.previousModal = null;
+    // Mapping from student id to the dynamically generated section key (e.g. "Student0")
+    window.studentSectionMapping = {}; // mapping from student id to section key
+
+    function getQueryParam(param) {
+      const urlParams = new URLSearchParams(window.location.search);
+      return urlParams.get(param);
+    }
+
+    /*
+    =======================================
+    Dynamic Loading of Exam Data (Students & Saved Files)
+    =======================================
+    */
+
+    async function loadExam() {
+      const examId = getQueryParam("exam_id");
+      if (!examId) {
+        alert("Exam ID not provided");
+        return;
+      }
+      // 1. Load student list (now includes student id)
+      try {
+        const response = await authFetch(`/exams/${examId}/students`, {
+          headers: { "Content-Type": "application/json" }
+        });
+        const data = await response.json();
+        const tbody = document.querySelector("#studentScriptsTable tbody");
+        tbody.innerHTML = "";
+        data.students.forEach((student, idx) => {
+          // Save mapping: student.id => "Student"+idx
+          window.studentSectionMapping[student.id] = "Student" + idx;
+          const rowHTML = `
+            <tr id="rowStudent${idx}" data-student-id="${student.id}" data-section="Student${idx}">
+              <td>${student.name}</td>
+              <td>${student.email}</td>
+              <td><span id="fileCountStudent${idx}">0</span></td>
+              <td>
+                <input type="file" id="studentInputStudent${idx}" accept="image/*,application/pdf" multiple class="file-input">
+                <div class="button-container">
+                  <button class="upload-btn" onclick="triggerFileInput('studentInputStudent${idx}')">
+                    <img src="add-file-icon.svg" width="18" height="18" alt="Add File">
+                    ADD FILE
+                  </button>
+                  <button class="upload-btn" id="uploadBtnStudent${idx}" onclick="openModifyModal('Student'+${idx},'studentInputStudent${idx}')">
+                    <img src="modify-icon-2.svg" width="18" height="18" alt="Upload">Modify
+                  </button>
+                  <button class="view-extracted" id="viewExtractedStudent${idx}" onclick="openModal('Student'+${idx})" disabled>
+                    EXTRACT TEXT
+                  </button>
+                </div>
+              </td>
+            </tr>
+          `;
+          tbody.innerHTML += rowHTML;
+        });
+        // Attach event listeners for the newly created file inputs
+        data.students.forEach((student, idx) => {
+          const inputElem = document.getElementById("studentInputStudent" + idx);
+          if (inputElem) {
+            inputElem.addEventListener("change", function () {
+              onFileInputChange("Student" + idx, "studentInputStudent" + idx, "rowStudent" + idx);
+            });
+          }
+        });
+      } catch (error) {
+        console.error("Error loading students:", error);
+      }
+
+      // 2. Load already saved exam files (both Materials and Answer Scripts)
+      try {
+        const res = await authFetch(`/exams/${examId}/files`);
+        const fileData = await res.json();
+        // Process saved Materials (static exam files)
+        fileData.materials.forEach(material => {
+          let sectionKey = "";
+          if (material.file_type === "question_paper") {
+            sectionKey = "Questions";
+          } else if (material.file_type === "solution_script") {
+            sectionKey = "Solution";
+          } else if (material.file_type === "marking_scheme") {
+            sectionKey = "Marking";
+          }
+          if (sectionKey) {
+            // Create a simulated file object with the necessary properties.
+            const fileObj = {
+              id: material.id,
+              name: material.filename,    // stored in db as title
+              size: material.file_size,
+              file_path: material.file_path,
+              extractedText: material.extracted_text
+            };
+            if (!uploadedFiles[sectionKey]) uploadedFiles[sectionKey] = [];
+            uploadedFiles[sectionKey].push(fileObj);
+
+            // Store extracted text for modal display.
+            if (!window.extractedTexts[sectionKey]) {
+              window.extractedTexts[sectionKey] = [];
+            }
+            window.extractedTexts[sectionKey].push({ text: material.extracted_text || "" });
+
+            // Update the drop zone preview.
+            updateDropZonePreview(sectionKey, "dropZone" + sectionKey);
+          }
+        });
+
+        // After processing Materials, update the button text for static sections.
+        ["Questions", "Solution", "Marking"].forEach(sectionKey => {
+          if (uploadedFiles[sectionKey] && uploadedFiles[sectionKey].length > 0) {
+            const allExtracted = uploadedFiles[sectionKey].every(file => file.extractedText && file.extractedText.trim() !== "");
+            const btn = document.getElementById("viewExtracted" + sectionKey);
+            if (btn) {
+              if (allExtracted) {
+                btn.innerText = "VIEW EXTRACTED TEXT";
+                btn.disabled = false;
+              } else {
+                btn.innerText = "EXTRACT TEXT";
+                btn.disabled = false;
+              }
+            }
+          }
+        });
+
+        // Process saved Answer Scripts (student files)
+        fileData.answer_scripts.forEach(ans => {
+          // Use the mapping (student id -> dynamic section key) established earlier.
+          const sectionKey = window.studentSectionMapping[ans.student_id];
+          if (sectionKey) {
+            const fileObj = {
+              id: ans.id,
+              name: ans.filename,
+              size: ans.file_size,
+              file_path: ans.file_path,
+              extractedText: ans.extracted_text
+            };
+            if (!uploadedFiles[sectionKey]) uploadedFiles[sectionKey] = [];
+            uploadedFiles[sectionKey].push(fileObj);
+
+            if (!window.extractedTexts[sectionKey]) {
+              window.extractedTexts[sectionKey] = [];
+            }
+            window.extractedTexts[sectionKey].push({ text: ans.extracted_text || "" });
+
+            // Update the file count in the student row.
+            const idx = sectionKey.replace("Student", "");
+            const countElem = document.getElementById("fileCountStudent" + idx);
+            if (countElem) {
+              countElem.innerText = uploadedFiles[sectionKey].length;
+            }
+
+            // Update the "Extract Text" button for the student section.
+            const btn = document.getElementById("viewExtracted" + sectionKey);
+            if (btn) {
+              const allExtracted = uploadedFiles[sectionKey].every(file => file.extractedText && file.extractedText.trim() !== "");
+              if (allExtracted) {
+                btn.innerText = "VIEW EXTRACTED TEXT";
+                btn.disabled = false;
+              } else {
+                btn.innerText = "EXTRACT TEXT";
+                btn.disabled = false;
+              }
+            }
+          }
+        });
+
+      } catch (error) {
+        console.error("Error loading exam files:", error);
+      }
+    }
+
+    // On DOM content loaded, call loadExam
+    document.addEventListener("DOMContentLoaded", loadExam);
+
+    // Updated saveAllFiles function
+    async function saveAllFiles() {
+      const examId = getQueryParam("exam_id");
+      if (!examId) {
+        alert("Exam ID not provided.");
+        return;
+      }
+      // Mapping for static sections only.
+      const sectionMapping = {
+        "Questions": { file_type: "question_paper" },
+        "Solution": { file_type: "solution_script" },
+        "Marking": { file_type: "marking_scheme" }
+      };
+
+      // Helper function to convert a file object if necessary
+      async function getFileObject(fileObj) {
+        // If it's already a native File object, return it.
+        if (fileObj instanceof File) {
+          return fileObj;
+        }
+        // Otherwise, assume it has a file_path property and convert it.
+        if (fileObj.file_path) {
+          const src = "../" + fileObj.file_path.replace("./", "");
+          try {
+            const response = await fetch(src);
+            if (!response.ok) {
+              throw new Error("Failed to fetch file from " + fileObj.file_path);
+            }
+            const blob = await response.blob();
+            // Create a new File with the original name and blob's type.
+            return new File([blob], fileObj.name, { type: blob.type });
+          } catch (e) {
+            console.error("Error converting file:", e);
+            return null;
+          }
+        }
+        return null;
+      }
+
+      const promises = [];
+
+      // Process static sections.
+      for (const section in sectionMapping) {
+        if (uploadedFiles[section] && uploadedFiles[section].length > 0) {
+          const formData = new FormData();
+          formData.append("exam_id", examId);
+          formData.append("file_type", sectionMapping[section].file_type);
+          // Convert each file if necessary.
+          for (let i = 0; i < uploadedFiles[section].length; i++) {
+            const fileObj = await getFileObject(uploadedFiles[section][i]);
+            if (fileObj) {
+              formData.append("files", fileObj);
+            }
+          }
+          promises.push(
+            authFetch("/exam/save-files", {
+              method: "POST",
+              body: formData
+            })
+          );
+        }
+      }
+
+      // Process dynamic student sections.
+      for (const section of Object.keys(uploadedFiles)) {
+        if (section.startsWith("Student") && uploadedFiles[section].length > 0) {
+          const formData = new FormData();
+          formData.append("exam_id", examId);
+          formData.append("file_type", "answer_sheet");
+          // Get student_id from the corresponding row.
+          const rowElem = document.getElementById("rowStudent" + section.replace("Student", ""));
+          if (rowElem) {
+            const studentId = rowElem.getAttribute("data-student-id");
+            if (studentId) {
+              formData.append("student_id", studentId);
+            }
+          }
+          for (let i = 0; i < uploadedFiles[section].length; i++) {
+            const fileObj = await getFileObject(uploadedFiles[section][i]);
+            if (fileObj) {
+              formData.append("files", fileObj);
+            }
+          }
+          promises.push(
+            authFetch("/exam/save-files", {
+              method: "POST",
+              body: formData
+            })
+          );
+        }
+      }
+
+      try {
+        const responses = await Promise.all(promises);
+        const results = await Promise.all(responses.map(resp => resp.json()));
+        alert("Files saved successfully.");
+      } catch (err) {
+        console.error("Error saving files:", err);
+        alert("An error occurred while saving files.");
+      }
+    }
+
+
+    // New Submit functionality: calls saveAllFiles() first, then processes the files
+    function submitExam() {
+      const examId = getQueryParam("exam_id");
+      if (!examId) {
+        alert("Exam ID not provided.");
+        return;
+      }
+
+      // Disable button and update text to show processing
+      const submitBtn = document.getElementById("submitBtn");
+      submitBtn.disabled = true;
+      submitBtn.innerText = "Processing...";
+
+
+      //        ADD CHECK FOR ALL STUDENTS TO HAVE UPLOADED FILES
+      let markingSchemeUploaded = false;
+      let solutionScriptUploaded = false;
+
+      // First save all files
+      saveAllFiles()
+        .then(() => {
+          // Check document availability using the studentBackend endpoint
+          return authFetch(`/student/exam/${examId}/available-documents`)
+            .then(response => response.json())
+            .then(availability => {
+              // Validate all required document types are available
+              if (!availability["Question-Paper"]) {
+                throw new Error("No Question Paper uploaded. Please upload question papers first.");
+              }
+              if (!availability["Solution-Script"] && !availability["Marking-Scheme"]) {
+                throw new Error("Neither Marking Scheme nor Correct Solution Scripts uploaded. Please upload at least one first.");
+              }
+              if (availability["Solution-Script"]) solutionScriptUploaded = true;
+              if (availability["Marking-Scheme"]) markingSchemeUploaded = true;
+              console.log("All required documents are available");
+              // Process Question Paper first
+              return processQuestionPaper(examId);
+            });
+        })
+        .then(() => {
+          // Call processSolutionScript only if available
+          if (solutionScriptUploaded) {
+            return processSolutionScript(examId);
+          }
+        })
+        .then(() => {
+          // Call processMarkingScheme only if available
+          if (markingSchemeUploaded) {
+            return processMarkingScheme(examId);
+          }
+        })
+        .then(() => processStudentAnswers(examId))
+        .then(() => {
+          alert("Files saved and processed successfully.");
+          submitBtn.disabled = false;
+          submitBtn.innerText = "Submit";
+          loadExam();
+        })
+        .catch(err => {
+          console.error("Error processing files:", err);
+          alert("An error occurred during processing: " + err.message);
+          submitBtn.disabled = false;
+          submitBtn.innerText = "Submit";
+        });
+    }
+    // Process question paper files: extract and store questions
+    async function processQuestionPaper(examId) {
+      console.log("Processing question papers");
+      try {
+        // Clear existing questions first
+        await authFetch(`/exams/${examId}/questions`, {
+          method: "DELETE",
+        });
+
+        // Get question paper content using studentBackend endpoint
+        const response = await authFetch(`/student/exam/${examId}/document/Question-Paper`);
+        const questionPaper = await response.json();
+
+        if (!questionPaper || !questionPaper.extracted_text) {
+          console.log("No question papers found to process");
+          return;
+        }
+
+        const extractedText = questionPaper.extracted_text;
+        const questionPattern = /\*\*Question Number\s*(?:[:\-]\s*)?(\d+)\*\*\s*([\s\S]*?)(?=\*\*Question Number\s*(?:[:\-]\s*)?|$)/g;
+        const questions = [];
+        let match;
+        
+        while ((match = questionPattern.exec(extractedText)) !== null) {
+          questions.push({
+            number: parseInt(match[1], 10),
+            text: match[2].trim()
+          });
+        }
+
+        questions.sort((a, b) => a.number - b.number);
+
+        
+        // Extract max marks for each question if available
+        const maxMarksPattern = /Max(?:imum)?\s*Marks\s*(?:[:\-]\s*)?(\d+)/i;
+        
+        const createPromises = questions.map(question => {
+          // Try to extract max marks from the question text
+          const marksMatch = question.text.match(maxMarksPattern);
+          const maxMarks = marksMatch ? parseInt(marksMatch[1], 10) : 10; // Default to 10 if not found
+          
+          const cleanedText = question.text.replace(maxMarksPattern, "").trim();
+
+          console.log("Max Marks: ", maxMarks);
+
+          return authFetch(`/exams/${examId}/questions`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              question_number: question.number,
+              text: cleanedText,
+              max_marks: maxMarks
+            })
+          });
+        });
+
+        await Promise.all(createPromises);
+        console.log("Question papers processed and questions created");
+      } catch (error) {
+        console.error("Error processing question papers:", error);
+        throw new Error("Failed to process question papers");
+      }
+    }
+
+    // Process solution script files: extract and store ideal answers
+    async function processSolutionScript(examId) {
+      console.log("Processing solution scripts");
+      try {
+        // Get solution script content using studentBackend endpoint
+        const response = await authFetch(`/student/exam/${examId}/document/Solution-Script`);
+        const solutionScript = await response.json();
+
+        if (!solutionScript || !solutionScript.extracted_text) {
+          console.log("No solution scripts found to process");
+          return;
+        }
+
+        const questions = await authFetch(`/exams/${examId}/questions/all`);
+        const existingQuestions = await questions.json();
+
+        if (!existingQuestions || existingQuestions.length === 0) {
+          console.log("No questions found to associate solutions with");
+          return;
+        }
+
+        const solutionText = solutionScript.extracted_text;
+        const solutionPattern = /\*\*Question Number\s*(?:[:\-]\s*)?(\d+)\*\*\s*([\s\S]*?)(?=\*\*Question Number\s*(?:[:\-]\s*)?|$)/g;
+        const solutions = {};
+        let match;
+
+        while ((match = solutionPattern.exec(solutionText)) !== null) {
+          solutions[parseInt(match[1], 10)] = match[2].trim();
+        }
+
+        // Update each question with its ideal answer
+        const updatePromises = existingQuestions.map(question => {
+          const questionNum = question.question_number;
+          if (solutions[questionNum]) {
+            return authFetch(`/exams/${examId}/questions/${question.id}`, {
+              method: "PATCH",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                ideal_answer: solutions[questionNum]
+              })
+            });
+          }
+          return Promise.resolve();
+        });
+
+        await Promise.all(updatePromises);
+        console.log("Solution scripts processed and ideal answers stored");
+      } catch (error) {
+        console.error("Error processing solution scripts:", error);
+        throw new Error("Failed to process solution scripts");
+      }
+    }
+
+    // Process marking scheme files: extract and store marking criteria
+    async function processMarkingScheme(examId) {
+      console.log("Processing marking schemes");
+      try {
+        // Get marking scheme content using studentBackend endpoint
+        const response = await authFetch(`/student/exam/${examId}/document/Marking-Scheme`);
+        const markingScheme = await response.json();
+
+        if (!markingScheme || !markingScheme.extracted_text) {
+          console.log("No marking schemes found to process");
+          return;
+        }
+
+        const questions = await authFetch(`/exams/${examId}/questions/all`);
+        const existingQuestions = await questions.json();
+
+        if (!existingQuestions || existingQuestions.length === 0) {
+          console.log("No questions found to associate marking scheme with");
+          return;
+        }
+
+        const schemeText = markingScheme.extracted_text;
+        const schemePattern = /\*\*Question Number\s*(?:[:\-]\s*)?(\d+)\*\*\s*([\s\S]*?)(?=\*\*Question Number\s*(?:[:\-]\s*)?|$)/g;
+        const schemes = {};
+        let match;
+
+        while ((match = schemePattern.exec(schemeText)) !== null) {
+          schemes[parseInt(match[1], 10)] = match[2].trim();
+        }
+        // console.log(schemes);
+        // Update each question with its marking scheme
+        const updatePromises = existingQuestions.map(question => {
+          const questionNum = question.question_number;
+          if (schemes[questionNum]) {
+            return authFetch(`/exams/${examId}/questions/${question.id}`, {
+              method: "PATCH",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                ideal_marking_scheme: schemes[questionNum]
+              })
+            });
+          }
+          return Promise.resolve();
+        });
+
+        await Promise.all(updatePromises);
+        console.log("Marking schemes processed and criteria stored");
+      } catch (error) {
+        console.error("Error processing marking schemes:", error);
+        throw new Error("Failed to process marking schemes");
+      }
+    }
+
+    // Process student answer scripts: extract, store, and grade answers
+    async function processStudentAnswers(examId) {
+      console.log("Processing student answer scripts");
+      try {
+        // Get all student answer scripts
+        const answerScriptsResponse = await authFetch(`/exams/${examId}/document/Answer-Script`);
+        const studentScripts = await answerScriptsResponse.json();
+
+        // Get all questions for this exam
+        const questions = await authFetch(`/exams/${examId}/questions/all`);
+        const existingQuestions = await questions.json();
+
+        if (!existingQuestions || existingQuestions.length === 0) {
+          console.log("No questions found to grade student answers against");
+          return;
+        }
+
+        for (const script of studentScripts) {
+          if (!script.extracted_text) {
+            console.log(`Skipping script for student ${script.student_id} - no extracted text`);
+            continue;
+          }
+
+          const answerPattern = /\*\*Question Number\s*(?:[:\-]\s*)?(\d+)\*\*\s*([\s\S]*?)(?=\*\*Question Number\s*(?:[:\-]\s*)?|$)/g;
+          const studentAnswers = {};
+          let match;
+
+          while ((match = answerPattern.exec(script.extracted_text)) !== null) {
+            studentAnswers[parseInt(match[1], 10)] = match[2].trim();
+          }
+
+          for (const question of existingQuestions) {
+            const questionNum = question.question_number;
+            if (studentAnswers[questionNum]) {
+              // Save the student's response
+              await authFetch(`/exams/${examId}/student-responses`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  student_id: script.student_id,
+                  question_id: question.id,
+                  answer_text: studentAnswers[questionNum]
+                })
+              });
+
+              // If the question has an ideal answer and marking scheme, grade it
+              if (question.ideal_answer || question.ideal_marking_scheme) {
+                await gradeStudentResponse(
+                  examId,
+                  script.student_id,
+                  question.id,
+                  studentAnswers[questionNum],
+                  question.ideal_answer,
+                  question.ideal_marking_scheme
+                );
+              }
+            }
+          }
+          console.log(`Processed answers for student ID: ${script.student_id}`);
+        }
+        console.log("All student answer scripts processed");
+      } catch (error) {
+        console.error("Error processing student answer scripts:", error);
+        throw new Error("Failed to process student answer scripts");
+      }
+    }
+
+    // Helper function to grade a student response
+    async function gradeStudentResponse(examId, studentId, questionId, studentAnswer, idealAnswer, markingScheme) {
+      try {
+        const response = await authFetch(`/grade-question`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            exam_id: examId,
+            student_id: studentId,
+            question_id: questionId,
+            student_answer: studentAnswer,
+            ideal_answer: idealAnswer,
+            marking_scheme: markingScheme
+          })
+        });
+        const result = await response.json();
+        console.log(`Graded question ${questionId} for student ${studentId}:`, result);
+        return result;
+      } catch (error) {
+        console.error(`Error grading question ${questionId} for student ${studentId}:`, error);
+        return null;
+      }
+    }
+
+    /* 
+      =======================================
+      File input & drop-zone preview logic
+      =======================================
+    */
+    function triggerFileInput(inputId) {
+      document.getElementById(inputId).click();
+    }
+
+    function onFileInputChange(section, inputId, dropZoneId) {
+      var input = document.getElementById(inputId);
+      var newFiles = input.files;
+      if (!uploadedFiles[section]) {
+        uploadedFiles[section] = [];
+      }
+      for (var i = 0; i < newFiles.length; i++) {
+        var file = newFiles[i];
+        var duplicate = false;
+        for (var j = 0; j < uploadedFiles[section].length; j++) {
+          var existing = uploadedFiles[section][j];
+          if (
+            existing.name === file.name &&
+            existing.size === file.size &&
+            existing.lastModified === file.lastModified
+          ) {
+            duplicate = true;
+            break;
+          }
+        }
+        if (!duplicate) {
+          uploadedFiles[section].push(file);
+        }
+      }
+      input.value = "";
+      updateDropZonePreview(section, dropZoneId);
+      updateExtractButtonState(section);
+    }
+
+    function updateDropZonePreview(section, dropZoneId) {
+      // For student answer scripts, update only the file count.
+      if (section.startsWith("Student")) {
+        const idx = section.replace("Student", "");
+        const countElem = document.getElementById("fileCountStudent" + idx);
+        if (countElem) {
+          countElem.innerText = uploadedFiles[section] ? uploadedFiles[section].length : 0;
+        }
+        // Do not modify the student row content (i.e. no preview or file type)
+        return;
+      }
+      
+      // Existing behavior for non-student sections
+      var dropZone = document.getElementById(dropZoneId);
+      dropZone.innerHTML = "";
+      if (uploadedFiles[section] && uploadedFiles[section].length > 0) {
+        var previewContainer = document.createElement("div");
+        previewContainer.style.position = "absolute";
+        previewContainer.style.top = "50%";
+        previewContainer.style.left = "50%";
+        previewContainer.style.transform = "translate(-50%, -50%)";
+        previewContainer.style.background = "#fff";
+        previewContainer.style.border = "1px solid #ccc";
+        previewContainer.style.padding = "10px";
+        previewContainer.style.borderRadius = "8px";
+        previewContainer.style.boxShadow = "0 2px 4px rgba(0,0,0,0.1)";
+        
+        var firstFile = uploadedFiles[section][0];
+        var img = document.createElement("img");
+        
+        // Check if the first file is a PDF; if so, use a generic PDF icon.
+        if (firstFile && firstFile.type) {
+          if (firstFile.type === "application/pdf" || 
+            (firstFile.name && firstFile.name.toLowerCase().endsWith(".pdf"))) {
+            img.src = "pdf-icon.svg"; // ensure pdf-icon.svg is available in your assets
+          } else if (firstFile.type.startsWith("image/")) {
+            img.src = URL.createObjectURL(firstFile);
+          }
+        } else if (firstFile && firstFile.file_path) {
+          // For backend-loaded files, check the file extension
+          if (firstFile.file_path.toLowerCase().endsWith(".pdf")) {
+            img.src = "pdf-icon.svg";
+          } else {
+            console.log("BACKEND LOAD ", firstFile.file_path);
+            img.src = "../" + firstFile.file_path.replace("./", "");
+          }
+        }
+        
+        img.style.maxWidth = "80px";
+        img.style.maxHeight = "80px";
+        previewContainer.appendChild(img);
+        
+        var countBadge = document.createElement("div");
+        countBadge.className = "image-count";
+        countBadge.innerText = uploadedFiles[section].length;
+        previewContainer.appendChild(countBadge);
+        
+        dropZone.style.position = "relative";
+        dropZone.appendChild(previewContainer);
+      } else {
+        dropZone.innerHTML = '<i class="fas fa-cloud-upload-alt"></i><p>Drag & drop files here</p>';
+      }
+    }
+
+
+    function updateExtractButtonState(section) {
+      var btn = document.getElementById("viewExtracted" + section);
+      if (uploadedFiles[section] && uploadedFiles[section].length > 0) {
+        btn.disabled = false;
+        btn.style.backgroundColor = "#69B262";
+        btn.innerText = "EXTRACT TEXT";
+      } else {
+        btn.disabled = true;
+        btn.style.backgroundColor = "#ccc";
+        btn.innerText = "EXTRACT TEXT";
+      }
+    }
+
+    function removeFile(section, index, dropZoneId) {
+      if (uploadedFiles[section]) {
+        uploadedFiles[section].splice(index, 1);
+        updateDropZonePreview(section, dropZoneId);
+        updateExtractButtonState(section);
+      }
+    }
+
+    document.getElementById("questionInput").addEventListener("change", function () {
+      onFileInputChange("Questions", "questionInput", "dropZoneQuestions");
+    });
+    document.getElementById("solutionInput").addEventListener("change", function () {
+      onFileInputChange("Solution", "solutionInput", "dropZoneSolution");
+    });
+    document.getElementById("markingInput").addEventListener("change", function () {
+      onFileInputChange("Marking", "markingInput", "dropZoneMarking");
+    });
+
+    /* 
+      =======================================
+      Extraction Workflow
+      =======================================
+    */
+    async function extractTextForSection(section) {
+      const examId = getQueryParam("exam_id");
+      if (!examId) {
+        alert("Exam ID not provided");
+        return;
+      }
+      const formData = new FormData();
+      formData.append("exam_id", examId);
+      let fileType = "";
+      if (section === "Questions") fileType = "question_paper";
+      else if (section === "Solution") fileType = "solution_script";
+      else if (section === "Marking") fileType = "marking_scheme";
+      else if (section.startsWith("Student")) fileType = "answer_sheet";
+      formData.append("file_type", fileType);
+      if (section.startsWith("Student")) {
+        const rowElem = document.getElementById("rowStudent" + section.replace("Student", ""));
+        if (rowElem) {
+          const studentId = rowElem.getAttribute("data-student-id");
+          if (studentId) {
+            formData.append("student_id", studentId);
+          }
+        }
+      }
+
+      // Process each file in uploadedFiles[section]
+      const filesArray = uploadedFiles[section];
+      for (let file of filesArray) {
+        if (file instanceof File) {
+          formData.append("files", file);
+        } else if (file.file_path) {
+          try {
+            src = "../" + file.file_path.replace("./", "");
+            const response = await fetch(src);
+            if (!response.ok) {
+              throw new Error("Failed to fetch file from " + file.file_path);
+            }
+            const blob = await response.blob();
+            const newFile = new File([blob], file.name, { type: blob.type });
+            formData.append("files", newFile);
+          } catch (e) {
+            console.error("Error fetching backend file:", e);
+          }
+        }
+      }
+
+      const extractBtn = document.getElementById("viewExtracted" + section);
+      extractBtn.innerText = "EXTRACTING...";
+      extractBtn.disabled = true;
+      try {
+        const response = await fetch("/extract-text", {
+          method: "POST",
+          body: formData
+        });
+        const data = await response.json();
+        if (data.results) {
+          window.extractedTexts[section] = data.results;
+          extractBtn.innerText = "VIEW EXTRACTED TEXT";
+          extractBtn.disabled = false;
+        } else {
+          alert("Error: " + data.error);
+          extractBtn.innerText = "EXTRACT TEXT";
+          extractBtn.disabled = false;
+        }
+      } catch (error) {
+        console.error(error);
+        alert("Error connecting to server.");
+        extractBtn.innerText = "EXTRACT TEXT";
+        extractBtn.disabled = false;
+      }
+    }
+
+    function openModal(section) {
+      var extractBtn = document.getElementById("viewExtracted" + section);
+      if (extractBtn.innerText === "EXTRACT TEXT") {
+        extractTextForSection(section);
+      } else if (extractBtn.innerText === "VIEW EXTRACTED TEXT") {
+        var modifyModal = document.getElementById("modifyModal");
+        if (modifyModal.style.display === "block") {
+          modifyModal.style.display = "none";
+          window.previousModal = "modifyModal";
+        } else {
+          window.previousModal = null;
+        }
+        openExtractedModal(section);
+      }
+    }
+
+    function openExtractedModal(section) {
+      document.getElementById("extractedModal").style.display = "block";
+      window.currentSection = section;
+      window.currentImageIndex = 0;
+      updateModalContent(section);
+    }
+
+    function updateModalContent(section) {
+      var results = window.extractedTexts[section];
+      if (!results || results.length === 0) return;
+      var index = window.currentImageIndex;
+      var result = results[index];
+      var file = uploadedFiles[section] && uploadedFiles[section][index];
+      let container = document.querySelector(".modal-image-container");
+      
+      // Determine if the file is a PDF
+      let isPdf = false;
+      if (file) {
+        if (file.type && file.type === "application/pdf") {
+          isPdf = true;
+        } else if (file.name && file.name.toLowerCase().endsWith(".pdf")) {
+          isPdf = true;
+        }
+      }
+      
+      // Remove any previous PDF iframe if present
+      let pdfFrame = document.getElementById("modalPdfFrame");
+      let imgElement = document.getElementById("modalImage");
+      
+      if (isPdf) {
+        // If there is an <img> element, hide it.
+        if (imgElement) {
+          imgElement.style.display = "none";
+        }
+        // If the PDF iframe does not exist, create it.
+        if (!pdfFrame) {
+          pdfFrame = document.createElement("iframe");
+          pdfFrame.id = "modalPdfFrame";
+          // Style the iframe to fill the container and allow scrolling.
+          pdfFrame.style.width = "100%";
+          pdfFrame.style.height = "100%";
+          pdfFrame.style.border = "none";
+          container.appendChild(pdfFrame);
+        }
+        // Set the source of the PDF.
+        let pdfUrl = "";
+        if (file instanceof File) {
+          pdfUrl = URL.createObjectURL(file);
+        } else if (file.file_path) {
+          pdfUrl = "../" + file.file_path.replace("./", "");
+        }
+        pdfFrame.src = pdfUrl;
+      } else {
+        // For non-PDF files, ensure any existing PDF iframe is removed.
+        if (pdfFrame) {
+          pdfFrame.remove();
+        }
+        // Ensure an image element exists.
+        if (!imgElement) {
+          imgElement = document.createElement("img");
+          imgElement.id = "modalImage";
+          container.appendChild(imgElement);
+        } else {
+          imgElement.style.display = "block";
+        }
+        let imgSrc = "";
+        if (file instanceof File && file.type && file.type.startsWith("image/")) {
+          imgSrc = URL.createObjectURL(file);
+        } else if (file && file.file_path) {
+          imgSrc = "../" + file.file_path.replace("./", "");
+        }
+        imgElement.src = imgSrc;
+      }
+      
+      // Update the modal text on the right side
+      const html = marked.parse(result.text);
+      document.getElementById("modalText").innerHTML = html;
+    }
+
+
+    document.getElementById("prevBtn").addEventListener("click", function () {
+      if (window.currentImageIndex > 0) {
+        window.currentImageIndex--;
+        updateModalContent(window.currentSection);
+      }
+    });
+    document.getElementById("nextBtn").addEventListener("click", function () {
+      var results = window.extractedTexts[window.currentSection];
+      if (window.currentImageIndex < results.length - 1) {
+        window.currentImageIndex++;
+        updateModalContent(window.currentSection);
+      }
+    });
+
+    document.getElementById("modalCloseBtn").addEventListener("click", function () {
+      document.getElementById("extractedModal").style.display = "none";
+      if (window.previousModal === "modifyModal") {
+        document.getElementById("modifyModal").style.display = "block";
+      }
+    });
+
+    /* 
+      =======================================
+      Modify Modal
+      =======================================
+    */
+    document.getElementById("modifyModalCloseBtn").addEventListener("click", function () {
+      document.getElementById("modifyModal").style.display = "none";
+    });
+
+    function openModifyModal(section, inputId) {
+      if (!uploadedFiles[section] || uploadedFiles[section].length === 0) {
+        alert("No files to modify.");
+        return;
+      }
+      var modifyModal = document.getElementById("modifyModal");
+      modifyModal.style.display = "block";
+      var itemCountSpan = document.getElementById("modifyItemCount");
+      itemCountSpan.innerText = uploadedFiles[section].length + " item" + (uploadedFiles[section].length > 1 ? "s" : "");
+      var tbody = document.getElementById("modifyModalTableBody");
+      tbody.innerHTML = "";
+      for (let i = 0; i < uploadedFiles[section].length; i++) {
+        const file = uploadedFiles[section][i];
+        const row = document.createElement("tr");
+        const nameTd = document.createElement("td");
+        nameTd.textContent = file.name;
+        row.appendChild(nameTd);
+        const sizeTd = document.createElement("td");
+        const sizeKB = Math.round(file.size / 1024) + " KB";
+        sizeTd.textContent = sizeKB;
+        row.appendChild(sizeTd);
+        const actionsTd = document.createElement("td");
+        actionsTd.classList.add("modify-actions");
+        const extractBtn = document.createElement("button");
+        extractBtn.className = "btn-extract";
+        if (!file.extractedText) extractBtn.textContent = "EXTRACT TEXT";
+        else extractBtn.textContent = "RE-EXTRACT TEXT";
+        extractBtn.onclick = async function () {
+          extractBtn.disabled = true;
+          extractBtn.textContent = "EXTRACTING...";
+          const formData = new FormData();
+          const examId = getQueryParam("exam_id");
+          if (!examId) {
+            alert("Exam ID not provided.");
+            extractBtn.disabled = false;
+            extractBtn.textContent = "EXTRACT TEXT";
+            return;
+          }
+          formData.append("exam_id", examId);
+          let fileType = "";
+          if (section === "Questions") fileType = "question_paper";
+          else if (section === "Solution") fileType = "solution_script";
+          else if (section === "Marking") fileType = "marking_scheme";
+          else if (section.startsWith("Student")) fileType = "answer_sheet";
+          formData.append("file_type", fileType);
+          if (section.startsWith("Student")) {
+            const rowElem = document.getElementById("rowStudent" + section.replace("Student", ""));
+            if (rowElem) {
+              const studentId = rowElem.getAttribute("data-student-id");
+              if (studentId) {
+                formData.append("student_id", studentId);
+              }
+            }
+          }
+          formData.append("files", file);
+          try {
+            const response = await fetch("/extract-text", {
+              method: "POST",
+              body: formData
+            });
+            const data = await response.json();
+            if (data.results) {
+              file.extractedText = data.results[0].text;
+              extractBtn.textContent = "RE-EXTRACT TEXT";
+              viewBtn.disabled = false;
+            } else {
+              alert("Error: " + data.error);
+              extractBtn.textContent = "EXTRACT TEXT";
+            }
+          } catch (err) {
+            console.error(err);
+            alert("Error connecting to server.");
+            extractBtn.textContent = "EXTRACT TEXT";
+          }
+          extractBtn.disabled = false;
+        };
+        actionsTd.appendChild(extractBtn);
+        const viewBtn = document.createElement("button");
+        viewBtn.className = "btn-view";
+        viewBtn.textContent = "VIEW EXTRACTED TEXT";
+        viewBtn.disabled = !file.extractedText;
+        viewBtn.onclick = function () {
+          modifyModal.style.display = "none";
+          window.previousModal = "modifyModal";
+          window.uploadedFiles["Individual"] = [file];
+          window.extractedTexts["Individual"] = [{ text: file.extractedText || "" }];
+          window.currentSection = "Individual";
+          window.currentImageIndex = 0;
+          openExtractedModal("Individual");
+        };
+        actionsTd.appendChild(viewBtn);
+        const deleteBtn = document.createElement("button");
+        deleteBtn.className = "btn-delete";
+        deleteBtn.textContent = "✕";
+        deleteBtn.onclick = function () {
+          let dzId = "";
+          if (section === "Questions") dzId = "dropZoneQuestions";
+          else if (section === "Solution") dzId = "dropZoneSolution";
+          else if (section === "Marking") dzId = "dropZoneMarking";
+          else if (section.startsWith("Student")) dzId = "rowStudent" + section.replace("Student", "");
+          const file = uploadedFiles[section][i];
+          if (file.id) {
+            const examId = getQueryParam("exam_id");
+            fetch(`/exams/${examId}/files/${file.id}`, {
+              method: "DELETE"
+            }).then(res => res.json())
+              .then(data => {
+                if (data.success) {
+                  removeFile(section, i, dzId);
+                } else {
+                  alert("Error deleting file: " + data.message);
+                }
+              })
+              .catch(err => {
+                console.error(err);
+                alert("Error deleting file from database.");
+              });
+          } else {
+            removeFile(section, i, dzId);
+          }
+          openModifyModal(section, inputId);
+        };
+        actionsTd.appendChild(deleteBtn);
+        row.appendChild(actionsTd);
+        tbody.appendChild(row);
+      }
+    }
+
+    async function resetExamFiles() {
+      const examId = getQueryParam("exam_id");
+      if (!examId) {
+        alert("Exam ID not provided.");
+        return;
+      }
+      if (!confirm("Are you sure you want to reset all files for this exam? This cannot be undone.")) return;
+      try {
+        const response = await fetch(`/exams/${examId}/files`, {
+          method: "DELETE"
+        });
+        const data = await response.json();
+        if (data.success) {
+          uploadedFiles = {};
+          updateDropZonePreview("Questions", "dropZoneQuestions");
+          updateDropZonePreview("Solution", "dropZoneSolution");
+          updateDropZonePreview("Marking", "dropZoneMarking");
+          const studentRows = document.querySelectorAll('[id^="rowStudent"]');
+          studentRows.forEach(row => {
+            const sectionKey = row.getAttribute("data-section");
+            updateDropZonePreview(sectionKey, row.id);
+          });
+          alert("All files have been reset.");
+        } else {
+          alert("Error: " + data.message);
+        }
+      } catch (error) {
+        console.error(error);
+        alert("Error resetting files.");
+      }
+    }
+  </script>
+</body>
+
+</html>

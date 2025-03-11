@@ -1,0 +1,6 @@
+venv/
+.env
+oldDB/
+classroom.db
+uploads/
+*.zip

@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Grade Questions</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    textarea { width: 100%; height: 150px; margin-bottom: 10px; padding: 8px; font-size: 14px; }
+    label { font-weight: bold; display: block; margin-top: 15px; }
+    button { padding: 10px 20px; font-size: 16px; cursor: pointer; margin-top: 10px; }
+    #results { margin-top: 20px; }
+    #results p { font-size: 16px; margin: 5px 0; }
+  </style>
+</head>
+<body>
+  <h1>Grade Questions</h1>
+  
+  <label for="scheme">Extracted Answer Scheme Text:</label>
+  <textarea id="scheme" placeholder="Paste extracted answer scheme text here..."></textarea>
+  
+  <label for="student">Extracted Student Answer Script Text:</label>
+  <textarea id="student" placeholder="Paste extracted student answer script text here..."></textarea>
+  
+  <button id="gradeBtn">Grade Questions</button>
+  
+  <div id="results"></div>
+  
+  <script>
+    // Function to extract and sort questions from text using the delimiter pattern.
+    // The delimiter is assumed to be in the format: **Question Number: X**
+    function extractAndSortQuestionsFromText(text) {
+      // This regex captures the question number and the text that follows until the next delimiter or end-of-string.
+      const regex = /\*\*Question Number:\s*(\d+)\*\*\s*([\s\S]*?)(?=\*\*Question Number:|$)/g;
+      const matches = [];
+      let match;
+      while ((match = regex.exec(text)) !== null) {
+        matches.push({
+          number: parseInt(match[1], 10),
+          text: match[2].trim()
+        });
+      }
+      // Sort by question number (ascending)
+      matches.sort((a, b) => a.number - b.number);
+      return matches;
+    }
+    
+    // Dummy grading function simulating an API call.
+    // Replace this with your actual Gemini API call if needed.
+    async function getGradeForQuestion(question, markingScheme) {
+        
+      const prompt = `This is the correct solution: {${markingScheme}} \n\n On the basis of this, grade this answer: {${question}} \n\n Return a grade between 0 and 100. Also give me the reason for the grades carefully. Output Format - \nGrade: X [New Line] \nReason:Some Text}`;
+      console.log(prompt);
+      try {
+        const response = await fetch("/grade-question", { 
+          method: "POST",
+          body: JSON.stringify({ prompt })
+        });
+        const data = await response.json();
+        return data.grade; // Expected response: { grade: 85 }
+      } catch (err) {
+        console.error("Grading error:", err);
+        return null;
+      }
+    }   
+    
+    // Function to iterate through questions and obtain grades.
+    async function gradeAllQuestions(schemeText, studentText) {
+      const markingArr = extractAndSortQuestionsFromText(schemeText);
+      const questionsArr = extractAndSortQuestionsFromText(studentText);
+      
+      const results = [];
+      // Assuming question numbers correspond in both arrays.
+      for (let i = 0; i < questionsArr.length; i++) {
+        const questionObj = questionsArr[i];
+        // Find corresponding marking scheme by question number
+        const markingObj = markingArr.find(m => m.number === questionObj.number) || { text: "" };
+        console.log(i, ": ");
+        const grade = await getGradeForQuestion(questionObj.text, markingObj.text);
+        results.push({ questionNumber: questionObj.number, grade });
+      }
+      return results;
+    }
+    
+    // Attach event listener to the Grade button.
+    document.getElementById("gradeBtn").addEventListener("click", async function() {
+      const schemeText = document.getElementById("scheme").value;
+      const studentText = document.getElementById("student").value;
+      
+      if (!schemeText || !studentText) {
+        alert("Please paste both the Answer Scheme and the Student Answer Script text.");
+        return;
+      }
+      
+      // Grade all questions
+      const grades = await gradeAllQuestions(schemeText, studentText);
+      
+      // Display the results in the results div.
+      const resultsDiv = document.getElementById("results");
+      resultsDiv.innerHTML = "<h2>Grades:</h2>";
+      grades.forEach(result => {
+        const p = document.createElement("p");
+        p.textContent = `Question ${result.questionNumber}: ${result.grade}`;
+        resultsDiv.appendChild(p);
+      });
+    });
+  </script>
+</body>
+</html>

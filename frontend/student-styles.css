@@ -1,0 +1,268 @@
+/* ===== SCRIPT PAGE ===== */
+.viewer-container {
+    display: flex;
+    max-width: 1200px;
+    height: 80vh;
+    margin: 20px auto;
+    border: 1px solid #ccc;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    overflow: hidden;
+  }
+  
+  .viewer-image {
+    flex: 1;
+    overflow-y: auto;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #f9f9f9;
+  }
+  
+  .viewer-image img {
+    max-width: 90%;
+    height: auto;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+  }
+  
+  .viewer-text {
+    flex: 1;
+    padding: 20px;
+    overflow-y: auto;
+    background-color: #fff;
+    box-sizing: border-box;
+  }
+  
+  .viewer-text h3 {
+    margin-top: 0;
+  }
+  
+  .viewer-text p {
+    margin-bottom: 1em;
+  }
+  
+  .viewer-text ul {
+    margin: 0;
+    padding-left: 20px;
+  }
+  
+  .viewer-text li {
+    margin-bottom: 0.5em;
+  }
+  
+  @media (max-width: 768px) {
+    .viewer-container {
+      flex-direction: column;
+    }
+  }
+  
+  /* ===== EVALUATION TABLE ===== */
+  .evaluation-table {
+    width: 80%;
+    margin: 20px auto;
+    border-collapse: collapse;
+  }
+  
+  .evaluation-table th,
+  .evaluation-table td {
+    border: 1px solid #ccc;
+    padding: 8px 12px;
+    text-align: left;
+  }
+  
+  .evaluation-table th {
+    background-color: #f0f0f0;
+  }
+  
+  /* ===== POST QUERY BUTTON ===== */
+  .post-query-btn {
+    background-color: #6c5ce7;
+    color: #fff;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  
+  .post-query-btn:hover {
+    background-color: #5a4cc5;
+  }
+  
+  .post-query-btn:disabled {
+    background-color: gray;
+    cursor: not-allowed;
+  }
+  
+  /* ===== MODAL ===== */
+  .modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.5);
+  }
+  
+  .modal-content {
+    background-color: #fff;
+    margin: 15% auto;
+    padding: 20px;
+    width: 80%;
+    max-width: 400px;
+    border: 1px solid #888;
+    border-radius: 5px;
+    text-align: center;
+  }
+  
+  .close {
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+  }
+  
+  textarea {
+    width: 100%;
+    height: 100px;
+    margin-bottom: 10px;
+  }
+  
+  
+
+
+
+
+/* Exams Section */
+.student-exam-container {
+    display: flex;
+    flex-direction: column;
+    gap: 20px; /* Adjust spacing between boxes */
+    align-items: center;
+    justify-content: space-between; /* Ensures even spacing */
+}
+
+.student-exam-card {
+    max-width: 900px;
+    width: 100%;
+    height: 100px;
+    background: linear-gradient(to right, #f9fafb, #f0f2f5);
+    border-radius: 10px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
+    display: flex;
+    position: relative;
+    overflow: hidden;
+    border-left: 4px solid #4b4b4b;
+    cursor:pointer;
+}
+    
+.student-exam-card .exam-info {
+    width: 230px;
+    padding: 20px;
+    border-right: 1px solid #e5e7eb;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+    
+.student-exam-card .exam-name {
+    font-weight: 600;
+    font-size: 16px;
+    color: #334155;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+}
+    
+.student-exam-card .exam-icon {
+    margin-right: 8px;
+    font-size: 14px;
+}
+    
+.student-exam-card .date {
+    font-size: 13px;
+    color: #64748b;
+    display: inline-flex;
+    align-items: center;
+    /* background-color: #f0f0f0; */
+    padding: 2px 6px;
+    border-radius: 4px;
+}
+    
+.student-exam-card .date-icon {
+    margin-right: 5px;
+    font-size: 12px;
+}
+    
+.student-exam-card .marks-section {
+    flex: 1;
+    padding: 20px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    align-items: center;
+}
+    
+.student-exam-card .marks-column {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 0 10px;
+}
+    
+.student-exam-card .marks-column:not(:last-child) {
+    border-right: 1px solid #f0f0f0;
+}
+    
+.student-exam-card .marks-label {
+    font-size: 11px;
+    color: #64748b;
+    margin-bottom: 5px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    display: flex;
+    align-items: center;
+}
+
+.student-exam-card .marks-icon {
+    margin-right: 4px;
+    font-size: 10px;
+}
+
+.student-exam-card .your-score {
+    font-size: 26px;
+    font-weight: 700;
+    color: #1e293b;
+    display: flex;
+    align-items: baseline;
+}
+    
+.student-exam-card .total {
+    font-size: 14px;
+    color: #64748b;
+    margin-left: 4px;
+}
+    
+.student-exam-card .marks-value {
+    font-size: 18px;
+    font-weight: 600;
+    color: #334155;
+}
+    
+.student-exam-card .graded-label {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background-color: #baffd3;
+    color: #166534;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 3px 10px;
+    border-radius: 4px;
+    letter-spacing: 0.5px;
+    clip-path: polygon(0 0, 100% 0, 100% 100%, 10% 100%);
+}

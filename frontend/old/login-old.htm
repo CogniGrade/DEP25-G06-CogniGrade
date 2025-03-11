@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Login | Automated Grading</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+  <!-- Font Awesome -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="login-styles.css">
+</head>
+<body>
+  <div class="login-page">
+    <div class="login-card">
+      <div class="card-body">
+        <!-- Heading Section -->
+        <div class="heading-section">
+          <i class="fas fa-user-circle auth-icon"></i>
+          <h2>Welcome Back</h2>
+          <p>Please login to your account</p>
+        </div>
+        <form id="loginForm">
+          <!-- Email Field -->
+          <div class="form-group">
+            <div class="input-group">
+              <span class="input-group-text">
+                <i class="fas fa-envelope"></i>
+              </span>
+              <input type="email" class="form-control" id="email" name="email" placeholder="Email address" required />
+            </div>
+          </div>
+          <!-- Password Field -->
+          <div class="form-group">
+            <div class="input-group">
+              <span class="input-group-text">
+                <i class="fas fa-lock"></i>
+              </span>
+              <input type="password" class="form-control" id="password" name="password" placeholder="Password" required />
+            </div>
+          </div>
+          <!-- Remember + Forgot Password -->
+          <div class="form-group row-between">
+            <div class="checkbox">
+              <input type="checkbox" id="remember" name="remember" />
+              <label for="remember">Remember me</label>
+            </div>
+            <a href="#" id="forgotPasswordLink" class="forgot-password">Forgot Password?</a>
+          </div>
+          <!-- Login Button -->
+          <div class="form-group">
+            <button type="submit" class="btn btn-primary">
+              Login <i class="fas fa-arrow-right"></i>
+            </button>
+          </div>
+          <!-- Sign Up Link -->
+          <div class="bottom-text">
+            <p>
+              Don't have an account? <a href="signup.htm">Sign up</a>
+            </p>
+          </div>
+        </form>
+        <div id="loginError" style="color:red;"></div>
+      </div>
+    </div>
+  </div>
+  <script>
+    document.addEventListener("visibilitychange", function() {
+      if (document.visibilityState === "visible") {
+        fetch("/check-session")
+          .then(response => {
+            if (response.ok) {
+              // User is logged in, redirect to dashboard
+              window.location.href = "dashboard.htm";
+            }
+          })
+          .catch(() => {});
+      }
+    });
+
+    document.getElementById("loginForm").addEventListener("submit", async function(e) {
+      e.preventDefault();
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
+      const remember = document.getElementById("remember").checked;
+      
+      const response = await fetch("/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password, remember })
+      });
+      
+      const result = await response.json();
+      if (response.ok && result.success) {
+        window.location.href = "dashboard.htm";
+      } else {
+        document.getElementById("loginError").innerText = result.error || "Login failed";
+      }
+    });
+  </script>
+</body>
+</html>

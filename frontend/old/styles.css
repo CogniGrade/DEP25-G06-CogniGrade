@@ -1,0 +1,54 @@
+/* General Styling */
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f0f2f5;
+    text-align: center;
+    margin: 0;
+    padding: 0;
+}
+
+/* Dashboard */
+header {
+    background: #007bff;
+    color: white;
+    padding: 5px;
+    text-align: center;
+}
+
+.dashboard {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin: 20px;
+}
+
+.card {
+    background: white;
+    width: 200px;
+    padding: 20px;
+    margin: 15px;
+    text-decoration: none;
+    color: black;
+    border-radius: 5px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    transition: 0.3s;
+}
+
+.card:hover {
+    background: #007bff;
+    color: white;
+}
+
+.logout {
+    display: inline-block;
+    margin: 20px;
+    padding: 10px;
+    background: #ff4d4d;
+    color: white;
+    text-decoration: none;
+    border-radius: 5px;
+}
+
+.logout:hover {
+    background: #cc0000;
+}

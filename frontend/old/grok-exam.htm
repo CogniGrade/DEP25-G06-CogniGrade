@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Course - CP301</title>
+  <link rel="stylesheet" href="professor-styles.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" integrity="sha512-9usAa10IRO0HhonpyAIVpjrylPvoDwiPUiKdWk5t3PyolY1cOd4DSE0Ga+ri4AuTroPR5aQvXU9xC6qOPnzFeg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <style>
+    /* General Upload Section Styles */
+    .upload-section {
+      margin: 20px 0;
+      padding: 20px;
+      border: 1px solid #ddd;
+      background: #ffffff;
+      border-radius: 8px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      text-align: left;
+    }
+    .upload-section h2 {
+      color: #333;
+      margin-top: 0;
+      margin-bottom: 20px;
+    }
+    /* Drop Zone Styles */
+    .drop-zone {
+      position: relative;
+      padding: 20px;
+      border: 2px dashed #ccc;
+      border-radius: 8px;
+      transition: border-color 0.2s;
+      text-align: center;
+      cursor: pointer;
+    }
+    .drop-zone:hover {
+      border-color: #007bff;
+    }
+    .drop-zone i {
+      font-size: 2.5rem;
+      margin-bottom: 15px;
+      color: #888;
+    }
+    .drop-zone p {
+      color: #666;
+    }
+    .preview-container {
+      position: relative;
+      margin-bottom: 10px;
+    }
+    .preview {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 5px;
+      max-height: 100px;
+      overflow-y: auto;
+    }
+    .preview img {
+      width: 50px;
+      height: 50px;
+      object-fit: cover;
+      border-radius: 4px;
+    }
+    .image-count {
+      position: absolute;
+      top: -10px;
+      right: -10px;
+      background: #ff0000;
+      color: #fff;
+      padding: 2px 6px;
+      border-radius: 50%;
+      font-size: 12px;
+      font-weight: bold;
+    }
+    /* Button Styles */
+    .upload-btn, .view-extracted {
+      border: none;
+      padding: 0.65rem 1rem;
+      font-size: 0.75rem;
+      line-height: 1rem;
+      font-weight: 700;
+      text-align: center;
+      cursor: pointer;
+      text-transform: uppercase;
+      border-radius: 0.5rem;
+      transition: all 0.3s ease;
+    }
+    .upload-btn {
+      background-color: #488aec;
+      color: #ffffff;
+    }
+    .view-extracted {
+      background-color: #69B262;
+      color: #ffffff;
+    }
+    .upload-btn:hover, .view-extracted:hover {
+      background-color: #333;
+    }
+    .view-extracted:disabled {
+      background-color: #ccc;
+      cursor: not-allowed;
+    }
+    .button-container {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      margin: 10px auto;
+    }
+    /* Table Styles for Student Answer Scripts */
+    #studentScriptsTable {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+    #studentScriptsTable th, #studentScriptsTable td {
+      border: 1px solid #ccc;
+      padding: 10px;
+      text-align: center;
+    }
+    #studentScriptsTable th {
+      background: #f0f0f0;
+    }
+    /* Modal Popup Styles */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+      background-color: rgba(0, 0, 0, 0.5);
+    }
+    .modal-content {
+      background-color: #fff;
+      margin: 5% auto;
+      padding: 20px;
+      width: 80%;
+      max-width: 800px;
+      position: relative;
+      border-radius: 8px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
+    .close-button {
+      position: absolute;
+      top: 10px;
+      right: 20px;
+      font-size: 24px;
+      cursor: pointer;
+    }
+    .modal-body {
+      display: flex;
+      flex-direction: row;
+      margin-top: 40px;
+    }
+    .modal-image-container {
+      flex: 1;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .modal-image-container img {
+      max-width: 100%;
+      max-height: 400px;
+      object-fit: contain;
+    }
+    .arrow-btn {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      background: #1a73e8;
+      color: #fff;
+      border: none;
+      padding: 10px;
+      cursor: pointer;
+      opacity: 0.7;
+    }
+    #prevBtn {
+      left: 0;
+    }
+    #nextBtn {
+      right: 0;
+    }
+    .modal-text-container {
+      flex: 1;
+      padding: 20px;
+      overflow-y: auto;
+      text-align: left;
+      border-left: 1px solid #ccc;
+    }
+    /* Modify Modal Specific Styles */
+    #fileList div {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 10px 0;
+    }
+    #fileList button {
+      padding: 5px 10px;
+      font-size: 12px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    #fileList button:nth-child(2) {
+      background: #dc3545;
+      color: #fff;
+    }
+    #fileList button:nth-child(3) {
+      background: #488aec;
+      color: #fff;
+    }
+    #fileList button:nth-child(4) {
+      background: #69b262;
+      color: #fff;
+    }
+    #fileList button:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+    }
+    /* Responsive Styles for Mobile Devices */
+    @media only screen and (max-width: 768px) {
+      .sidebar {
+        display: none;
+      }
+      .content {
+        width: 100%;
+        padding: 10px;
+        margin-left: 0;
+      }
+      .drop-zone {
+        width: 90%;
+        margin: 30px auto;
+        min-height: 100px;
+      }
+      .upload-section {
+        margin: 10px 0;
+        padding: 10px;
+      }
+      .button-container {
+        flex-direction: column;
+        gap: 5px;
+        justify-content: center;
+        align-items: center;
+        margin-bottom: 10px;
+      }
+      .upload-btn, .view-extracted {
+        width: 90%;
+      }
+      #studentScriptsTable {
+        font-size: 0.9em;
+      }
+      #studentScriptsTable th, #studentScriptsTable td {
+        padding: 5px;
+      }
+      .upload-section table {
+        display: block;
+        overflow-x: auto;
+        white-space: nowrap;
+      }
+      .modal-content {
+        width: 95%;
+        max-width: 95%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <header class="topbar">
+    <div class="left">
+      <button class="menu-btn">☰</button>
+      <img src="classroom-logo.png" alt=" " class="logo">
+      <h2>AutoGrade</h2>
+    </div>
+    <div class="search-bar">
+      <input type="text" placeholder="Search Courses">
+    </div>
+    <div class="right">
+      <button class="add-btn">+</button>
+      <button class="grid-btn">⏹</button>
+      <a href="profile.htm">
+        <img src="profile-pic.jpg" alt="Profile Picture" class="profile-pic">
+      </a>
+    </div>
+  </header>
+
+  <div class="dashboard-container">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <ul class="navigation">
+        <li><a href="#" class="active"><i class="fas fa-home"></i> Home</a></li>
+        <li><a href="#"><i class="fas fa-graduation-cap"></i> Teaching</a></li>
+        <li><a href="#"><i class="fas fa-user-graduate"></i> Enrolled</a></li>
+        <li><a href="#"><i class="fas fa-archive"></i> Archived</a></li>
+        <li><a href="#"><i class="fas fa-cog"></i> Settings</a></li>
+        <li><a href="#" class="logout"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+      </ul>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="content">
+      <!-- Section 1: Upload Question Paper -->
+      <section class="upload-section" id="upload-questions">
+        <h2>Upload Question Paper</h2>
+        <div class="drop-zone" id="dropZoneQuestions">
+          <div class="preview-container">
+            <div class="preview"></div>
+            <div class="image-count">0</div>
+          </div>
+          <i class="fas fa-cloud-upload-alt"></i>
+          <p>Drag & drop file here or click to browse</p>
+        </div>
+        <input type="file" id="questionInput" accept="image/*,application/pdf" multiple class="file-input">
+        <div class="button-container">
+          <button class="upload-btn" onclick="triggerFileInput('questionInput')">
+            <img src="add-file-icon.svg" width="18" height="18" alt="Add File">
+            ADD FILE
+          </button>
+          <button class="upload-btn" onclick="openModifyModal('Questions', 'questionInput')">
+            <img src="modify-icon-2.svg" width="18" height="18" alt="Upload">Modify
+          </button>
+          <button class="view-extracted" id="viewExtractedQuestions" data-state="extract" onclick="handleViewButton('Questions', 'questionInput')" disabled>Extract Text</button>
+        </div>
+      </section>
+
+      <!-- Section 2: Upload Solution Script -->
+      <section class="upload-section" id="upload-solution">
+        <h2>Upload Solution Script</h2>
+        <div class="drop-zone" id="dropZoneSolution">
+          <div class="preview-container">
+            <div class="preview"></div>
+            <div class="image-count">0</div>
+          </div>
+          <i class="fas fa-cloud-upload-alt"></i>
+          <p>Drag & drop file here or click to browse</p>
+        </div>
+        <input type="file" id="solutionInput" accept="image/*,application/pdf" multiple class="file-input">
+        <div class="button-container">
+          <button class="upload-btn" onclick="triggerFileInput('solutionInput')">
+            <img src="add-file-icon.svg" width="18" height="18" alt="Add File">
+            ADD FILE
+          </button>
+          <button class="upload-btn" onclick="openModifyModal('Solution', 'solutionInput')">
+            <img src="modify-icon-2.svg" width="18" height="18" alt="Upload">Modify
+          </button>
+          <button class="view-extracted" id="viewExtractedSolution" data-state="extract" onclick="handleViewButton('Solution', 'solutionInput')" disabled>Extract Text</button>
+        </div>
+      </section>
+
+      <!-- Section 3: Upload Marking Scheme -->
+      <section class="upload-section" id="upload-marking">
+        <h2>Upload Marking Scheme</h2>
+        <div class="drop-zone" id="dropZoneMarking">
+          <div class="preview-container">
+            <div class="preview"></div>
+            <div class="image-count">0</div>
+          </div>
+          <i class="fas fa-cloud-upload-alt"></i>
+          <p>Drag & drop file here or click to browse</p>
+        </div>
+        <input type="file" id="markingInput" accept="image/*,application/pdf" multiple class="file-input">
+        <div class="button-container">
+          <button class="upload-btn" onclick="triggerFileInput('markingInput')">
+            <img src="add-file-icon.svg" width="18" height="18" alt="Add File">
+            ADD FILE
+          </button>
+          <button class="upload-btn" onclick="openModifyModal('Marking', 'markingInput')">
+            <img src="modify-icon-2.svg" width="18" height="18" alt="Upload">Modify
+          </button>
+          <button class="view-extracted" id="viewExtractedMarking" data-state="extract" onclick="handleViewButton('Marking', 'markingInput')" disabled>Extract Text</button>
+        </div>
+      </section>
+
+      <!-- Section 4: Student Answer Scripts -->
+      <section class="upload-section" id="upload-student">
+        <h2>Student Answer Scripts</h2>
+        <table id="studentScriptsTable">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Entry Number</th>
+              <th>Files Uploaded</th>
+              <th>File Types</th>
+              <th>Files</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr id="rowStudentA">
+              <td>Student A</td>
+              <td>A12345</td>
+              <td><span id="fileCountA">0</span></td>
+              <td><span id="fileTypesA">-</span></td>
+              <td>
+                <div class="drop-zone" id="dropZoneStudentA">
+                  <div class="preview-container">
+                    <div class="preview"></div>
+                    <div class="image-count">0</div>
+                  </div>
+                  <i class="fas fa-cloud-upload-alt"></i>
+                  <p>Drag & drop file here or click to browse</p>
+                </div>
+                <input type="file" id="studentInputA" accept="image/*,application/pdf" multiple class="file-input">
+                <div class="button-container">
+                  <button class="upload-btn" onclick="triggerFileInput('studentInputA')">
+                    <img src="add-file-icon.svg" width="18" height="18" alt="Add File">
+                    ADD FILE
+                  </button>
+                  <button class="upload-btn" onclick="openModifyModal('StudentA', 'studentInputA')">
+                    <img src="modify-icon-2.svg" width="18" height="18" alt="Upload">Modify
+                  </button>
+                  <button class="view-extracted" id="viewExtractedStudentA" data-state="extract" onclick="handleViewButton('StudentA', 'studentInputA')" disabled>Extract Text</button>
+                </div>
+              </td>
+            </tr>
+            <tr id="rowStudentB">
+              <td>Student B</td>
+              <td>B12345</td>
+              <td><span id="fileCountB">0</span></td>
+              <td><span id="fileTypesB">-</span></td>
+              <td>
+                <div class="drop-zone" id="dropZoneStudentB">
+                  <div class="preview-container">
+                    <div class="preview"></div>
+                    <div class="image-count">0</div>
+                  </div>
+                  <i class="fas fa-cloud-upload-alt"></i>
+                  <p>Drag & drop file here or click to browse</p>
+                </div>
+                <input type="file" id="studentInputB" accept="image/*,application/pdf" multiple class="file-input">
+                <div class="button-container">
+                  <button class="upload-btn" onclick="triggerFileInput('studentInputB')">
+                    <img src="add-file-icon.svg" width="18" height="18" alt="Add File">
+                    ADD FILE
+                  </button>
+                  <button class="upload-btn" onclick="openModifyModal('StudentB', 'studentInputB')">
+                    <img src="modify-icon-2.svg" width="18" height="18" alt="Upload">Modify
+                  </button>
+                  <button class="view-extracted" id="viewExtractedStudentB" data-state="extract" onclick="handleViewButton('StudentB', 'studentInputB')" disabled>Extract Text</button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+    </main>
+  </div>
+
+  <!-- Modal for Viewing Extracted Text -->
+  <div id="extractedModal" class="modal">
+    <div class="modal-content">
+      <span class="close-button" id="modalCloseBtn">×</span>
+      <h2 id="modalTitle">Extracted Text</h2>
+      <div class="modal-body">
+        <div class="modal-image-container">
+          <button class="arrow-btn" id="prevBtn">◀</button>
+          <img id="modalImage" src="" alt="Image Preview">
+          <button class="arrow-btn" id="nextBtn">▶</button>
+        </div>
+        <div class="modal-text-container">
+          <p id="modalText"></p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal for Modify Functionality -->
+  <div id="modifyModal" class="modal">
+    <div class="modal-content">
+      <span class="close-button" id="modifyCloseBtn">×</span>
+      <h2>Modify Uploaded Files</h2>
+      <div id="fileList"></div>
+      <button id="addMoreFilesBtn">Add More Files</button>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script>
+    // Store extracted texts for each section
+    const extractedTexts = {
+      Questions: [],
+      Solution: [],
+      Marking: [],
+      StudentA: [],
+      StudentB: []
+    };
+
+    // Section mappings for file handling
+    const sectionMappings = {
+      'questionInput': { dropZone: 'dropZoneQuestions', fileCount: null, fileTypes: null },
+      'solutionInput': { dropZone: 'dropZoneSolution', fileCount: null, fileTypes: null },
+      'markingInput': { dropZone: 'dropZoneMarking', fileCount: null, fileTypes: null },
+      'studentInputA': { dropZone: 'dropZoneStudentA', fileCount: 'fileCountA', fileTypes: 'fileTypesA' },
+      'studentInputB': { dropZone: 'dropZoneStudentB', fileCount: 'fileCountB', fileTypes: 'fileTypesB' }
+    };
+
+    // Handle file uploads and previews
+    function handleFiles(files, inputId) {
+      const mapping = sectionMappings[inputId];
+      if (!mapping) return;
+
+      const dropZone = document.getElementById(mapping.dropZone);
+      const preview = dropZone.querySelector('.preview');
+      const imageCount = dropZone.querySelector('.image-count');
+      preview.innerHTML = '';
+
+      let imageFiles = [];
+      let fileTypes = new Set();
+
+      Array.from(files).forEach(file => {
+        if (file.type.startsWith('image/')) {
+          imageFiles.push(file);
+          const img = document.createElement('img');
+          img.src = URL.createObjectURL(file);
+          img.onload = () => URL.revokeObjectURL(img.src);
+          preview.appendChild(img);
+        }
+        fileTypes.add(file.type);
+      });
+
+      imageCount.textContent = imageFiles.length;
+      if (mapping.fileCount) {
+        document.getElementById(mapping.fileCount).textContent = files.length;
+      }
+      if (mapping.fileTypes) {
+        document.getElementById(mapping.fileTypes).textContent = Array.from(fileTypes).join(', ');
+      }
+
+      const viewButton = document.getElementById(`viewExtracted${inputId.replace('Input', '')}`);
+      if (viewButton) {
+        viewButton.textContent = 'Extract Text';
+        viewButton.setAttribute('data-state', 'extract');
+        viewButton.disabled = files.length === 0;
+      }
+    }
+
+    // Trigger file input
+    function triggerFileInput(inputId) {
+      document.getElementById(inputId).click();
+    }
+
+    // Drag-and-drop handlers
+    function handleDragOver(e) {
+      e.preventDefault();
+      e.target.classList.add('hover');
+    }
+
+    function handleDragLeave(e) {
+      e.target.classList.remove('hover');
+    }
+
+    function handleDrop(e, inputId) {
+      e.preventDefault();
+      e.target.classList.remove('hover');
+      const files = e.dataTransfer.files;
+      document.getElementById(inputId).files = files;
+      handleFiles(files, inputId);
+    }
+
+    document.querySelectorAll('.drop-zone').forEach(dropZone => {
+      const inputId = dropZone.id.replace('dropZone', '') + 'Input';
+      dropZone.addEventListener('dragover', handleDragOver);
+      dropZone.addEventListener('dragleave', handleDragLeave);
+      dropZone.addEventListener('drop', (e) => handleDrop(e, inputId));
+    });
+
+    document.querySelectorAll('.file-input').forEach(input => {
+      input.addEventListener('change', () => handleFiles(input.files, input.id));
+    });
+
+    // Handle the "Extract Text" / "Show Extracted Text" button
+    async function extractText(section, inputId) {
+      const input = document.getElementById(inputId);
+      const files = input.files;
+      if (files.length === 0) return;
+
+      const viewButton = document.getElementById(`viewExtracted${section}`);
+      viewButton.textContent = 'Extracting...';
+      viewButton.disabled = true;
+
+      const formData = new FormData();
+      Array.from(files).forEach(file => formData.append('files', file));
+
+      try {
+        const response = await fetch("http://127.0.0.1:8001/upload", {
+          method: "POST",
+          body: formData
+        });
+        const data = await response.json();
+        if (data.results) {
+          extractedTexts[section] = data.results;
+          viewButton.textContent = 'Show Extracted Text';
+          viewButton.setAttribute('data-state', 'show');
+        } else {
+          throw new Error(data.error);
+        }
+      } catch (error) {
+        console.error('Extraction Failed:', error);
+        viewButton.textContent = 'Extract Text';
+        viewButton.setAttribute('data-state', 'extract');
+      } finally {
+        viewButton.disabled = false;
+      }
+    }
+
+    function handleViewButton(section, inputId) {
+      const viewButton = document.getElementById(`viewExtracted${section}`);
+      const state = viewButton.getAttribute('data-state');
+      if (state === 'extract') {
+        extractText(section, inputId);
+      } else if (state === 'show') {
+        openModal(section);
+      }
+    }
+
+    // Modal for viewing extracted text
+    let currentSection = '';
+    let currentIndex = 0;
+
+    function openModal(section) {
+      currentSection = section;
+      currentIndex = 0;
+      const modal = document.getElementById('extractedModal');
+      modal.style.display = 'block';
+      document.getElementById('modalTitle').textContent = `Extracted Text for ${section}`;
+      showImageAndText();
+    }
+
+    function showImageAndText() {
+      const texts = extractedTexts[currentSection];
+      if (!texts || texts.length === 0) return;
+
+      const img = document.getElementById('modalImage');
+      const textP = document.getElementById('modalText');
+      const file = document.getElementById(`${currentSection.toLowerCase()}Input`).files[currentIndex];
+      if (file) {
+        img.src = URL.createObjectURL(file);
+      }
+      textP.textContent = texts[currentIndex].text; // Assuming plain text; use marked.parse() for markdown
+    }
+
+    document.getElementById('prevBtn').addEventListener('click', () => {
+      if (currentIndex > 0) {
+        currentIndex--;
+        showImageAndText();
+      }
+    });
+
+    document.getElementById('nextBtn').addEventListener('click', () => {
+      if (currentIndex < extractedTexts[currentSection].length - 1) {
+        currentIndex++;
+        showImageAndText();
+      }
+    });
+
+    document.getElementById('modalCloseBtn').addEventListener('click', () => {
+      document.getElementById('extractedModal').style.display = 'none';
+    });
+
+    // Modify modal functionality
+    function openModifyModal(section, inputId) {
+      currentSection = section;
+      const modal = document.getElementById('modifyModal');
+      modal.style.display = 'block';
+      populateFileList(inputId);
+    }
+
+    function populateFileList(inputId) {
+      const input = document.getElementById(inputId);
+      const files = input.files;
+      const fileList = document.getElementById('fileList');
+      fileList.innerHTML = '';
+
+      Array.from(files).forEach((file, index) => {
+        const fileDiv = document.createElement('div');
+        const hasText = extractedTexts[currentSection] && extractedTexts[currentSection][index];
+        fileDiv.innerHTML = `
+          <span>${file.name}</span>
+          <button onclick="deleteFile('${inputId}', ${index})">Delete</button>
+          <button onclick="extractTextForFile('${currentSection}', '${inputId}', ${index})">${hasText ? 'Re-Extract Text' : 'Extract Text'}</button>
+          <button onclick="showExtractedTextForFile('${currentSection}', ${index})" ${hasText ? '' : 'disabled'}>Show Extracted Text</button>
+        `;
+        fileList.appendChild(fileDiv);
+      });
+    }
+
+    function deleteFile(inputId, index) {
+      const input = document.getElementById(inputId);
+      const files = Array.from(input.files);
+      files.splice(index, 1);
+      const newFileList = new DataTransfer();
+      files.forEach(file => newFileList.items.add(file));
+      input.files = newFileList.files;
+
+      if (extractedTexts[currentSection]) {
+        extractedTexts[currentSection].splice(index, 1);
+      }
+      handleFiles(input.files, inputId);
+      populateFileList(inputId);
+    }
+
+    async function extractTextForFile(section, inputId, index) {
+      const input = document.getElementById(inputId);
+      const file = input.files[index];
+      const fileDiv = document.getElementById('fileList').children[index];
+      const extractBtn = fileDiv.querySelector('button:nth-child(3)');
+      extractBtn.textContent = 'Extracting...';
+      extractBtn.disabled = true;
+
+      const formData = new FormData();
+      formData.append('files', file);
+
+      try {
+        const response = await fetch("http://127.0.0.1:8001/upload", {
+          method: "POST",
+          body: formData
+        });
+        const data = await response.json();
+        if (data.results && data.results.length > 0) {
+          if (!extractedTexts[section]) extractedTexts[section] = [];
+          extractedTexts[section][index] = data.results[0];
+          extractBtn.textContent = 'Re-Extract Text';
+          extractBtn.disabled = false;
+          fileDiv.querySelector('button:nth-child(4)').disabled = false;
+        } else {
+          throw new Error(data.error);
+        }
+      } catch (error) {
+        console.error('Extraction Failed:', error);
+        extractBtn.textContent = 'Extract Text';
+        extractBtn.disabled = false;
+      }
+    }
+
+    function showExtractedTextForFile(section, index) {
+      currentSection = section;
+      currentIndex = index;
+      const modal = document.getElementById('extractedModal');
+      modal.style.display = 'block';
+      document.getElementById('modalTitle').textContent = `Extracted Text for ${section} - File ${index + 1}`;
+      showImageAndText();
+    }
+
+    document.getElementById('modifyCloseBtn').addEventListener('click', () => {
+      document.getElementById('modifyModal').style.display = 'none';
+    });
+
+    document.getElementById('addMoreFilesBtn').addEventListener('click', () => {
+      triggerFileInput(`${currentSection.toLowerCase()}Input`);
+    });
+  </script>
+</body>
+</html>

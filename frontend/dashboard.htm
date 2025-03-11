@@ -1,0 +1,808 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Dashboard | AutoGrade</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="professor-styles.css">
+  <style>
+    /* Header & Layout */
+    .user-info {
+      margin-right: 10px;
+      font-size: 1rem;
+      color: #000;
+    }
+    .header-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1rem;
+    }
+    #actionButton {
+      background-color: #007bff;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 1rem;
+      padding: 8px 16px;
+    }
+    #actionButton:hover {
+      background-color: #0056b3;
+    }
+    .no-classes-container {
+      text-align: center;
+      margin-top: 50px;
+      color: #666;
+    }
+    .no-classes-container i {
+      font-size: 60px;
+      color: #ccc;
+      margin-bottom: 20px;
+    }
+    .create-class-button {
+      background-color: #007bff;
+      color: #fff;
+      padding: 12px 20px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      margin-top: 20px;
+      font-size: 1rem;
+    }
+    .create-class-button:hover {
+      background-color: #0056b3;
+    }
+    /* Modal styling for Create & Join */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 9999;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+      background-color: rgba(0,0,0,0.4);
+    }
+    .modal-content {
+      background-color: #fff;
+      margin: 80px auto;
+      padding: 20px;
+      width: 400px;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+    }
+    .modal-content h2 {
+      margin-top: 0;
+      margin-bottom: 10px;
+      font-weight: 500;
+      font-size: 1.25rem;
+    }
+    .modal-content label {
+      display: block;
+      margin-top: 10px;
+      font-weight: 500;
+    }
+    .modal-content input,
+    .modal-content textarea {
+      width: 100%;
+      margin-top: 5px;
+      padding: 8px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 1rem;
+      font-family: inherit;
+    }
+    .modal-content textarea {
+      resize: vertical;
+    }
+    .button-row {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 20px;
+    }
+    .button-row button,
+    .button-row a {
+      background-color: #007bff;
+      color: #fff;
+      text-decoration: none;
+      padding: 10px 15px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 1rem;
+    }
+    .button-row button:hover,
+    .button-row a:hover {
+      background-color: #0056b3;
+    }
+    
+
+
+
+
+
+
+
+
+
+    .course-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, auto));
+        gap: 30px 50px;
+        justify-content: start;
+    }
+
+    .card {
+        background-color: white;
+        border-radius: 16px;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+        width: 320px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        position: relative;
+        border: 1px solid #e6e9ec;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+    }
+
+    .card.student-card {
+        height: 480px;
+    }
+
+    .card.professor-card {
+        height: 410px;
+    }
+
+    .card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+    }
+
+    /* .card-banner {
+        width: 6px;
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: 0;
+    } */
+
+    /* SWAP FOR TOP BANNER */
+    .card-banner {
+        height: 6px;
+        background: linear-gradient(90deg, #6366f1, #8b5cf6);
+    }
+
+    .card-professor {
+        background: linear-gradient(180deg, #6366f1, #8b5cf6);
+    }
+
+    .card-student {
+        background: linear-gradient(180deg, #3b82f6, #2dd4bf);
+    }
+
+    .card-badge {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        padding: 6px 12px;
+        border-radius: 30px;
+        font-size: 12px;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+    }
+
+    .student-badge {
+        background-color: rgba(59, 130, 246, 0.1);
+        color: #3b82f6;
+    }
+
+    .professor-badge {
+        background-color: rgba(99, 102, 241, 0.1);
+        color: #6366f1;
+    }
+
+    .card-body {
+        padding: 24px;
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+        margin-left: 8px;
+    }
+
+    .card-title {
+        font-size: 20px;
+        font-weight: 600;
+        margin: 0 0 6px 0;
+        color: #1e293b;
+    }
+
+    .card-subtitle {
+        font-size: 14px;
+        color: #64748b;
+        margin: 0 0 20px 0;
+        letter-spacing: 0.3px;
+    }
+
+    .card-info {
+        display: flex;
+        justify-content: space-between;
+        font-size: 14px;
+        color: #64748b;
+        margin-top: 16px;
+        background-color: #f8fafc;
+        padding: 10px 16px;
+        border-radius: 10px;
+    }
+
+    .info-item {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .professor-info {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-top: 20px;
+        padding-top: 20px;
+        border-top: 1px solid #f1f5f9;
+    }
+
+    .avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: linear-gradient(45deg, #6366f1, #8b5cf6);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 14px;
+        color: white;
+        font-weight: 600;
+    }
+
+    .professor-details {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .professor-name {
+        font-weight: 600;
+        color: #1e293b;
+        font-size: 14px;
+    }
+
+    .professor-title {
+        font-size: 12px;
+        color: #64748b;
+    }
+
+    .notification-container {
+        margin-top: 20px;
+        min-height: 80px;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .notification-box {
+        padding: 14px 16px;
+        border-radius: 10px;
+        font-size: 14px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .notification-empty {
+        color: #94a3b8;
+        font-style: italic;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 80px;
+    }
+
+    .notification-icon {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 16px;
+    }
+
+    .notification-graded {
+        background-color: #ecfdf5;
+        color: #10b981;
+        border-left: 4px solid #10b981;
+    }
+
+    .notification-graded .notification-icon {
+        background-color: rgba(16, 185, 129, 0.1);
+    }
+
+    .notification-comment {
+        background-color: #fff7ed;
+        color: #f97316;
+        border-left: 4px solid #f97316;
+    }
+
+    .notification-comment .notification-icon {
+        background-color: rgba(249, 115, 22, 0.1);
+    }
+
+    .card-footer {
+        padding: 16px 24px;
+        border-top: 1px solid #f1f5f9;
+        font-size: 14px;
+        font-weight: 600;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: auto;
+        margin-left: 8px;
+    }
+
+    .view-btn {
+        padding: 8px 16px;
+        border-radius: 8px;
+        background-color: #f1f5f9;
+        color: #1e293b;
+        transition: all 0.2s ease;
+    }
+
+    .view-btn:hover {
+        background-color: #e2e8f0;
+    }
+
+    .menu-dots {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: background-color 0.2s ease;
+    }
+
+    .menu-dots:hover {
+        background-color: #f1f5f9;
+    }
+
+    .dropdown-menu {
+        position: absolute;
+        bottom: 60px;
+        right: 20px;
+        background-color: white;
+        border-radius: 12px;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        display: none;
+        min-width: 180px;
+        z-index: 10;
+        border: 1px solid #e6e9ec;
+        overflow: hidden;
+    }
+
+    .menu-dots:hover+.dropdown-menu,
+    .dropdown-menu:hover {
+        display: block;
+    }
+
+    .dropdown-item {
+        padding: 12px 16px;
+        font-size: 14px;
+        color: #1e293b;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .dropdown-item:hover {
+        background-color: #f8fafc;
+    }
+
+    .icon {
+        font-size: 16px;
+    }
+
+    .dropdown-item.archive {
+        color: #ef4444;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Placeholder for Topbar -->
+  <div id="topbar-container"></div>
+
+    
+  <div class="dashboard-container">
+    <!-- Placeholder for Sidebar -->
+    <div id="sidebar-container"></div>
+        
+    <!-- Main Content -->
+    <main class="content">
+      <!-- Header row with "My Courses" and action button -->
+      <div class="header-row">
+        <h1>My Courses</h1>
+        <button id="actionButton">Action</button>
+      </div>
+
+      <!-- "No Classes Yet" for PROFESSOR Container (initially hidden) -->
+      <div id="noClassesContainerProf" class="no-classes-container" style="display: none;">
+        <i class="fas fa-graduation-cap" style="font-size: 64px;"></i>
+        <h3>No Classes Yet</h3>
+        <p>Start by creating your first class!</p>
+        <button class="create-class-button" onclick="openCreateClassModal()">+ Create Class</button>
+      </div>
+      <!-- "No Classes Yet" for STUDENT Container (initially hidden) -->
+      <div id="noClassesContainerStudent" class="no-classes-container" style="display: none;">
+        <i class="fas fa-graduation-cap" style="font-size: 64px;"></i>
+        <h3>No Classes Yet</h3>
+        <p>Start by joining your first class!</p>
+        <button class="create-class-button" onclick="openJoinClassModal()">+ Join Class</button>
+      </div>
+
+      <!-- Grid for listing courses -->
+      <div class="course-grid" id="courseGrid">
+        <!-- Course cards will be injected here -->
+      </div>
+    </main>
+  </div>
+
+  <!-- Modal for Creating a Class -->
+  <div id="createClassModal" class="modal">
+    <div class="modal-content">
+      <h2>Create a New Class</h2>
+      <label for="className">Class Name</label>
+      <input type="text" id="className" placeholder="e.g. Introduction to Computer Science">
+      <label for="subject">Subject</label>
+      <input type="text" id="subject" placeholder="e.g. Computer Science">
+      <label for="description">Description</label>
+      <textarea id="description" rows="3" placeholder="Describe your class"></textarea>
+      <div class="button-row">
+        <button onclick="createClass()">+ Create Class</button>
+        <a href="#" onclick="closeCreateClassModal()">Back to Dashboard</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal for Joining a Class (for students) -->
+  <div id="joinClassModal" class="modal">
+    <div class="modal-content">
+      <h2>Join a Class</h2>
+      <label for="joinClassCode">Enter Class Code</label>
+      <input type="text" id="joinClassCode" placeholder="e.g. ABC123">
+      <div class="button-row">
+        <button onclick="joinClass()">Join Class</button>
+        <a href="#" onclick="closeJoinClassModal()">Back to Dashboard</a>
+      </div>
+    </div>
+  </div>
+
+  <script src="load-components.js"></script>
+  <script src="authorize.js"></script>
+  <script>
+    // Modal functions for Create & Join
+    function openCreateClassModal() {
+      document.getElementById("createClassModal").style.display = "block";
+    }
+    function closeCreateClassModal() {
+      document.getElementById("createClassModal").style.display = "none";
+    }
+    function openJoinClassModal() {
+      document.getElementById("joinClassModal").style.display = "block";
+    }
+    function closeJoinClassModal() {
+      document.getElementById("joinClassModal").style.display = "none";
+    }
+
+    // Create a new class via POST
+    async function createClass() {
+      const name = document.getElementById("className").value.trim();
+      const subject = document.getElementById("subject").value.trim();
+      const description = document.getElementById("description").value.trim();
+
+      if (!name || !subject) {
+        alert("Please provide both a class name and subject.");
+        return;
+      }
+
+      try {
+        const formData = new FormData();
+        formData.append("name", name);
+        formData.append("subject", subject);
+        formData.append("description", description);
+
+        const response = await authFetch("/classes/create", {
+          method: "POST",
+          body: formData
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          alert(errorData.error || "Error creating class");
+          return;
+        }
+        
+        closeCreateClassModal();
+        loadDashboard(); // Refresh dashboard
+      } catch (error) {
+        console.error("Error creating class:", error);
+        alert("An error occurred while creating the class.");
+      }
+    }
+
+    // Join a class via POST
+    async function joinClass() {
+      const code = document.getElementById("joinClassCode").value.trim();
+      if (!code) {
+        alert("Please enter a class code.");
+        return;
+      }
+      try {
+        const formData = new FormData();
+        formData.append("class_code", code);
+
+        const response = await authFetch("/classes/join-class", {
+          method: "POST",
+          body: formData
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          alert(errorData.error || "Error joining class");
+          return;
+        }
+
+        closeJoinClassModal();
+        loadDashboard();
+      } catch (error) {
+        console.error("Error joining class:", error);
+        alert("An error occurred while joining the class.");
+      }
+    }
+
+    // Helper functions for card actions
+    function toggleDropdown(idx) {
+      const dropdown = document.getElementById(`dropdownMenu-${idx}`);
+      dropdown.classList.toggle("show");
+    }
+    function copyClassCode(code) {
+      if (code) {
+        navigator.clipboard.writeText(code);
+        alert("Class code copied!");
+      }
+    }
+    function enterClass(classId) {
+      window.location.href = `/static/courses.htm?class_id=${classId}`;
+    }
+
+    // Load Dashboard Data and Build Course Cards
+    async function loadDashboard() {
+      try {
+        const response = await authFetch("/dashboard", {
+          headers: { "Content-Type": "application/json" }
+        });
+        const data = await response.json();
+
+        // Set user info and adjust action button based on role
+        if (data.user && data.user.full_name) {
+          document.getElementById("userName").innerText = "Welcome, " + data.user.full_name;
+        }
+        const actionBtn = document.getElementById("actionButton");
+        if (data.user && data.user.is_professor) {
+          actionBtn.innerText = "Create Class";
+          actionBtn.onclick = openCreateClassModal;
+        } else {
+          actionBtn.innerText = "Join Class";
+          actionBtn.onclick = openJoinClassModal;
+        }
+
+        // Merge courses: for professors use teaching_courses; for students use enrolled_courses.
+        const courses = [...(data.teaching_courses || []), ...(data.enrolled_courses || [])];
+        
+        // console.log(data.teaching_courses);
+        const courseGrid = document.getElementById("courseGrid");
+        const noClassesContainerProf = document.getElementById("noClassesContainerProf");
+        const noClassesContainerStudent = document.getElementById("noClassesContainerStudent");
+        
+        // Clear out old content
+        courseGrid.innerHTML = "";
+
+        if (courses.length === 0 && data.user) {
+          if (data.user.is_professor){
+            noClassesContainerProf.style.display = "block";
+          }else{
+            noClassesContainerStudent.style.display = "block";
+          }          
+        } else {
+          noClassesContainerProf.style.display = "none";
+          noClassesContainerStudent.style.display = "none";
+        }
+
+        // Use template literal to build each course card's HTML
+        courses.forEach((course, idx) => {
+          // const colors = ['#80b4f6', '#98c4fa', '#b0b3b8', '#6fdc88', '#f58a7f', '#fdd97c'];
+          const colors = ['#1a73e8', '#4285f4', '#5f6368', '#34a853', '#ea4335', '#fbbc04'];
+          const randomColor = colors[Math.floor(Math.random() * colors.length)];
+          const cardHTML = 
+            data.user && data.user.is_professor ? 
+            `
+            <div class="card professor-card" onclick="enterClass(${course.id})">
+                <div class="card-banner card-professor"></div>
+                <!-- <div class="card-badge professor-badge">Professor</div> -->
+                <div class="card-body">
+                    <h2 class="card-title">${course.name || "Department"}</h2>
+                    <p class="card-subtitle">${course.subject || "N/A"} • ${"Spring 2025"}</p>
+
+                    <div class="card-info">
+                        <div class="info-item">
+                            <span>👥</span>
+                            <span>${"42 Students"}</span>
+                        </div>
+                        <div class="info-item">
+                            <span>🏆</span>
+                            <span>${"3 Credits"}</span>
+                        </div>
+                    </div>
+
+                    <div class="notification-container">
+                        <div class="notification-box notification-comment">
+                            <div class="notification-icon">💬</div>
+                            <div>
+                                <strong>New Comment</strong>
+                                <div>Sarah Wilson on Assignment 3</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <div class="view-btn" onclick="enterClass(${course.id})">Manage Course</div>
+                    <div class="menu-dots">⋮</div>
+                    <div class="dropdown-menu">
+                        <div class="dropdown-item" onclick="copyClassCode('${course.class_code}')">
+                            <span class="icon">📋</span>
+                            <span>Copy Class Code</span>
+                        </div>
+                        <div class="dropdown-item">
+                            <span class="icon">✏️</span>
+                            <span>Edit</span>
+                        </div>
+                        <div class="dropdown-item archive">
+                            <span class="icon">🗄️</span>
+                            <span>Archive Course</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            `
+            :
+            `
+            <div class="card student-card" onclick="enterClass(${course.id})">
+                <div class="card-banner card-student"></div>
+                <!-- <div class="card-badge student-badge">Student</div> -->
+                <div class="card-body">
+                    <h2 class="card-title">${course.name || "Department"}</h2>
+                    <p class="card-subtitle">${course.subject || "N/A"} • Spring 2025</p>
+
+                    <div class="card-info">
+                        <div class="info-item">
+                            <span>👥</span>
+                            <span>42 Students</span>
+                        </div>
+                        <div class="info-item">
+                            <span>🏆</span>
+                            <span>3 Credits</span>
+                        </div>
+                    </div>
+
+                    <div class="professor-info">
+                        <div class="avatar">DJ</div>
+                        <div class="professor-details">
+                            <span class="professor-name">${course.owner_name || "Unknown Instructor"}</span>
+                            <span class="professor-title">Course Instructor</span>
+                        </div>
+                    </div>
+
+                    <div class="notification-container">
+                        <div class="notification-box notification-graded">
+                            <div class="notification-icon">✓</div>
+                            <div>
+                                <strong>Assignment Graded</strong>
+                                <div>Project 1: Introduction to Algorithms</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <div class="view-btn">View Course</div>
+                    <div class="menu-dots">⋮</div>
+                    <div class="dropdown-menu">
+                        <div class="dropdown-item" onclick="copyClassCode('${course.class_code}')>
+                            <span class="icon">📋</span>
+                            <span>Copy Class Code</span>
+                        </div>
+                        <div class="dropdown-item archive">
+                            <span class="icon">🗄️</span>
+                            <span>Archive Course</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            `;
+          // `
+          //   <div class="course-card">
+          //     <div class="course-header">
+          //       <div class="course-cover" style="background-color: ${randomColor}"></div>
+          //       <!-- <img src="https://images.unsplash.com/photo-1455849318743-b2233052fcff" alt="Course Cover" class="course-cover"> -->
+          //       <div class="course-title">
+          //         <h2>${course.name || "Untitled Class"}</h2>
+          //         <p class="department">${course.subject || "Department"}</p>
+          //         <p class="section">Class Code: ${course.class_code || "N/A"}</p>
+          //       </div>
+          //       <div class="course-actions">
+          //         <button class="menu-btn" onclick="toggleDropdown(${idx})">
+          //           <i class="fas fa-ellipsis-v"></i>
+          //         </button>
+          //         <div class="dropdown-menu" id="dropdownMenu-${idx}">
+          //           <a href="#" class="dropdown-item" onclick="copyClassCode('${course.class_code}')">
+          //             <i class="fas fa-copy"></i> Copy Class Code
+          //           </a>
+          //           ${data.user && data.user.is_professor ? `
+          //             <a href="#" class="dropdown-item"><i class="fas fa-edit"></i> Edit</a>
+          //             <a href="#" class="dropdown-item"><i class="fas fa-trash"></i> Delete</a>
+          //           ` : ``}
+          //         </div>
+          //       </div>
+          //     </div>
+          //     <div class="course-content">
+          //       <div class="course-description">
+          //         ${course.description || ""}
+          //       </div>
+          //       <div class="teacher-info">
+          //         <img src="https://images.unsplash.com/photo-1509062522246-3755977927d7" alt="Teacher Avatar" class="teacher-avatar">
+          //         <span class="teacher-name">${course.owner_name || "Unknown Instructor"}</span>
+          //       </div>
+          //       <div class="course-footer">
+          //         <div class="students-info">
+          //           <i class="fas fa-users"></i>
+          //           <span> 0 students</span>
+          //         </div>
+          //         <button class="join-btn" onclick="enterClass(${course.id})">Enter Class</button>
+          //       </div>
+          //     </div>
+          //   </div>
+          // `;
+          courseGrid.innerHTML += cardHTML;
+        });
+      } catch (error) {
+        console.error("Error loading dashboard:", error);
+      }
+    }
+
+    document.addEventListener("DOMContentLoaded", loadDashboard);
+
+    // Toggle sidebar menu
+    document.addEventListener("DOMContentLoaded", function () {
+      const menuButton = document.querySelector(".menu-btn");
+      const sidebar = document.querySelector(".sidebar");
+      menuButton.addEventListener("click", function () {
+        sidebar.classList.toggle("collapsed");
+      });
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Automated Answer Sheet Grading</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div id="login-container" class="container">
+        <h2>Login</h2>
+        <input type="text" id="username" placeholder="Enter Username">
+        <input type="password" id="password" placeholder="Enter Password">
+        <button onclick="login()">Login</button>
+    </div>
+
+    <div id="student-interface" class="container hidden">
+        <h2>Student Dashboard</h2>
+        <nav>
+            <a href="view-grades.html" class="button">View Grades</a>
+            <a href="view-answer-sheets.html" class="button">View Answer Sheets</a>
+            <a href="chatbot.html" class="button">Chatbot</a>
+        </nav>
+    </div>
+
+    <div id="professor-interface" class="container hidden">
+        <h2>Professor Dashboard</h2>
+        <nav>
+            <a href="upload-grades.html" class="button">Upload Grades</a>
+            <a href="upload-question-paper.html" class="button">Upload Question Paper</a>
+            <a href="upload-answer-scripts.html" class="button">Upload Answer Scripts</a>
+            <a href="upload-marking-scheme.html" class="button">Upload Marking Scheme</a>
+            <a href="view-queries.html" class="button">View Student Queries</a>
+            <a href="view-students.html" class="button">View Student List</a>
+        </nav>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
