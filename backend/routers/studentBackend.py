@@ -169,12 +169,16 @@ def get_exam_evaluation(
         full_text = f"Q{q.question_number}) " + clean_text
         # Truncate to 50 characters if needed
         truncated_text = full_text if len(full_text) <= 50 else full_text[:50] + "..."
+        reasoning_text = response.reasoning if response and response.reasoning else ""
+        
         evaluation.append({
             "question_id": q.id,
             "question_number": q.question_number,
-            "text": truncated_text,
+            "text": truncated_text, # Keep truncated text for the main display
+            "full_question_text": q.text, # Add the full question text
             "max_marks": q.max_marks,
             "marks_obtained": marks_obtained,
+            "reasoning": reasoning_text, # Add the reasoning text
             "query": query_text
         })
     return evaluation

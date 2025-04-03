@@ -21,7 +21,12 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      margin-bottom: 1rem;
+      /* margin-bottom: 1rem; */
+    }
+    .header-row h1{
+      font-family: 'Poppins', sans-serif;
+      font-weight: 500;
+      color: #333;
     }
     #actionButton {
       background-color: #007bff;
@@ -57,6 +62,12 @@
     }
     .create-class-button:hover {
       background-color: #0056b3;
+    }
+    /* Horizontal divider style */
+    .section-divider {
+      border: none;
+      border-top: 1px solid #e0e0e0;
+      margin: 10px 0 20px 0;
     }
     /* Modal styling for Create & Join */
     .modal {
@@ -123,20 +134,12 @@
       background-color: #0056b3;
     }
     
-
-
-
-
-
-
-
-
-
     .course-grid {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(300px, auto));
         gap: 30px 50px;
         justify-content: start;
+        margin-bottom: 2rem;
     }
 
     .card {
@@ -166,15 +169,6 @@
         box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
     }
 
-    /* .card-banner {
-        width: 6px;
-        position: absolute;
-        top: 0;
-        bottom: 0;
-        left: 0;
-    } */
-
-    /* SWAP FOR TOP BANNER */
     .card-banner {
         height: 6px;
         background: linear-gradient(90deg, #6366f1, #8b5cf6);
@@ -360,6 +354,7 @@
         background-color: #f1f5f9;
         color: #1e293b;
         transition: all 0.2s ease;
+        cursor: pointer;
     }
 
     .view-btn:hover {
@@ -395,8 +390,7 @@
         overflow: hidden;
     }
 
-    .menu-dots:hover+.dropdown-menu,
-    .dropdown-menu:hover {
+    .dropdown-menu.show {
         display: block;
     }
 
@@ -407,6 +401,7 @@
         display: flex;
         align-items: center;
         gap: 10px;
+        cursor: pointer;
     }
 
     .dropdown-item:hover {
@@ -423,20 +418,18 @@
   </style>
 </head>
 <body>
-
   <!-- Placeholder for Topbar -->
   <div id="topbar-container"></div>
 
-    
   <div class="dashboard-container">
     <!-- Placeholder for Sidebar -->
     <div id="sidebar-container"></div>
         
     <!-- Main Content -->
     <main class="content">
-      <!-- Header row with "My Courses" and action button -->
+      <!-- Header row with dynamic heading and action button -->
       <div class="header-row">
-        <h1>My Courses</h1>
+        <h1 id="dashboardHeading">My Courses</h1>
         <button id="actionButton">Action</button>
       </div>
 
@@ -455,9 +448,21 @@
         <button class="create-class-button" onclick="openJoinClassModal()">+ Join Class</button>
       </div>
 
-      <!-- Grid for listing courses -->
-      <div class="course-grid" id="courseGrid">
-        <!-- Course cards will be injected here -->
+      <!-- Professor Courses Grid -->
+      <div class="course-grid" id="courseGrid"></div>
+
+      <!-- Student Sections for Enrolled and Teaching Classes -->
+      <div id="studentSections" style="display: none;">
+         <div id="enrolledSection" style="display: none;">
+            <h2>Enrolled Classes</h2>
+            <hr class="section-divider">
+            <div class="course-grid" id="enrolledGrid"></div>
+         </div>
+         <div id="teachingSection" style="display: none;">
+            <h2>Teaching Classes</h2>
+            <hr class="section-divider">
+            <div class="course-grid" id="teachingGrid"></div>
+         </div>
       </div>
     </main>
   </div>
@@ -576,7 +581,8 @@
     }
 
     // Helper functions for card actions
-    function toggleDropdown(idx) {
+    function toggleDropdown(event, idx) {
+      event.stopPropagation();
       const dropdown = document.getElementById(`dropdownMenu-${idx}`);
       dropdown.classList.toggle("show");
     }
@@ -603,205 +609,276 @@
           document.getElementById("userName").innerText = "Welcome, " + data.user.full_name;
         }
         const actionBtn = document.getElementById("actionButton");
-        if (data.user && data.user.is_professor) {
-          actionBtn.innerText = "Create Class";
-          actionBtn.onclick = openCreateClassModal;
-        } else {
-          actionBtn.innerText = "Join Class";
-          actionBtn.onclick = openJoinClassModal;
-        }
-
-        // Merge courses: for professors use teaching_courses; for students use enrolled_courses.
-        const courses = [...(data.teaching_courses || []), ...(data.enrolled_courses || [])];
-        
-        // console.log(data.teaching_courses);
-        const courseGrid = document.getElementById("courseGrid");
         const noClassesContainerProf = document.getElementById("noClassesContainerProf");
         const noClassesContainerStudent = document.getElementById("noClassesContainerStudent");
-        
-        // Clear out old content
-        courseGrid.innerHTML = "";
 
-        if (courses.length === 0 && data.user) {
-          if (data.user.is_professor){
+        // Clear previous content
+        document.getElementById("courseGrid").innerHTML = "";
+        document.getElementById("enrolledGrid").innerHTML = "";
+        document.getElementById("teachingGrid").innerHTML = "";
+
+        // Adjust sidebar based on user role and available sections
+        if (data.user && data.user.is_professor) {
+          // Professor view
+          document.getElementById("dashboardHeading").innerText = "My Courses";
+          actionBtn.innerText = "Create Class";
+          actionBtn.onclick = openCreateClassModal;
+          document.getElementById("courseGrid").style.display = "grid";
+          document.getElementById("studentSections").style.display = "none";
+
+          // Remove Teaching and Enrolled tabs from the sidebar
+          let teachingTab = document.getElementById("teachingTab");
+          if (teachingTab) teachingTab.parentElement.remove();
+          let enrolledTab = document.getElementById("enrolledTab");
+          if (enrolledTab) enrolledTab.parentElement.remove();
+
+          if (data.teaching_courses.length === 0) {
             noClassesContainerProf.style.display = "block";
-          }else{
-            noClassesContainerStudent.style.display = "block";
-          }          
-        } else {
-          noClassesContainerProf.style.display = "none";
-          noClassesContainerStudent.style.display = "none";
-        }
-
-        // Use template literal to build each course card's HTML
-        courses.forEach((course, idx) => {
-          // const colors = ['#80b4f6', '#98c4fa', '#b0b3b8', '#6fdc88', '#f58a7f', '#fdd97c'];
-          const colors = ['#1a73e8', '#4285f4', '#5f6368', '#34a853', '#ea4335', '#fbbc04'];
-          const randomColor = colors[Math.floor(Math.random() * colors.length)];
-          const cardHTML = 
-            data.user && data.user.is_professor ? 
-            `
-            <div class="card professor-card" onclick="enterClass(${course.id})">
+          } else {
+            noClassesContainerProf.style.display = "none";
+            data.teaching_courses.forEach((course, idx) => {
+              const colors = ['#1a73e8', '#4285f4', '#5f6368', '#34a853', '#ea4335', '#fbbc04'];
+              const randomColor = colors[Math.floor(Math.random() * colors.length)];
+              const cardHTML = `
+              <div class="card professor-card" onclick="enterClass(${course.id})">
                 <div class="card-banner card-professor"></div>
-                <!-- <div class="card-badge professor-badge">Professor</div> -->
                 <div class="card-body">
-                    <h2 class="card-title">${course.name || "Department"}</h2>
-                    <p class="card-subtitle">${course.subject || "N/A"} • ${"Spring 2025"}</p>
-
-                    <div class="card-info">
-                        <div class="info-item">
-                            <span>👥</span>
-                            <span>${"42 Students"}</span>
-                        </div>
-                        <div class="info-item">
-                            <span>🏆</span>
-                            <span>${"3 Credits"}</span>
-                        </div>
+                  <h2 class="card-title">${course.name || "Department"}</h2>
+                  <p class="card-subtitle">${course.subject || "N/A"} • Spring 2025</p>
+                  <div class="card-info">
+                    <div class="info-item">
+                      <span>👥</span>
+                      <span>${"0 Students"}</span>
                     </div>
-
-                    <div class="notification-container">
-                        <div class="notification-box notification-comment">
-                            <div class="notification-icon">💬</div>
-                            <div>
-                                <strong>New Comment</strong>
-                                <div>Sarah Wilson on Assignment 3</div>
-                            </div>
-                        </div>
+                    <div class="info-item">
+                      <span>🏆</span>
+                      <span>${"3 Credits"}</span>
                     </div>
+                  </div>
+                  <div class="notification-container">
+                    <div class="notification-box notification-comment">
+                      <div class="notification-icon">💬</div>
+                      <div>
+                        <strong>No Update Yet!</strong>
+                        <div>Sarah Wilson on Assignment 3</div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
                 <div class="card-footer">
-                    <div class="view-btn" onclick="enterClass(${course.id})">Manage Course</div>
-                    <div class="menu-dots">⋮</div>
-                    <div class="dropdown-menu">
-                        <div class="dropdown-item" onclick="copyClassCode('${course.class_code}')">
-                            <span class="icon">📋</span>
-                            <span>Copy Class Code</span>
-                        </div>
-                        <div class="dropdown-item">
-                            <span class="icon">✏️</span>
-                            <span>Edit</span>
-                        </div>
-                        <div class="dropdown-item archive">
-                            <span class="icon">🗄️</span>
-                            <span>Archive Course</span>
-                        </div>
+                  <div class="view-btn" onclick="enterClass(${course.id})">Manage Course</div>
+                  <div class="menu-dots" onclick="toggleDropdown(event, ${idx})">⋮</div>
+                  <div class="dropdown-menu" id="dropdownMenu-${idx}">
+                    <div class="dropdown-item" onclick="copyClassCode('${course.class_code}')">
+                      <span class="icon">📋</span>
+                      <span>Copy Class Code</span>
                     </div>
+                    <div class="dropdown-item" onclick="/* Edit functionality */">
+                      <span class="icon">✏️</span>
+                      <span>Edit</span>
+                    </div>
+                    <div class="dropdown-item archive" onclick="/* Archive functionality */">
+                      <span class="icon">🗄️</span>
+                      <span>Archive Course</span>
+                    </div>
+                  </div>
                 </div>
-            </div>
-            `
-            :
-            `
-            <div class="card student-card" onclick="enterClass(${course.id})">
+              </div>
+              `;
+              document.getElementById("courseGrid").innerHTML += cardHTML;
+            });
+          }
+        } else {
+          // Student view
+          document.getElementById("dashboardHeading").innerText = "Dashboard";
+          actionBtn.innerText = "Join Class";
+          actionBtn.onclick = openJoinClassModal;
+          document.getElementById("courseGrid").style.display = "none";
+          document.getElementById("studentSections").style.display = "block";
+
+          // Enrolled Courses Section
+          if (data.enrolled_courses && data.enrolled_courses.length > 0) {
+            document.getElementById("enrolledSection").style.display = "block";
+            data.enrolled_courses.forEach((course, idx) => {
+              const cardHTML = `
+              <div class="card student-card" onclick="enterClass(${course.id})">
                 <div class="card-banner card-student"></div>
-                <!-- <div class="card-badge student-badge">Student</div> -->
                 <div class="card-body">
-                    <h2 class="card-title">${course.name || "Department"}</h2>
-                    <p class="card-subtitle">${course.subject || "N/A"} • Spring 2025</p>
-
-                    <div class="card-info">
-                        <div class="info-item">
-                            <span>👥</span>
-                            <span>42 Students</span>
-                        </div>
-                        <div class="info-item">
-                            <span>🏆</span>
-                            <span>3 Credits</span>
-                        </div>
+                  <h2 class="card-title">${course.name || "Department"}</h2>
+                  <p class="card-subtitle">${course.subject || "N/A"} • Spring 2025</p>
+                  <div class="card-info">
+                    <div class="info-item">
+                      <span>👥</span>
+                      <span>42 Students</span>
                     </div>
-
-                    <div class="professor-info">
-                        <div class="avatar">DJ</div>
-                        <div class="professor-details">
-                            <span class="professor-name">${course.owner_name || "Unknown Instructor"}</span>
-                            <span class="professor-title">Course Instructor</span>
-                        </div>
+                    <div class="info-item">
+                      <span>🏆</span>
+                      <span>3 Credits</span>
                     </div>
-
-                    <div class="notification-container">
-                        <div class="notification-box notification-graded">
-                            <div class="notification-icon">✓</div>
-                            <div>
-                                <strong>Assignment Graded</strong>
-                                <div>Project 1: Introduction to Algorithms</div>
-                            </div>
-                        </div>
+                  </div>
+                  <div class="professor-info">
+                    <div class="avatar">DJ</div>
+                    <div class="professor-details">
+                      <span class="professor-name">${course.owner_name || "Unknown Instructor"}</span>
+                      <span class="professor-title">Course Instructor</span>
                     </div>
+                  </div>
+                  <div class="notification-container">
+                    <div class="notification-box notification-graded">
+                      <div class="notification-icon">✓</div>
+                      <div>
+                        <strong>Assignment Graded</strong>
+                        <div>Project 1: Introduction to Algorithms</div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
                 <div class="card-footer">
-                    <div class="view-btn">View Course</div>
-                    <div class="menu-dots">⋮</div>
-                    <div class="dropdown-menu">
-                        <div class="dropdown-item" onclick="copyClassCode('${course.class_code}')>
-                            <span class="icon">📋</span>
-                            <span>Copy Class Code</span>
-                        </div>
-                        <div class="dropdown-item archive">
-                            <span class="icon">🗄️</span>
-                            <span>Archive Course</span>
-                        </div>
+                  <div class="view-btn" onclick="enterClass(${course.id})">View Course</div>
+                  <div class="menu-dots" onclick="toggleDropdown(event, ${idx})">⋮</div>
+                  <div class="dropdown-menu" id="dropdownMenu-${idx}">
+                    <div class="dropdown-item" onclick="copyClassCode('${course.class_code}')">
+                      <span class="icon">📋</span>
+                      <span>Copy Class Code</span>
                     </div>
+                    <div class="dropdown-item archive" onclick="/* Archive functionality */">
+                      <span class="icon">🗄️</span>
+                      <span>Archive Course</span>
+                    </div>
+                  </div>
                 </div>
-            </div>
-            `;
-          // `
-          //   <div class="course-card">
-          //     <div class="course-header">
-          //       <div class="course-cover" style="background-color: ${randomColor}"></div>
-          //       <!-- <img src="https://images.unsplash.com/photo-1455849318743-b2233052fcff" alt="Course Cover" class="course-cover"> -->
-          //       <div class="course-title">
-          //         <h2>${course.name || "Untitled Class"}</h2>
-          //         <p class="department">${course.subject || "Department"}</p>
-          //         <p class="section">Class Code: ${course.class_code || "N/A"}</p>
-          //       </div>
-          //       <div class="course-actions">
-          //         <button class="menu-btn" onclick="toggleDropdown(${idx})">
-          //           <i class="fas fa-ellipsis-v"></i>
-          //         </button>
-          //         <div class="dropdown-menu" id="dropdownMenu-${idx}">
-          //           <a href="#" class="dropdown-item" onclick="copyClassCode('${course.class_code}')">
-          //             <i class="fas fa-copy"></i> Copy Class Code
-          //           </a>
-          //           ${data.user && data.user.is_professor ? `
-          //             <a href="#" class="dropdown-item"><i class="fas fa-edit"></i> Edit</a>
-          //             <a href="#" class="dropdown-item"><i class="fas fa-trash"></i> Delete</a>
-          //           ` : ``}
-          //         </div>
-          //       </div>
-          //     </div>
-          //     <div class="course-content">
-          //       <div class="course-description">
-          //         ${course.description || ""}
-          //       </div>
-          //       <div class="teacher-info">
-          //         <img src="https://images.unsplash.com/photo-1509062522246-3755977927d7" alt="Teacher Avatar" class="teacher-avatar">
-          //         <span class="teacher-name">${course.owner_name || "Unknown Instructor"}</span>
-          //       </div>
-          //       <div class="course-footer">
-          //         <div class="students-info">
-          //           <i class="fas fa-users"></i>
-          //           <span> 0 students</span>
-          //         </div>
-          //         <button class="join-btn" onclick="enterClass(${course.id})">Enter Class</button>
-          //       </div>
-          //     </div>
-          //   </div>
-          // `;
-          courseGrid.innerHTML += cardHTML;
-        });
+              </div>
+              `;
+              document.getElementById("enrolledGrid").innerHTML += cardHTML;
+            });
+          } else {
+            document.getElementById("enrolledSection").style.display = "none";
+          }
+          // Teaching Courses Section (as TA)
+          if (data.teaching_courses && data.teaching_courses.length > 0) {
+            document.getElementById("teachingSection").style.display = "block";
+            data.teaching_courses.forEach((course, idx) => {
+              const cardHTML = `
+              <div class="card student-card" onclick="enterClass(${course.id})">
+                <div class="card-banner card-student"></div>
+                <div class="card-body">
+                  <h2 class="card-title">${course.name || "Department"}</h2>
+                  <p class="card-subtitle">${course.subject || "N/A"} • Spring 2025</p>
+                  <div class="card-info">
+                    <div class="info-item">
+                      <span>👥</span>
+                      <span>42 Students</span>
+                    </div>
+                    <div class="info-item">
+                      <span>🏆</span>
+                      <span>3 Credits</span>
+                    </div>
+                  </div>
+                  <div class="professor-info">
+                    <div class="avatar">DJ</div>
+                    <div class="professor-details">
+                      <span class="professor-name">${course.owner_name || "Unknown Instructor"}</span>
+                      <span class="professor-title">Course Instructor</span>
+                    </div>
+                  </div>
+                  <div class="notification-container">
+                    <div class="notification-box notification-graded">
+                      <div class="notification-icon">✓</div>
+                      <div>
+                        <strong>Assignment Graded</strong>
+                        <div>Project 1: Introduction to Algorithms</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="card-footer">
+                  <div class="view-btn" onclick="enterClass(${course.id})">View Course</div>
+                  <div class="menu-dots" onclick="toggleDropdown(event, ${idx})">⋮</div>
+                  <div class="dropdown-menu" id="dropdownMenu-${idx}">
+                    <div class="dropdown-item" onclick="copyClassCode('${course.class_code}')">
+                      <span class="icon">📋</span>
+                      <span>Copy Class Code</span>
+                    </div>
+                    <div class="dropdown-item archive" onclick="/* Archive functionality */">
+                      <span class="icon">🗄️</span>
+                      <span>Archive Course</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              `;
+              document.getElementById("teachingGrid").innerHTML += cardHTML;
+            });
+          } else {
+            document.getElementById("teachingSection").style.display = "none";
+          }
+          // Adjust sidebar tabs for student view:
+          // Remove Teaching tab if no teaching courses, or add scrolling functionality if available.
+          if (!data.teaching_courses || data.teaching_courses.length === 0) {
+            let teachingTab = document.getElementById("teachingTab");
+            if (teachingTab) teachingTab.parentElement.remove();
+          } else {
+            let teachingTab = document.getElementById("teachingTab");
+            if (teachingTab) {
+              teachingTab.addEventListener("click", function(e) {
+                e.preventDefault();
+                let teachingSection = document.getElementById("teachingSection");
+                if (teachingSection) {
+                  teachingSection.scrollIntoView({ behavior: "smooth" });
+                }
+              });
+            }
+          }
+          // Remove Enrolled tab if no enrolled courses, or add scrolling functionality if available.
+          if (!data.enrolled_courses || data.enrolled_courses.length === 0) {
+            let enrolledTab = document.getElementById("enrolledTab");
+            if (enrolledTab) enrolledTab.parentElement.remove();
+          } else {
+            let enrolledTab = document.getElementById("enrolledTab");
+            if (enrolledTab) {
+              enrolledTab.addEventListener("click", function(e) {
+                e.preventDefault();
+                let enrolledSection = document.getElementById("enrolledSection");
+                if (enrolledSection) {
+                  enrolledSection.scrollIntoView({ behavior: "smooth" });
+                }
+              });
+            }
+          }
+          // If both sections are missing, show the "No Classes Yet" message.
+          if (((!data.enrolled_courses || data.enrolled_courses.length === 0) && (!data.teaching_courses || data.teaching_courses.length === 0))) {
+            noClassesContainerStudent.style.display = "block";
+          } else {
+            noClassesContainerStudent.style.display = "none";
+          }
+        }
       } catch (error) {
         console.error("Error loading dashboard:", error);
       }
     }
 
-    document.addEventListener("DOMContentLoaded", loadDashboard);
+    window.onload = function() {
+      loadDashboard();
+    };
 
-    // Toggle sidebar menu
+    // Global click listener to hide dropdown when clicking outside
+    document.addEventListener('click', function(event) {
+      if (!event.target.closest('.menu-dots') && !event.target.closest('.dropdown-menu')) {
+        document.querySelectorAll('.dropdown-menu.show').forEach(function(dropdown) {
+          dropdown.classList.remove('show');
+        });
+      }
+    });
+
+    // Toggle sidebar menu (if applicable)
     document.addEventListener("DOMContentLoaded", function () {
       const menuButton = document.querySelector(".menu-btn");
       const sidebar = document.querySelector(".sidebar");
-      menuButton.addEventListener("click", function () {
-        sidebar.classList.toggle("collapsed");
-      });
+      if (menuButton && sidebar) {
+        menuButton.addEventListener("click", function () {
+          sidebar.classList.toggle("collapsed");
+        });
+      }
     });
   </script>
 </body>

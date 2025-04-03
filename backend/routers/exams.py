@@ -99,53 +99,121 @@ async def get_exam_files(
     return JSONResponse({"materials": mat_list, "answer_scripts": ans_list})
 
 
-@router.post("/classes/{classId}/exams")
+@router.post("/classes/{class_id}/exams")
 async def create_exam(
-    classId: int,
+    class_id: int, 
     title: str = Form(...),
-    exam_date: str = Form(...),
-    points_possible: int = Form(...),
+    exam_date: Optional[str] = Form(None),
+    points_possible: Optional[int] = Form(100),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user_required)
 ):
-    # Verify classroom exists
-    classroom = db.query(Classroom).filter(Classroom.id == classId).first()
-    if not classroom:
-        raise HTTPException(status_code=404, detail="Class not found")
-
-    # Check user authorization (example: only professors can create exams)
-    if not current_user.is_professor:
-        raise HTTPException(status_code=403, detail="Only professors can create exams")
-
-    # Parse exam date from form data
     try:
-        parsed_exam_date = parse_datetime(exam_date)
+        # Check if class exists
+        classroom = db.query(Classroom).filter(Classroom.id == class_id).first()
+        if not classroom:
+            raise HTTPException(status_code=404, detail="Class not found")
+
+        # Check if user is the class owner
+        is_owner = classroom.owner_id == current_user.id
+        
+        # Check if user is enrolled as TA
+        enrollment = db.query(Enrollment).filter(
+            Enrollment.classroom_id == class_id,
+            Enrollment.student_id == current_user.id,
+            Enrollment.status == "accepted"
+        ).first()
+        
+        # Check if user has permission to create exam
+        if not (is_owner or current_user.is_professor or (enrollment and enrollment.role == "ta")):
+            raise HTTPException(status_code=403, detail="Only professors and TAs can create exams")
+            
+        # Continue with exam creation
+        # Parse exam date from form data
+        parsed_exam_date = parse_datetime(exam_date) if exam_date else datetime.now(timezone.utc)
+
+        # Create the exam record
+        new_exam = Exam(
+            title=title,
+            exam_date=parsed_exam_date,
+            points_possible=points_possible,
+            classroom_id=class_id,
+            author_id=current_user.id,
+            created_at=datetime.now(timezone.utc)
+        )
+        db.add(new_exam)
+        db.commit()
+        db.refresh(new_exam)
+        
+        # Create notification for all students in the class
+        from backend.models.notifications import Notification, NotificationType
+        from backend.models.tables import Enrollment
+        
+        # Get all student enrollments for this class
+        enrollments = db.query(Enrollment).filter(
+            Enrollment.classroom_id == class_id,
+            Enrollment.status == "accepted",
+            Enrollment.role == "student"
+        ).all()
+        
+        # Create a notification for each enrolled student
+        for enrollment in enrollments:
+            notification = Notification(
+                type=NotificationType.EXAM,
+                title=f"New Exam: {title}",
+                message=f"{current_user.full_name} has created a new exam '{title}' for {classroom.name}. Exam date: {parsed_exam_date.strftime('%d %b %Y')}",
+                sender_id=current_user.id,
+                recipient_id=enrollment.student_id,
+                classroom_id=class_id,
+                exam_id=new_exam.id,
+                action_url=f"/courses.htm?class_id={class_id}",
+                created_at=datetime.now(timezone.utc)
+            )
+            db.add(notification)
+        
+        # Create an announcement for the class
+        from backend.models.tables import Announcement
+        
+        announcement = Announcement(
+            classroom_id=class_id,
+            author_id=current_user.id,
+            title=f"New Exam: {title}",
+            content=f"{current_user.full_name} has created a new exam '{title}' for {classroom.name}. Exam date: {parsed_exam_date.strftime('%d %b %Y')}",
+            created_at=datetime.now(timezone.utc)
+        )
+        db.add(announcement)
+        db.commit()
+        db.refresh(announcement)
+        
+        # Now that we have both the exam and announcement created, link them using a Query
+        from backend.models.tables import Query
+        
+        query = Query(
+            title=f"New Exam: {title}",
+            content=f"This announcement is linked to the exam '{title}'",
+            is_public=True,
+            classroom_id=class_id,
+            student_id=current_user.id,
+            related_announcement_id=announcement.id,
+            related_exam_id=new_exam.id,
+            created_at=datetime.now(timezone.utc)
+        )
+        db.add(query)
+        db.commit()
+        
+        logger.info(f"Exam '{new_exam.title}' created for class ID {class_id} by user {current_user.email}")
+
+        return JSONResponse({
+            "success": True,
+            "exam": {
+                "id": new_exam.id,
+                "title": new_exam.title,
+                "exam_date": new_exam.exam_date.isoformat(),
+                "points_possible": new_exam.points_possible
+            }
+        })
     except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
-
-    # Create the exam record
-    new_exam = Exam(
-        title=title,
-        exam_date=parsed_exam_date,
-        points_possible=points_possible,
-        classroom_id=classId,
-        author_id=current_user.id,
-        created_at=datetime.now(timezone.utc)
-    )
-    db.add(new_exam)
-    db.commit()
-    db.refresh(new_exam)
-    logger.info(f"Exam '{new_exam.title}' created for class ID {classId} by user {current_user.email}")
-
-    return JSONResponse({
-        "success": True,
-        "exam": {
-            "id": new_exam.id,
-            "title": new_exam.title,
-            "exam_date": new_exam.exam_date.isoformat(),
-            "points_possible": new_exam.points_possible
-        }
-    })
+        raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/exam/save-files")
 async def save_files(

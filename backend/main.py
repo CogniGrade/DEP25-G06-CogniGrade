@@ -6,7 +6,7 @@ import os
 import logging
 
 from backend.database import engine, get_db, Base
-from backend.routers import auth, classes, enrollments, notifications, announcements, exams, geminiAPI, studentBackend
+from backend.routers import auth, classes, enrollments, notifications, announcements, exams, geminiAPI, studentBackend, peopleManagement
 from backend.config import settings
 
 from fastapi.staticfiles import StaticFiles
@@ -48,7 +48,9 @@ app.include_router(notifications.router)
 app.include_router(announcements.router)
 app.include_router(exams.router)
 app.include_router(geminiAPI.router)
+app.include_router(peopleManagement.router)
 app.include_router(studentBackend.router)  # <-- Added new student endpoints
+
 
 @app.get("/")
 async def root(request: Request):

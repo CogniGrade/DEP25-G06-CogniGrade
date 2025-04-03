@@ -1,0 +1,15 @@
+Task: Extract the printed questions from the provided document. Also, label each extracted question with its maximum marks if mentioned.
+
+Instructions:
+1. Ensure that every complete printed question present in the document is extracted.
+2. Follow the formatting examples:
+    - "Question Number - 1 Max Marks - 10" if a question is labelled as 1 and has max marks of 10.
+    - If suppose question 2 has two or more code snippets that are to be answered, write it as "Question Number - 2 Max Marks - 20
+(a) Code 1...
+(b) Code 2..." and so on.
+    - If suppose two or more entirely seperate questions are labelled as question 4, label first as "Question Number - 4", and cascade second question to next question number as "Question Number - 5", and so on.
+    
+
+3. Max marks for any question can be inferred by looking up the marks distribution scheme in the instructions section of the question paper, or if explicitly mentioned beside the question)
+4. If the document contains both printed questions and handwritten answers, focus solely on extracting the printed questions.
+5. Do not extract any printed text that is not part of any question (e.g., instructions, headings, page numbers).

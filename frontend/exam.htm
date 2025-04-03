@@ -826,8 +826,11 @@
       }
     }
 
+    window.onload = function() {
+      loadExam();
+    };
     // On DOM content loaded, call loadExam
-    document.addEventListener("DOMContentLoaded", loadExam);
+    // document.addEventListener("DOMContentLoaded", loadExam);
 
     // Updated saveAllFiles function
     async function saveAllFiles() {
@@ -1002,57 +1005,71 @@
       console.log("Processing question papers");
       try {
         // Clear existing questions first
-        await authFetch(`/exams/${examId}/questions`, {
-          method: "DELETE",
-        });
+        await authFetch(`/exams/${examId}/questions`, { method: "DELETE" });
 
         // Get question paper content using studentBackend endpoint
         const response = await authFetch(`/student/exam/${examId}/document/Question-Paper`);
         const questionPaper = await response.json();
-
         if (!questionPaper || !questionPaper.extracted_text) {
           console.log("No question papers found to process");
           return;
         }
-
         const extractedText = questionPaper.extracted_text;
-        const questionPattern = /\*\*Question Number\s*(?:[:\-]\s*)?(\d+)\*\*\s*([\s\S]*?)(?=\*\*Question Number\s*(?:[:\-]\s*)?|$)/g;
-        const questions = [];
+        // Regex with optional bold markers and two groups for question number: digits and optional sub-part (e.g., "5(a)")
+        const questionPattern = /(?:\*\*)?Question(?:\s*Number)?(?:\*\*)?\s*(?:[:\-]\s*)?(\d+)(\([a-z]\))?(?:\*\*)?\s*([\s\S]*?)(?=(?:\*\*)?Question(?:\s*Number)?(?:\*\*)?\s*(?:[:\-]\s*)?\d+(?:\([a-z]\))?(?:\*\*)?|$)/g;
         let match;
-        
+        const groupedQuestions = {};
+
+        // Group questions by the numeric part only (group 1)
         while ((match = questionPattern.exec(extractedText)) !== null) {
-          questions.push({
-            number: parseInt(match[1], 10),
-            text: match[2].trim()
-          });
+          const numericKey = match[1]; // e.g., "5" from "5" or "5(a)"
+          const textPart = match[3].trim();
+          if (!groupedQuestions[numericKey]) {
+            groupedQuestions[numericKey] = [];
+          }
+          groupedQuestions[numericKey].push(textPart);
         }
 
-        questions.sort((a, b) => a.number - b.number);
-
-        
-        // Extract max marks for each question if available
+        // Prepare final questions array
+        const questions = [];
         const maxMarksPattern = /Max(?:imum)?\s*Marks\s*(?:[:\-]\s*)?(\d+)/i;
-        
+
+        // For each question group, label duplicate parts and sum their marks
+        Object.keys(groupedQuestions)
+          .sort() // lexicographical sort
+          .forEach(qNum => {
+            const parts = groupedQuestions[qNum];
+            let combinedText = "";
+            let totalMarks = 0;
+            parts.forEach((part, index) => {
+              const label = parts.length > 1 ? `(${String.fromCharCode(97 + index)}) ` : "";
+              const marksMatch = part.match(maxMarksPattern);
+              const partMarks = marksMatch ? parseInt(marksMatch[1], 10) : 10;
+              totalMarks += partMarks;
+              const cleanedPart = part.replace(maxMarksPattern, "").trim();
+              combinedText += label + cleanedPart + "\n";
+            });
+            combinedText = combinedText.trim();
+            questions.push({
+              number: qNum, // grouped numeric key
+              text: combinedText,
+              max_marks: totalMarks
+            });
+          });
+
+        // Create the question records
         const createPromises = questions.map(question => {
-          // Try to extract max marks from the question text
-          const marksMatch = question.text.match(maxMarksPattern);
-          const maxMarks = marksMatch ? parseInt(marksMatch[1], 10) : 10; // Default to 10 if not found
-          
-          const cleanedText = question.text.replace(maxMarksPattern, "").trim();
-
-          console.log("Max Marks: ", maxMarks);
-
+          console.log("Max Marks: ", question.max_marks);
           return authFetch(`/exams/${examId}/questions`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
               question_number: question.number,
-              text: cleanedText,
-              max_marks: maxMarks
+              text: question.text,
+              max_marks: question.max_marks
             })
           });
         });
-
         await Promise.all(createPromises);
         console.log("Question papers processed and questions created");
       } catch (error) {
@@ -1065,32 +1082,42 @@
     async function processSolutionScript(examId) {
       console.log("Processing solution scripts");
       try {
-        // Get solution script content using studentBackend endpoint
         const response = await authFetch(`/student/exam/${examId}/document/Solution-Script`);
         const solutionScript = await response.json();
-
         if (!solutionScript || !solutionScript.extracted_text) {
           console.log("No solution scripts found to process");
           return;
         }
-
-        const questions = await authFetch(`/exams/${examId}/questions/all`);
-        const existingQuestions = await questions.json();
-
+        const questionsResponse = await authFetch(`/exams/${examId}/questions/all`);
+        const existingQuestions = await questionsResponse.json();
         if (!existingQuestions || existingQuestions.length === 0) {
           console.log("No questions found to associate solutions with");
           return;
         }
-
         const solutionText = solutionScript.extracted_text;
-        const solutionPattern = /\*\*Question Number\s*(?:[:\-]\s*)?(\d+)\*\*\s*([\s\S]*?)(?=\*\*Question Number\s*(?:[:\-]\s*)?|$)/g;
-        const solutions = {};
+        const solutionPattern = /(?:\*\*)?Question(?:\s*Number)?(?:\*\*)?\s*(?:[:\-]\s*)?(\d+)(\([a-z]\))?(?:\*\*)?\s*([\s\S]*?)(?=(?:\*\*)?Question(?:\s*Number)?(?:\*\*)?\s*(?:[:\-]\s*)?\d+(?:\([a-z]\))?(?:\*\*)?|$)/g;
         let match;
-
+        const groupedSolutions = {};
+        // Group solutions by numeric part
         while ((match = solutionPattern.exec(solutionText)) !== null) {
-          solutions[parseInt(match[1], 10)] = match[2].trim();
+          const numericKey = match[1];
+          const textPart = match[3].trim();
+          if (!groupedSolutions[numericKey]) {
+            groupedSolutions[numericKey] = [];
+          }
+          groupedSolutions[numericKey].push(textPart);
         }
-
+        // Concatenate parts with sub-labels if needed
+        const solutions = {};
+        Object.keys(groupedSolutions).forEach(qNum => {
+          const parts = groupedSolutions[qNum];
+          let combinedSolution = "";
+          parts.forEach((part, index) => {
+            const label = parts.length > 1 ? `(${String.fromCharCode(97 + index)}) ` : "";
+            combinedSolution += label + part + "\n";
+          });
+          solutions[qNum] = combinedSolution.trim();
+        });
         // Update each question with its ideal answer
         const updatePromises = existingQuestions.map(question => {
           const questionNum = question.question_number;
@@ -1105,7 +1132,6 @@
           }
           return Promise.resolve();
         });
-
         await Promise.all(updatePromises);
         console.log("Solution scripts processed and ideal answers stored");
       } catch (error) {
@@ -1118,32 +1144,42 @@
     async function processMarkingScheme(examId) {
       console.log("Processing marking schemes");
       try {
-        // Get marking scheme content using studentBackend endpoint
         const response = await authFetch(`/student/exam/${examId}/document/Marking-Scheme`);
         const markingScheme = await response.json();
-
         if (!markingScheme || !markingScheme.extracted_text) {
           console.log("No marking schemes found to process");
           return;
         }
-
-        const questions = await authFetch(`/exams/${examId}/questions/all`);
-        const existingQuestions = await questions.json();
-
+        const questionsResponse = await authFetch(`/exams/${examId}/questions/all`);
+        const existingQuestions = await questionsResponse.json();
         if (!existingQuestions || existingQuestions.length === 0) {
           console.log("No questions found to associate marking scheme with");
           return;
         }
-
         const schemeText = markingScheme.extracted_text;
-        const schemePattern = /\*\*Question Number\s*(?:[:\-]\s*)?(\d+)\*\*\s*([\s\S]*?)(?=\*\*Question Number\s*(?:[:\-]\s*)?|$)/g;
-        const schemes = {};
+        const schemePattern = /(?:\*\*)?Question(?:\s*Number)?(?:\*\*)?\s*(?:[:\-]\s*)?(\d+)(\([a-z]\))?(?:\*\*)?\s*([\s\S]*?)(?=(?:\*\*)?Question(?:\s*Number)?(?:\*\*)?\s*(?:[:\-]\s*)?\d+(?:\([a-z]\))?(?:\*\*)?|$)/g;
         let match;
-
+        const groupedSchemes = {};
+        // Group marking schemes by numeric part
         while ((match = schemePattern.exec(schemeText)) !== null) {
-          schemes[parseInt(match[1], 10)] = match[2].trim();
+          const numericKey = match[1];
+          const textPart = match[3].trim();
+          if (!groupedSchemes[numericKey]) {
+            groupedSchemes[numericKey] = [];
+          }
+          groupedSchemes[numericKey].push(textPart);
         }
-        // console.log(schemes);
+        // Concatenate parts with sub-labels if needed
+        const schemes = {};
+        Object.keys(groupedSchemes).forEach(qNum => {
+          const parts = groupedSchemes[qNum];
+          let combinedScheme = "";
+          parts.forEach((part, index) => {
+            const label = parts.length > 1 ? `(${String.fromCharCode(97 + index)}) ` : "";
+            combinedScheme += label + part + "\n";
+          });
+          schemes[qNum] = combinedScheme.trim();
+        });
         // Update each question with its marking scheme
         const updatePromises = existingQuestions.map(question => {
           const questionNum = question.question_number;
@@ -1158,7 +1194,6 @@
           }
           return Promise.resolve();
         });
-
         await Promise.all(updatePromises);
         console.log("Marking schemes processed and criteria stored");
       } catch (error) {
@@ -1171,33 +1206,42 @@
     async function processStudentAnswers(examId) {
       console.log("Processing student answer scripts");
       try {
-        // Get all student answer scripts
         const answerScriptsResponse = await authFetch(`/exams/${examId}/document/Answer-Script`);
         const studentScripts = await answerScriptsResponse.json();
-
-        // Get all questions for this exam
-        const questions = await authFetch(`/exams/${examId}/questions/all`);
-        const existingQuestions = await questions.json();
-
+        const questionsResponse = await authFetch(`/exams/${examId}/questions/all`);
+        const existingQuestions = await questionsResponse.json();
         if (!existingQuestions || existingQuestions.length === 0) {
           console.log("No questions found to grade student answers against");
           return;
         }
-
         for (const script of studentScripts) {
           if (!script.extracted_text) {
             console.log(`Skipping script for student ${script.student_id} - no extracted text`);
             continue;
           }
-
-          const answerPattern = /\*\*Question Number\s*(?:[:\-]\s*)?(\d+)\*\*\s*([\s\S]*?)(?=\*\*Question Number\s*(?:[:\-]\s*)?|$)/g;
-          const studentAnswers = {};
+          const answerPattern = /(?:\*\*)?Question(?:\s*Number)?(?:\*\*)?\s*(?:[:\-]\s*)?(\d+)(\([a-z]\))?(?:\*\*)?\s*([\s\S]*?)(?=(?:\*\*)?Question(?:\s*Number)?(?:\*\*)?\s*(?:[:\-]\s*)?\d+(?:\([a-z]\))?(?:\*\*)?|$)/g;
           let match;
-
+          const groupedAnswers = {};
+          // Group student answers by numeric part
           while ((match = answerPattern.exec(script.extracted_text)) !== null) {
-            studentAnswers[parseInt(match[1], 10)] = match[2].trim();
+            const numericKey = match[1];
+            const textPart = match[3].trim();
+            if (!groupedAnswers[numericKey]) {
+              groupedAnswers[numericKey] = [];
+            }
+            groupedAnswers[numericKey].push(textPart);
           }
-
+          // Combine answers with sub-labels if multiple parts exist
+          const studentAnswers = {};
+          Object.keys(groupedAnswers).forEach(qNum => {
+            const parts = groupedAnswers[qNum];
+            let combinedAnswer = "";
+            parts.forEach((part, index) => {
+              const label = parts.length > 1 ? `(${String.fromCharCode(97 + index)}) ` : "";
+              combinedAnswer += label + part + "\n";
+            });
+            studentAnswers[qNum] = combinedAnswer.trim();
+          });
           for (const question of existingQuestions) {
             const questionNum = question.question_number;
             if (studentAnswers[questionNum]) {
@@ -1211,7 +1255,6 @@
                   answer_text: studentAnswers[questionNum]
                 })
               });
-
               // If the question has an ideal answer and marking scheme, grade it
               if (question.ideal_answer || question.ideal_marking_scheme) {
                 await gradeStudentResponse(
@@ -1220,7 +1263,8 @@
                   question.id,
                   studentAnswers[questionNum],
                   question.ideal_answer,
-                  question.ideal_marking_scheme
+                  question.ideal_marking_scheme,
+                  questionNum
                 );
               }
             }
@@ -1234,8 +1278,10 @@
       }
     }
 
+
+
     // Helper function to grade a student response
-    async function gradeStudentResponse(examId, studentId, questionId, studentAnswer, idealAnswer, markingScheme) {
+    async function gradeStudentResponse(examId, studentId, questionId, studentAnswer, idealAnswer, markingScheme, questionNum) {
       try {
         const response = await authFetch(`/grade-question`, {
           method: "POST",
@@ -1250,10 +1296,11 @@
           })
         });
         const result = await response.json();
-        console.log(`Graded question ${questionId} for student ${studentId}:`, result);
+        console.log(`Graded question ${questionNum} for student ${studentId}:`, result);
+        console.log(`Student Response: ${studentAnswer}`);
         return result;
       } catch (error) {
-        console.error(`Error grading question ${questionId} for student ${studentId}:`, error);
+        console.error(`Error grading question ${questionNum} for student ${studentId}:`, error);
         return null;
       }
     }

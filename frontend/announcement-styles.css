@@ -1,194 +1,355 @@
-
 /* ===== ANNOUNCEMENTS ===== */
 .announcement-container {
-    max-width: 100%;
-    margin: 0px auto;
-    padding: 16px;
-    background-color: #fff;
-    border-radius: 8px;
-    box-shadow: 0 0 4px rgba(0,0,0,0.1);
-    font-family: sans-serif;
-  }
-  
-  .announce-input {
-    width: 100%;
-    min-height: 60px;
-    outline: none;
-    border: none;
-    font-size: 14px;
-    background: transparent;
-    padding: 10px;
-    border-radius: 6px;
-    border: 1px solid #ddd;
-  }
-  
-  .announce-input:empty:before {
-    content: attr(data-placeholder);
-    color: #888;
-  }
-  
-  /* Toolbar below the input */
-  .toolbar {
-    display: none;
-    margin-top: 10px;
-    background: #fff;
-    padding: 8px;
-    border-top: 1px solid #ddd;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-  }
-  
-  .toolbar button {
-    background: none;
-    border: none;
-    font-size: 16px;
-    cursor: pointer;
-    margin-right: 8px;
-    padding: 6px;
-    border-radius: 4px;
-    transition: background 0.3s;
-  }
-  
-  .toolbar button:hover {
-    background: #f0f0f0;
-  }
-  
-  .toolbar button.active {
-    background: #ddd;
-  }
-  
-  /* Cancel & Post Buttons */
-  .toolbar .cancel-btn, 
-  .toolbar .post-btn {
-    border: none;
-    padding: 6px 12px;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 14px;
-    margin-left: 8px;
-  }
-  
-  .toolbar .cancel-btn {
-    background: #f0f0f0;
-    color: #333;
-  }
-  
-  .toolbar .cancel-btn:hover {
-    background: #ddd;
-  }
-  
-  .toolbar .post-btn {
-    background: #007bff;
-    color: #fff;
-  }
-  
-  .toolbar .post-btn:hover {
-    background: #0056b3;
-  }
-  
-  .announcement-list {
-    margin-top: 20px;
-  }
-  
-  .announcement-card {
-    background: #fff;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    padding: 16px;
-    margin-bottom: 12px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-  }
-  
-  .announcement-header {
-    display: flex;
-    align-items: center;
-    margin-bottom: 8px;
-  }
-  
-  .profile-pic {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-  }
-  
-  .announcement-info {
-    margin-left: 10px;
-    flex: 1;
-  }
-  
-  .teacher-name {
-    font-weight: bold;
-    display: block;
-  }
-  
-  .announcement-date {
-    font-size: 12px;
-    color: #888;
-  }
-  
-  .menu-container {
-    position: relative;
-  }
-  
-  .menu-btn {
-    background: none;
-    border: none;
-    font-size: 18px;
-    cursor: pointer;
-    padding: 4px;
-  }
-  
-  .menu-options {
-    position: absolute;
-    top: 25px;
-    right: 0;
-    background: #fff;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-    display: none;
-    z-index: 10;
-  }
-  
-  .menu-options button {
-    background: none;
-    border: none;
-    padding: 8px 16px;
-    width: 100%;
-    text-align: left;
-    cursor: pointer;
-  }
-  
-  .menu-options button:hover {
-    background: #f0f0f0;
-  }
-  
-  /* Inline Edit for Announcements */
-  .edit-container {
-    margin-top: 10px;
-  }
-  
-  .edit-input {
-    width: 100%;
-    min-height: 60px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    padding: 8px;
-    outline: none;
-  }
-  
-  .save-btn {
-    margin-top: 8px;
-    padding: 6px 12px;
-    background: #007bff;
-    color: #fff;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-  }
-  
-  .save-btn:hover {
-    background: #0056b3;
-  }
-  
+  max-width: 100%;
+  margin: 0px auto;
+  padding: 16px;
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 0 4px rgba(0, 0, 0, 0.1);
+  font-family: sans-serif;
+}
+
+.announce-input {
+  width: 100%;
+  min-height: 60px;
+  outline: none;
+  border: none;
+  font-size: 14px;
+  background: transparent;
+  padding: 10px;
+  border-radius: 6px;
+  border: 1px solid #ddd;
+}
+
+.announce-input:empty:before {
+  content: attr(data-placeholder);
+  color: #888;
+}
+
+/* Toolbar below the input */
+.toolbar {
+  display: none;
+  margin-top: 10px;
+  background: #fff;
+  padding: 8px;
+  border-top: 1px solid #ddd;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.toolbar button {
+  background: none;
+  border: none;
+  font-size: 16px;
+  cursor: pointer;
+  margin-right: 8px;
+  padding: 6px;
+  border-radius: 4px;
+  transition: background 0.3s;
+}
+
+.toolbar button:hover {
+  background: #f0f0f0;
+}
+
+.toolbar button.active {
+  background: #ddd;
+}
+
+/* Cancel & Post Buttons */
+.toolbar .cancel-btn,
+.toolbar .post-btn {
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  margin-left: 8px;
+}
+
+.toolbar .cancel-btn {
+  background: #f0f0f0;
+  color: #333;
+}
+
+.toolbar .cancel-btn:hover {
+  background: #ddd;
+}
+
+.toolbar .post-btn {
+  background: #007bff;
+  color: #fff;
+}
+
+.toolbar .post-btn:hover {
+  background: #0056b3;
+}
+
+.announcement-list {
+  margin-top: 20px;
+}
+
+.announcement-card {
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.announcement-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.profile-pic {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+}
+
+.announcement-info {
+  margin-left: 10px;
+  flex: 1;
+}
+
+.teacher-name {
+  font-weight: bold;
+  display: block;
+}
+
+.announcement-date {
+  font-size: 12px;
+  color: #888;
+}
+
+.menu-container {
+  position: relative;
+}
+
+.menu-btn {
+  background: none;
+  border: none;
+  font-size: 18px;
+  cursor: pointer;
+  padding: 4px;
+}
+
+.menu-options {
+  position: absolute;
+  top: 25px;
+  right: 0;
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  display: none;
+  z-index: 10;
+}
+
+.menu-options button {
+  background: none;
+  border: none;
+  padding: 8px 16px;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+}
+
+.menu-options button:hover {
+  background: #f0f0f0;
+}
+
+/* Inline Edit for Announcements */
+.edit-container {
+  margin-top: 10px;
+}
+
+.edit-input {
+  width: 100%;
+  min-height: 60px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  padding: 8px;
+  outline: none;
+}
+
+.save-btn {
+  margin-top: 8px;
+  padding: 6px 12px;
+  background: #007bff;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.save-btn:hover {
+  background: #0056b3;
+}
+
+/* Add styling for exam announcements */
+.exam-announcement {
+  background-color: #e8f5e9;
+  border-left: 4px solid #4caf50;
+  padding: 10px 0 10px 12px;
+  border-radius: 6px;
+  margin-bottom: 15px;
+}
+
+.announcement-title {
+  margin-top: 0;
+  margin-bottom: 8px;
+  font-size: 16px;
+  color: #1a73e8;
+}
+
+.no-announcements {
+  color: #757575;
+  font-style: italic;
+  text-align: center;
+  margin: 20px 0;
+}
+
+/* Styling for clickable announcements */
+.announcement-content.clickable {
+  cursor: pointer;
+  transition: background-color 0.2s;
+  padding: 5px;
+  border-radius: 4px;
+}
+
+.announcement-content.clickable:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+/* Comments styling */
+.announcement-comments {
+  margin-top: 15px;
+  border-top: 1px solid #e0e0e0;
+  padding-top: 10px;
+  background-color: #fff;
+}
+
+.comments-list {
+  margin-bottom: 10px;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.comment {
+  margin-bottom: 12px;
+  padding: 10px 14px;
+  background-color: #f5f5f5;
+  border-radius: 12px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.comment-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 5px;
+}
+
+.comment-author {
+  font-weight: 500;
+  color: #202124;
+  font-size: 13px;
+}
+
+.comment-date {
+  color: #5f6368;
+  font-size: 12px;
+}
+
+.comment-content {
+  font-size: 14px;
+  line-height: 1.4;
+  color: #3c4043;
+}
+
+.add-comment {
+  margin-top: 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.comment-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background-color: #e0e0e0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  color: #5f6368;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+.comment-input-container {
+  display: flex;
+  align-items: center;
+  border: 1px solid #dadce0;
+  border-radius: 24px;
+  padding: 2px 4px 2px 16px;
+  transition: box-shadow 0.2s, border-color 0.2s;
+  background-color: #f8f9fa;
+  flex: 1;
+}
+
+.comment-input-container:focus-within {
+  border-color: #1a73e8;
+  box-shadow: 0 1px 2px rgba(26, 115, 232, 0.3);
+  background-color: #fff;
+}
+
+.comment-input {
+  flex: 1;
+  border: none;
+  outline: none;
+  padding: 10px 0;
+  font-size: 14px;
+  font-family: 'Roboto', sans-serif;
+  background: transparent;
+}
+
+.post-comment-btn {
+  background-color: #1a73e8;
+  color: white;
+  border: none;
+  border-radius: 18px;
+  padding: 6px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  margin-right: 4px;
+  transition: background-color 0.2s;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.post-comment-btn:hover {
+  background-color: #1557b0;
+}
+
+.post-comment-btn:disabled {
+  background-color: #dadce0;
+  color: #80868b;
+  cursor: not-allowed;
+}
+
+/* Assignment announcement styling */
+.assignment-announcement {
+  background-color: #e3f2fd;
+  border-left: 4px solid #2196f3;
+  padding: 10px 0 10px 12px;
+  border-radius: 6px;
+  margin-bottom: 15px;
+}

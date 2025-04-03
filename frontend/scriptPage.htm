@@ -8,6 +8,42 @@
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
   <style>
+    /* Add or modify existing modal styles */
+    .modal {
+      /* Your existing modal styles */
+      z-index: 100; /* Ensure modals appear above other content */
+    }
+
+    .modal-content {
+      /* Your existing modal content styles */
+      max-height: 80vh; /* Limit height */
+      overflow-y: auto; /* Add scroll if content overflows */
+    }
+
+    .close {
+      /* Your existing close button styles */
+    }
+
+    /* Style for the new view detail buttons */
+    .view-detail-btn {
+      background: none;
+      border: none;
+      color: #488aec; /* Example color */
+      cursor: pointer;
+      padding: 2px 5px;
+      font-size: 0.9em;
+      margin-left: 5px;
+      vertical-align: middle; /* Align icon nicely with text */
+    }
+
+    .view-detail-btn:hover {
+      color: #366abf; /* Darker hover color */
+    }
+
+    /* Ensure table cells accommodate buttons */
+    .evaluation-table td {
+      vertical-align: middle; /* Align content vertically */
+    }
     /* Styling for the dropdown container */
     #doc-dropdown-container {
       text-align: right;
@@ -104,6 +140,7 @@
           <tr>
             <th>Question</th>
             <th>Marks</th>
+            <th>Reasoning</th>
             <th>Action</th>
           </tr>
         </thead>
@@ -122,6 +159,22 @@
       <textarea id="queryText" placeholder="Write your query here..."></textarea>
       <br>
       <button id="sendQueryBtn" onclick="sendQuery()">Send</button>
+    </div>
+  </div>
+
+  <div id="questionModal" class="modal" style="display:none;">
+    <div class="modal-content">
+      <span class="close" onclick="closeDetailModal('questionModal')">&times;</span>
+      <h3>Full Question</h3>
+      <div id="fullQuestionText" style="white-space: pre-wrap;"></div> {/* Use pre-wrap to preserve formatting */}
+    </div>
+  </div>
+  
+  <div id="reasoningModal" class="modal" style="display:none;">
+    <div class="modal-content">
+      <span class="close" onclick="closeDetailModal('reasoningModal')">&times;</span>
+      <h3>Grading Reasoning</h3>
+      <div id="fullReasoningText" style="white-space: pre-wrap;"></div> {/* Use pre-wrap */}
     </div>
   </div>
 
@@ -254,14 +307,42 @@
           tbody.innerHTML = "";
           data.forEach(row => {
             const tr = document.createElement("tr");
-            // Question Column (truncated text already provided)
+
+            // Question Column (truncated text + button)
             const tdQuestion = document.createElement("td");
-            tdQuestion.textContent = row.text;
+            tdQuestion.textContent = row.text + " "; // Add space before button
+            const viewQuestionBtn = document.createElement("button");
+            viewQuestionBtn.innerHTML = '<i class="fas fa-eye"></i>'; // Example: eye icon
+            viewQuestionBtn.title = "View Full Question";
+            viewQuestionBtn.className = "view-detail-btn"; // Add a class for styling if needed
+            viewQuestionBtn.onclick = function() {
+              openDetailModal('questionModal', 'fullQuestionText', row.full_question_text);
+            };
+            tdQuestion.appendChild(viewQuestionBtn);
             tr.appendChild(tdQuestion);
-            // Marks Column: display as marks_obtained/max_marks (if marks_obtained exists)
+
+            // Marks Column
             const tdMarks = document.createElement("td");
             tdMarks.textContent = (row.marks_obtained !== "" ? row.marks_obtained : "0") + "/" + row.max_marks;
             tr.appendChild(tdMarks);
+
+            // Reasoning Column (button only if reasoning exists)
+            const tdReasoning = document.createElement("td");
+            if (row.reasoning && row.reasoning.trim() !== "") {
+              const viewReasoningBtn = document.createElement("button");
+              viewReasoningBtn.innerHTML = '<i class="fas fa-comment-dots"></i>'; // Example: comment icon
+              viewReasoningBtn.title = "View Reasoning";
+              viewReasoningBtn.className = "view-detail-btn"; // Add a class for styling if needed
+              viewReasoningBtn.onclick = function() {
+                openDetailModal('reasoningModal', 'fullReasoningText', row.reasoning);
+              };
+              tdReasoning.appendChild(viewReasoningBtn);
+            } else {
+              tdReasoning.textContent = "-"; // Indicate no reasoning provided
+            }
+            tr.appendChild(tdReasoning);
+
+
             // Action Column: Post/Edit Query button
             const tdAction = document.createElement("td");
             const btn = document.createElement("button");
@@ -269,32 +350,68 @@
             btn.id = "query-btn-" + row.question_id;
             btn.textContent = row.query ? "Edit Query" : "Post Query";
             btn.onclick = function() {
+              // Pass the existing query text to the modal
               openModal(row.question_id, row.query);
             };
             tdAction.appendChild(btn);
             tr.appendChild(tdAction);
+
             tbody.appendChild(tr);
           });
         })
         .catch(error => console.error("Error loading evaluation data:", error));
     }
 
-    // --- Modal Functions for Posting Query ---
-    // currentQuestion stores the question ID for which the query is being posted
+    // --- Modal Functions for Viewing Details ---
+    function openDetailModal(modalId, contentElementId, text) {
+      document.getElementById(contentElementId).innerHTML = marked.parse((text || "")); // Use textContent to prevent XSS
+      document.getElementById(modalId).style.display = "block";
+    }
+
+    function closeDetailModal(modalId) {
+      document.getElementById(modalId).style.display = "none";
+      // Optional: Clear the content when closing
+      // if (modalId === 'questionModal') document.getElementById('fullQuestionText').textContent = '';
+      // if (modalId === 'reasoningModal') document.getElementById('fullReasoningText').textContent = '';
+    }
+
+    // --- Existing Modal Functions for Posting Query ---
+    // (Keep your existing openModal, closeModal, sendQuery functions)
     let currentQuestion = null;
 
-    // openModal now accepts the question id and the current query (if any)
     function openModal(questionId, existingQuery) {
       currentQuestion = questionId;
+      // Make sure to use the correct ID for the query textarea
       document.getElementById("queryText").value = existingQuery || "";
       document.getElementById("queryModal").style.display = "block";
     }
 
-    function closeModal() {
+    function closeModal() { // Ensure this function closes the correct query modal
       document.getElementById("queryModal").style.display = "none";
       document.getElementById("queryText").value = "";
     }
+    // ... (keep sendQuery function) ...
 
+    // Close modals if clicked outside
+    window.onclick = function(event) {
+      const questionModal = document.getElementById('questionModal');
+      const reasoningModal = document.getElementById('reasoningModal');
+      const queryModal = document.getElementById('queryModal'); // Assuming this is the ID of your query modal
+
+      if (event.target == questionModal) {
+        closeDetailModal('questionModal');
+      } else if (event.target == reasoningModal) {
+        closeDetailModal('reasoningModal');
+      } else if (event.target == queryModal) {
+        closeModal(); // Use the function that closes the query modal
+      }
+    }
+
+    // Make sure the DOMContentLoaded also calls the updated loadEvaluationTable
+    document.addEventListener("DOMContentLoaded", function() {
+        loadAvailableDocuments();
+        loadEvaluationTable(); // Ensure this is called
+    });
     function sendQuery() {
       const query = document.getElementById("queryText").value.trim();
       if (query === "") {

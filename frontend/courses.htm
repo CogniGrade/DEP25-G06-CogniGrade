@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -21,11 +22,206 @@
             cursor: pointer;
             transition: background-color 0.2s ease;
         }
+
         .join-btn:hover {
             background: #1557b0;
         }
-        /* Add Exam Button in Exams Tab Header */
-        #addExamBtn {
+
+        /* Main Navigation Tabs Enhancement */
+        .tabs {
+            display: flex;
+            border-bottom: 1px solid #e0e0e0;
+            margin-bottom: 24px;
+            padding-bottom: 0;
+            position: relative;
+            margin-top: 20px;
+        }
+
+        .tab-link {
+            background: none;
+            border: none;
+            padding: 12px 24px;
+            font-size: 15px;
+            font-weight: 500;
+            color: #5f6368;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            margin-right: 8px;
+            letter-spacing: 0.01em;
+            border-radius: 4px 4px 0 0;
+        }
+
+        .tab-link:hover {
+            color: #1a73e8;
+            background-color: rgba(26, 115, 232, 0.04);
+        }
+
+        .tab-link.active {
+            color: #1a73e8;
+            font-weight: 500;
+        }
+
+        .tab-link.active::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background-color: #1a73e8;
+            border-radius: 3px 3px 0 0;
+        }
+
+        .tab-link:focus {
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(26, 115, 232, 0.2);
+        }
+
+        .tab-content {
+            padding: 24px 0;
+            min-height: 300px;
+        }
+
+        /* Course title and header enhancements */
+        .course-header {
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            margin-bottom: 32px;
+            height: 160px;
+            border-radius: 8px;
+            padding: 24px;
+            background-color: #4285f4;
+            background-image: linear-gradient(to right, #4285f4, #5e97f6);
+            color: white;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+            transition: all 0.3s ease;
+            animation: headerFadeIn 0.5s ease-out;
+        }
+        
+        .course-header:hover {
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .course-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMjgiIGhlaWdodD0iMTI4Ij48cmVjdCB4PSIwIiB5PSIwIiB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSJub25lIj48L3JlY3Q+PGNpcmNsZSBjeD0iMTYiIGN5PSIxNiIgcj0iMiIgZmlsbD0icmdiYSgyNTUsMjU1LDI1NSwwLjEpIj48L2NpcmNsZT48Y2lyY2xlIGN4PSI0OCIgY3k9IjE2IiByPSIyIiBmaWxsPSJyZ2JhKDI1NSwyNTUsMjU1LDAuMSkiPjwvY2lyY2xlPjxjaXJjbGUgY3g9IjgwIiBjeT0iMTYiIHI9IjIiIGZpbGw9InJnYmEoMjU1LDI1NSwyNTUsMC4xKSI+PC9jaXJjbGU+PGNpcmNsZSBjeD0iMTEyIiBjeT0iMTYiIHI9IjIiIGZpbGw9InJnYmEoMjU1LDI1NSwwLDApLjEpIj48L2NpcmNsZT48Y2lyY2xlIGN4PSIxNiIgY3k9IjQ4IiByPSIyIiBmaWxsPSJyZ2JhKDI1NSwyNTUsMjU1LDAuMSkiPjwvY2lyY2xlPjxjaXJjbGUgY3g9IjQ4IiBjeT0iNDgiIHI9IjIiIGZpbGw9InJnYmEoMjU1LDI1NSwyNTUsMC4xKSI+PC9jaXJjbGU+PGNpcmNsZSBjeD0iODAiIGN5PSI0OCIgcj0iMiIgZmlsbD0icmdiYSgyNTUsMjU1LDI1NSwwLjEpIj48L2NpcmNsZT48Y2lyY2xlIGN4PSIxMTIiIGN5PSI0OCIgcj0iMiIgZmlsbD0icmdiYSgyNTUsMjU1LDI1NSwwLjEpIj48L2NpcmNsZT48Y2lyY2xlIGN4PSIxNiIgY3k9IjgwIiByPSIyIiBmaWxsPSJyZ2JhKDI1NSwyNTUsMjU1LDAuMSkiPjwvY2lyY2xlPjxjaXJjbGUgY3g9IjQ4IiBjeT0iODAiIHI9IjIiIGZpbGw9InJnYmEoMjU1LDI1NSwyNTUsMC4xKSI+PC9jaXJjbGU+PGNpcmNsZSBjeD0iODAiIGN5PSI4MCIgcj0iMiIgZmlsbD0icmdiYSgyNTUsMjU1LDI1NSwwLjEpIj48L2NpcmNsZT48Y2lyY2xlIGN4PSIxMTIiIGN5PSI4MCIgcj0iMiIgZmlsbD0icmdiYSgyNTUsMjU1LDI1NSwwLjEpIj48L2NpcmNsZT48Y2lyY2xlIGN4PSIxMTIiIGN5PSIxMTIiIHI9IjIiIGZpbGw9InJnYmEoMjU1LDI1NSwyNTUsMC4xKSI+PC9jaXJjbGU+PC9zdmc+');
+            opacity: 0.25;
+            pointer-events: none;
+        }
+
+        .course-header-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .course-title {
+            font-size: 32px;
+            font-weight: 500;
+            color: white;
+            margin: 0;
+            letter-spacing: -0.02em;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+            animation: slideUp 0.5s ease-out;
+        }
+
+        .course-subtitle {
+            font-size: 18px;
+            color: rgba(255, 255, 255, 0.9);
+            margin: 8px 0 0 0;
+            font-weight: 400;
+            opacity: 0;
+            animation: fadeIn 0.5s ease-out 0.2s forwards;
+        }
+
+        .course-code {
+            background-color: rgba(255, 255, 255, 0.2);
+            border-radius: 16px;
+            padding: 6px 16px;
+            font-size: 14px;
+            font-weight: 500;
+            color: white;
+            position: absolute;
+            bottom: 12px;
+            right: 50px;
+            opacity: 0;
+            animation: fadeIn 0.5s ease-out 0.3s forwards;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        .course-code:hover {
+            background-color: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+            box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
+        }
+        
+        .course-code:active {
+            background-color: rgba(255, 255, 255, 0.4);
+            transform: translateY(0);
+        }
+        
+        .tooltip {
+            position: absolute;
+            background-color: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            bottom: -30px;
+            right: 0;
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+            white-space: nowrap;
+        }
+
+        @keyframes headerFadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        /* Add Exam/Assignment Button in Tabs Header */
+        .add-content-btn {
             background-color: #007bff;
             color: #fff;
             border: none;
@@ -34,11 +230,16 @@
             padding: 8px 16px;
             font-size: 1rem;
             display: none;
+            margin-left: 10px;
+            transition: background-color 0.2s ease;
         }
-        #addExamBtn:hover {
+
+        .add-content-btn:hover {
             background-color: #0056b3;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
         }
-        /* Modal styling for Add Exam */
+
+        /* Modal styling */
         .modal {
             display: none;
             position: fixed;
@@ -48,28 +249,33 @@
             width: 100%;
             height: 100%;
             overflow: auto;
-            background-color: rgba(0,0,0,0.4);
+            background-color: rgba(0, 0, 0, 0.4);
         }
+
         .modal-content {
             background-color: #fff;
             margin: 80px auto;
             padding: 20px;
             width: 400px;
             border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
         }
+
         .modal-content h2 {
             margin-top: 0;
             margin-bottom: 10px;
             font-weight: 500;
             font-size: 1.25rem;
         }
+
         .modal-content label {
             display: block;
             margin-top: 10px;
             font-weight: 500;
         }
-        .modal-content input {
+
+        .modal-content input,
+        .modal-content textarea {
             width: 100%;
             margin-top: 5px;
             padding: 8px;
@@ -78,11 +284,18 @@
             font-size: 1rem;
             font-family: inherit;
         }
+
+        .modal-content textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
         .button-row {
             display: flex;
             justify-content: space-between;
             margin-top: 20px;
         }
+
         .button-row button,
         .button-row a {
             background-color: #007bff;
@@ -94,12 +307,495 @@
             cursor: pointer;
             font-size: 1rem;
         }
+
         .button-row button:hover,
         .button-row a:hover {
             background-color: #0056b3;
         }
+
+        /* Assignments tab styling */
+        .assignments-container {
+            margin-top: 20px;
+        }
+
+        .assignment-card {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+            padding: 16px;
+            margin-bottom: 16px;
+            transition: box-shadow 0.3s, transform 0.2s;
+            cursor: pointer;
+            border-left: 4px solid #1a73e8;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .assignment-card:hover {
+            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
+            transform: translateY(-2px);
+        }
+
+        .assignment-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 8px;
+        }
+
+        .assignment-title {
+            font-size: 18px;
+            font-weight: 500;
+            color: #1a73e8;
+            margin: 0;
+        }
+
+        .assignment-due {
+            color: #5f6368;
+            font-size: 14px;
+            background-color: #f1f3f4;
+            padding: 4px 8px;
+            border-radius: 4px;
+            white-space: nowrap;
+        }
+
+        .assignment-due.overdue {
+            color: #d93025;
+            font-weight: 500;
+            background-color: #fee8e7;
+        }
+
+        .assignment-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 12px;
+            color: #5f6368;
+            font-size: 14px;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .status-missing {
+            background-color: #fce8e6;
+            color: #d93025;
+        }
+
+        .status-turned-in {
+            background-color: #e8f0fe;
+            color: #1a73e8;
+        }
+
+        .status-graded {
+            background-color: #e6f4ea;
+            color: #137333;
+        }
+
+        /* Classwork tab styling */
+        .classwork-tabs {
+            display: flex;
+            border-bottom: 1px solid #e0e0e0;
+            margin-bottom: 20px;
+            gap: 10px;
+        }
+
+        .classwork-tab-link {
+            background: none;
+            border: none;
+            padding: 10px 20px;
+            font-size: 14px;
+            cursor: pointer;
+            position: relative;
+            color: #5f6368;
+            font-weight: 500;
+        }
+
+        .classwork-tab-link:hover {
+            color: #1a73e8;
+        }
+
+        .classwork-tab-link.active {
+            color: #1a73e8;
+        }
+
+        .classwork-tab-link.active::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background-color: #1a73e8;
+        }
+
+        .classwork-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .classwork-item {
+            display: flex;
+            background-color: white;
+            border-radius: 8px;
+            padding: 16px;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+            cursor: pointer;
+            transition: box-shadow 0.2s, transform 0.2s;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 12px;
+            border-left: 4px solid transparent;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .classwork-item:hover {
+            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
+            transform: translateY(-2px);
+        }
+
+        .classwork-item.assignment-item {
+            border-left-color: #1a73e8;
+        }
+
+        .classwork-item.exam-item {
+            border-left-color: #b90a70;
+        }
+
+        .classwork-icon {
+            font-size: 24px;
+            color: #5f6368;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #f1f3f4;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .assignment-item .classwork-icon {
+            color: #1a73e8;
+            background-color: #e8f0fe;
+        }
+
+        .exam-item .classwork-icon {
+            color: #4caf50;
+            background-color: #e8f5e9;
+        }
+
+        .classwork-content {
+            flex: 1;
+            min-width: 0; /* Prevents overflow issues */
+        }
+
+        .classwork-title {
+            font-size: 16px;
+            font-weight: 500;
+            color: #202124;
+            margin: 0 0 6px 0;
+            text-overflow: ellipsis;
+            overflow: hidden;
+            white-space: nowrap;
+        }
+
+        .classwork-meta {
+            color: #5f6368;
+            font-size: 13px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .meta-badge {
+            display: inline-flex;
+            align-items: center;
+            background-color: #f1f3f4;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+        }
+
+        .meta-date {
+            color: #d93025;
+        }
+
+        /* Enhanced styles for People tab */
+        .people-list {
+            padding: 0;
+            margin: 0;
+            list-style-type: none;
+        }
+        
+        .people-list li {
+            padding: 12px 16px;
+            margin-bottom: 8px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        
+        .people-list li:hover {
+            background-color: #eef5ff;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.08);
+            transform: translateY(-2px);
+        }
+        
+        .people-list .user-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background-color: #1a73e8;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 12px;
+            font-weight: 500;
+        }
+        
+        .people-section h3 {
+            color: #5f6368;
+            font-size: 16px;
+            margin: 24px 0 12px 0;
+            border-bottom: 1px solid #e0e0e0;
+            padding-bottom: 8px;
+        }
+
+        /* Exam styling enhancements */
+        .exam-box {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border-left: 4px solid #197e8e;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .exam-box:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .exam-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 16px;
+        }
+
+        .exam-title {
+            flex: 1;
+        }
+
+        .exam-title h2 {
+            margin: 0 0 8px 0;
+            font-size: 20px;
+            color: #4caf50;
+            font-weight: 500;
+        }
+
+        .exam-title p {
+            margin: 0;
+            color: #5f6368;
+            font-size: 14px;
+            background-color: #f1f3f4;
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+        }
+
+        .exam-status {
+            padding: 8px;
+        }
+
+        .info-box {
+            background-color: #f8f9fa;
+            border-radius: 6px;
+            padding: 12px;
+            margin-bottom: 12px;
+        }
+
+        .info-box h3 {
+            margin: 0 0 10px 0;
+            font-size: 14px;
+            font-weight: 500;
+            color: #202124;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            font-size: 13px;
+        }
+
+        .stat-item span:first-child {
+            color: #5f6368;
+        }
+
+        .stat-item span:last-child {
+            font-weight: 500;
+            color: #202124;
+        }
+
+        /* Student exam card enhancements */
+        /* .student-exam-card {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+            padding: 16px;
+            margin-bottom: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            border-left: 4px solid #4caf50;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .student-exam-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
+        } */
+
+        .exam-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+
+        .exam-name {
+            font-size: 18px;
+            font-weight: 500;
+            color: #4caf50;
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .exam-icon {
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+            background-color: #e8f5e9;
+            border-radius: 50%;
+            position: relative;
+        }
+
+        .exam-icon:before {
+            content: '📄';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 12px;
+        }
+
+        .date {
+            color: #5f6368;
+            font-size: 14px;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+        }
+
+        .date-icon {
+            margin-right: 4px;
+        }
+
+        .marks-section {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            background-color: #f8f9fa;
+            border-radius: 6px;
+            padding: 12px;
+        }
+
+        .marks-column {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+
+        .marks-label {
+            font-size: 12px;
+            color: #5f6368;
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .marks-icon {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background-color: #e8f0fe;
+        }
+
+        .your-score {
+            display: flex;
+            align-items: baseline;
+            font-weight: 500;
+            color: #4285f4;
+            font-size: 16px;
+        }
+
+        .total {
+            font-size: 12px;
+            color: #5f6368;
+            margin-left: 2px;
+        }
+
+        .marks-value {
+            font-weight: 500;
+            color: #202124;
+            font-size: 16px;
+        }
+
+        .graded-label {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            background-color: #e6f4ea;
+            color: #137333;
+            font-size: 12px;
+            font-weight: 500;
+            padding: 4px 8px;
+            border-radius: 4px;
+        }
     </style>
 </head>
+
 <body>
     <!-- Placeholder for Topbar -->
     <div id="topbar-container"></div>
@@ -111,16 +807,34 @@
 
         <!-- Main Content -->
         <main class="content">
-            <nav class="tabs">
-                <button class="tab-link active" onclick="openTab(event, 'announcements')">Announcements</button>
-                <button class="tab-link" onclick="openTab(event, 'exams')">Exams</button>
-                <button class="tab-link" onclick="openTab(event, 'people')">People</button>
-            </nav>
+            <div class="course-header">
+                <div class="course-header-content">
+                    <h1 class="course-title" id="course-title">Loading course...</h1>
+                    <p class="course-subtitle" id="course-subtitle"></p>
+                    <span class="course-code" id="course-code" onclick="copyClassCode()">
+                        <i class="fas fa-key"></i>Loading...
+                        <span class="tooltip" id="code-tooltip">Copied!</span>
+                    </span>
+                </div>
+            </div>
             
+            <nav class="tabs">
+                <button class="tab-link active" onclick="openTab(event, 'announcements')">
+                    <i class="fas fa-bullhorn" style="margin-right: 8px;"></i>Announcements
+                </button>
+                <button class="tab-link" onclick="openTab(event, 'classwork')">
+                    <i class="fas fa-book" style="margin-right: 8px;"></i>Classwork
+                </button>
+                <button class="tab-link" onclick="openTab(event, 'people')">
+                    <i class="fas fa-users" style="margin-right: 8px;"></i>People
+                </button>
+            </nav>
+
             <!-- ANNOUNCEMENTS TAB (unchanged) -->
             <div id="announcements" class="tab-content" style="display: block;">
                 <div class="announcement-container">
-                    <div id="announceInput" class="announce-input" contenteditable="true" onfocus="expandAnnouncement()" data-placeholder="Announce something to your class..."></div>
+                    <div id="announceInput" class="announce-input" contenteditable="true" onfocus="expandAnnouncement()"
+                        data-placeholder="Announce something to your class..."></div>
                     <div class="toolbar" id="toolbar">
                         <div>
                             <button onclick="formatText('bold', this)"><b>B</b></button>
@@ -137,32 +851,64 @@
                 </div>
             </div>
 
-            <!-- EXAMS TAB -->
-            <div id="exams" class="tab-content" style="display: none;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                    <h2>Exams</h2>
-                    <button id="addExamBtn">Add Exam</button>
+            <!-- CLASSWORK TAB (combining assignments and exams) -->
+            <div id="classwork" class="tab-content" style="display: none;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <h2>Classwork</h2>
+                    <div>
+                        <button id="addAssignmentBtn" class="add-content-btn">Add Assignment</button>
+                        <button id="addExamBtn" class="add-content-btn">Add Exam</button>
+                    </div>
                 </div>
-                <div id="profExamsList" class="prof-exam-container">
-                    <!-- Exams will be loaded dynamically here -->
+
+                <!-- Tabs within Classwork -->
+                <div class="classwork-tabs">
+                    <button class="classwork-tab-link active" onclick="openClassworkTab(event, 'all-tab')">All</button>
+                    <button class="classwork-tab-link"
+                        onclick="openClassworkTab(event, 'assignments-tab')">Assignments</button>
+                    <button class="classwork-tab-link" onclick="openClassworkTab(event, 'exams-tab')">Exams</button>
                 </div>
-                <div id="studentExamsList" class="student-exam-container">
-                    <!-- Exams will be loaded dynamically here -->
+
+                <!-- All Classwork Tab -->
+                <div id="all-tab" class="classwork-tab-content" style="display: block;">
+                    <div id="allClassworkList" class="classwork-list">
+                        <!-- Combined exams and assignments will be loaded here -->
+                    </div>
+                </div>
+
+                <!-- Assignments Tab -->
+                <div id="assignments-tab" class="classwork-tab-content" style="display: none;">
+                    <div id="profAssignmentsList" class="prof-assignments-container">
+                        <!-- Assignments for professor view will be loaded here -->
+                    </div>
+                    <div id="studentAssignmentsList" class="assignments-container">
+                        <!-- Assignments for student view will be loaded here -->
+                    </div>
+                </div>
+
+                <!-- Exams Tab -->
+                <div id="exams-tab" class="classwork-tab-content" style="display: none;">
+                    <div id="profExamsList" class="prof-exam-container">
+                        <!-- Exams will be loaded dynamically here -->
+                    </div>
+                    <div id="studentExamsList" class="student-exam-container">
+                        <!-- Exams will be loaded dynamically here -->
+                    </div>
                 </div>
             </div>
-            
+
             <!-- PEOPLE TAB (unchanged) -->
             <div id="people" class="tab-content" style="display: none;">
-                <h3>Teachers</h3>
-                <ul class="people-list">
-                    <li>????? Puneet Goyal</li>
-                </ul>
-                <h3>Students</h3>
-                <ul class="people-list">
-                    <li>????? Rahul Sharma</li>
-                    <li>????? Ananya Singh</li>
-                    <li>????? Rohan Mehta</li>
-                </ul>
+                <div class="people-section">
+                    <h3>Teachers</h3>
+                    <ul class="people-list" id="teachersList">
+                        <li>Loading teachers...</li>
+                    </ul>
+                    <h3>Students</h3>
+                    <ul class="people-list" id="studentsList">
+                        <li>Loading students...</li>
+                    </ul>
+                </div>
             </div>
         </main>
     </div>
@@ -184,10 +930,30 @@
         </div>
     </div>
 
+    <!-- Modal for Adding an Assignment -->
+    <div id="addAssignmentModal" class="modal">
+        <div class="modal-content">
+            <h2>Add New Assignment</h2>
+            <label for="assignmentName">Assignment Title</label>
+            <input type="text" id="assignmentName" placeholder="e.g. Homework 1">
+            <label for="assignmentDescription">Description</label>
+            <textarea id="assignmentDescription" placeholder="Enter assignment instructions here..."></textarea>
+            <label for="assignmentDueDate">Due Date</label>
+            <input type="date" id="assignmentDueDate">
+            <label for="assignmentPoints">Total Points</label>
+            <input type="number" id="assignmentPoints" placeholder="e.g. 100">
+            <div class="button-row">
+                <button onclick="createAssignment()">Add Assignment</button>
+                <a href="#" onclick="closeAddAssignmentModal()">Cancel</a>
+            </div>
+        </div>
+    </div>
+
     <script src="load-components.js"></script>
     <script src="authorize.js"></script>
+    <script src="announcements.js"></script>
     <script>
-        // Tab switching functionality
+        // Function to handle tab switching with data loading
         function openTab(event, tabName) {
             let tabs = document.getElementsByClassName("tab-content");
             for (let tab of tabs) {
@@ -200,8 +966,46 @@
                 tabLink.classList.remove("active");
             }
             event.currentTarget.classList.add("active");
+
+            // Refresh data based on tab
+            const classId = getQueryParam("class_id");
+            if (tabName === "announcements") {
+                // Reset the announcement form
+                if (typeof cancelAnnouncement === 'function') {
+                    cancelAnnouncement();
+                }
+                // Refresh announcements
+                if (typeof fetchAnnouncements === 'function') {
+                    fetchAnnouncements();
+                }
+            } else if (tabName === "people") {
+                // Refresh people list
+                loadClassMembers(classId);
+            } else if (tabName === "classwork") {
+                // Refresh classwork list
+                loadClasswork();
+            }
         }
         document.getElementById("announcements").style.display = "block";
+
+        // Function to handle classwork tab switching
+        function openClassworkTab(event, tabName) {
+            // Hide all classwork tab content
+            let tabContents = document.getElementsByClassName("classwork-tab-content");
+            for (let content of tabContents) {
+                content.style.display = "none";
+            }
+
+            // Show the selected tab content
+            document.getElementById(tabName).style.display = "block";
+
+            // Update active tab
+            let tabLinks = document.getElementsByClassName("classwork-tab-link");
+            for (let link of tabLinks) {
+                link.classList.remove("active");
+            }
+            event.currentTarget.classList.add("active");
+        }
 
         // Helper to get query parameter
         function getQueryParam(param) {
@@ -217,12 +1021,31 @@
             document.getElementById("addExamModal").style.display = "none";
         }
 
+        // Modal functions for Add Assignment
+        function openAddAssignmentModal() {
+            document.getElementById("addAssignmentModal").style.display = "block";
+        }
+        function closeAddAssignmentModal() {
+            document.getElementById("addAssignmentModal").style.display = "none";
+        }
 
+        // Function to open assignment when clicked
+        function openAssignment(assignmentId) {
+            if (!assignmentId) return;
+
+            // Navigate to the assignment page
+            window.location.href = `assignment.htm?assignment_id=${assignmentId}`;
+        }
+
+        // Function to enter exam (for professors)
         function enterExam(examId) {
-            console.log("YOOO");
+            if (!examId) return;
             window.location.href = `exam.htm?exam_id=${examId}`;
         }
-        function viewScripts(examId){
+
+        // Function for students to view exam scripts
+        function viewScripts(examId) {
+            if (!examId) return;
             window.location.href = `scriptPage.htm?exam_id=${examId}`;
         }
 
@@ -255,126 +1078,543 @@
                     return;
                 }
                 closeAddExamModal();
-                loadCourseDetails();
+                loadClasswork();
             } catch (error) {
                 console.error("Error creating exam:", error);
                 alert("An error occurred while adding the exam.");
             }
         }
 
-        // Load course details and exams dynamically
-        async function loadCourseDetails() {
+        // Create a new assignment via POST
+        async function createAssignment() {
+            const assignmentName = document.getElementById("assignmentName").value.trim();
+            const assignmentDescription = document.getElementById("assignmentDescription").value.trim();
+            const assignmentDueDate = document.getElementById("assignmentDueDate").value;
+            const assignmentPoints = document.getElementById("assignmentPoints").value.trim();
+
+            if (!assignmentName) {
+                alert("Please enter an assignment title.");
+                return;
+            }
+
+            const classId = getQueryParam("class_id");
+            if (!classId) {
+                alert("Class ID not provided.");
+                return;
+            }
+
+            try {
+                const assignmentData = {
+                    title: assignmentName,
+                    description: assignmentDescription,
+                    due_date: assignmentDueDate,
+                    max_marks: assignmentPoints || 100
+                };
+
+                const response = await authFetch(`/classes/${classId}/assignments`, {
+                    method: "POST",
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(assignmentData)
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    alert(errorData.error || "Error adding assignment");
+                    return;
+                }
+
+                closeAddAssignmentModal();
+                loadClasswork();
+
+                // Create an announcement for the new assignment
+                const announcementData = {
+                    title: `New Assignment: ${assignmentName}`,
+                    content: `A new assignment '${assignmentName}' has been created. Due date: ${assignmentDueDate || 'Not set'}`
+                };
+
+                await authFetch(`/classes/${classId}/announcements`, {
+                    method: "POST",
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(announcementData)
+                });
+
+                // Refresh classwork if visible
+                if (document.getElementById("classwork").style.display === "block") {
+                    loadClasswork();
+                }
+            } catch (error) {
+                console.error("Error creating assignment:", error);
+                alert("An error occurred while adding the assignment.");
+            }
+        }
+
+        // Load classwork data (both assignments and exams)
+        async function loadClasswork() {
             const classId = getQueryParam("class_id");
             if (!classId) {
                 alert("Class ID not provided");
                 return;
             }
+
+            try {
+                const response = await authFetch(`/classes/${classId}/classwork`, {
+                    headers: { "Content-Type": "application/json" }
+                });
+
+                if (!response.ok) {
+                    throw new Error("Failed to fetch classwork data");
+                }
+
+                const data = await response.json();
+
+                // Check if user is professor
+                const isProfessor = data.user && data.user.is_professor;
+                const isTA = data.user_role === "ta";
+
+                // Show the add buttons if user is professor or TA
+                if (isProfessor || isTA) {
+                    document.getElementById("addAssignmentBtn").style.display = "inline-block";
+                    document.getElementById("addAssignmentBtn").onclick = openAddAssignmentModal;
+                    document.getElementById("addExamBtn").style.display = "inline-block";
+                    document.getElementById("addExamBtn").onclick = openAddExamModal;
+                } else {
+                    document.getElementById("addAssignmentBtn").style.display = "none";
+                    document.getElementById("addExamBtn").style.display = "none";
+                }
+
+                // Sort classwork items by date (newest first)
+                const sortedClasswork = (data.classwork || []).sort((a, b) => {
+                    // Sort exclusively by creation date
+                    const dateA = new Date(a.created_at || 0);
+                    const dateB = new Date(b.created_at || 0);
+                    return dateB - dateA; // Descending order (newest first)
+                });
+
+                // Separate assignments and exams
+                const assignments = sortedClasswork.filter(item => item.type === "assignment");
+                const exams = sortedClasswork.filter(item => item.type === "exam");
+
+                // Display assignments tab content
+                displayAssignments(assignments, isProfessor || isTA);
+
+                // Display exams tab content
+                displayExams(exams, isProfessor);
+
+                // Display all classwork together
+                displayAllClasswork(sortedClasswork, isProfessor);
+
+            } catch (error) {
+                console.error("Error loading classwork:", error);
+                document.getElementById("allClassworkList").innerHTML = "<p>Error loading classwork.</p>";
+                document.getElementById("profAssignmentsList").innerHTML = "<p>Error loading assignments.</p>";
+                document.getElementById("studentAssignmentsList").innerHTML = "<p>Error loading assignments.</p>";
+                document.getElementById("profExamsList").innerHTML = "<p>Error loading exams.</p>";
+                document.getElementById("studentExamsList").innerHTML = "<p>Error loading exams.</p>";
+            }
+        }
+
+        // Display assignments in the assignments tab
+        function displayAssignments(assignments, isProfessor) {
+            const profList = document.getElementById("profAssignmentsList");
+            const studentList = document.getElementById("studentAssignmentsList");
+
+            if (isProfessor) {
+                profList.style.display = "block";
+                studentList.style.display = "none";
+
+                if (assignments.length === 0) {
+                    profList.innerHTML = "<p>No assignments created yet.</p>";
+                    return;
+                }
+
+                let profHtml = "";
+                assignments.forEach(assignment => {
+                    const dueDate = assignment.due_date ? new Date(assignment.due_date).toLocaleDateString() : "No due date";
+                    const createdDate = assignment.created_at ? new Date(assignment.created_at).toLocaleString("en-US", {
+                        month: "short",
+                        day: "numeric",
+                        year: "numeric",
+                        hour: "numeric",
+                        minute: "numeric"
+                    }) : "";
+                    profHtml += `
+                    <div class="assignment-card" onclick="openAssignment(${assignment.id})">
+                        <div class="assignment-header">
+                            <h3 class="assignment-title">${assignment.title}</h3>
+                            <span class="assignment-due">${dueDate}</span>
+                        </div>
+                        <div class="assignment-meta">
+                            <span class="meta-badge">Points: ${assignment.points_possible || 100}</span>
+                            <span class="meta-badge">Submissions: ${assignment.submission_count || 0}/${assignment.student_count || 0}</span>
+                            <span class="meta-badge">Created: ${createdDate}</span>
+                        </div>
+                    </div>
+                    `;
+                });
+
+                profList.innerHTML = profHtml;
+            } else {
+                studentList.style.display = "block";
+                profList.style.display = "none";
+
+                if (assignments.length === 0) {
+                    studentList.innerHTML = "<p>No assignments available.</p>";
+                    return;
+                }
+
+                let studentHtml = "";
+                assignments.forEach(assignment => {
+                    const dueDate = assignment.due_date ? new Date(assignment.due_date).toLocaleDateString() : "No due date";
+                    const createdDate = assignment.created_at ? new Date(assignment.created_at).toLocaleString("en-US", {
+                        month: "short",
+                        day: "numeric",
+                        year: "numeric",
+                        hour: "numeric",
+                        minute: "numeric"
+                    }) : "";
+                    const isDueDate = assignment.due_date ? new Date(assignment.due_date) : null;
+                    const isOverdue = isDueDate && isDueDate < new Date();
+
+                    let statusClass = "status-missing";
+                    let statusText = "Missing";
+
+                    if (assignment.user_submission) {
+                        if (assignment.user_submission.grade !== null) {
+                            statusClass = "status-graded";
+                            statusText = "Graded";
+                        } else {
+                            statusClass = "status-turned-in";
+                            statusText = "Turned in";
+                        }
+                    }
+
+                    studentHtml += `
+                    <div class="assignment-card" onclick="openAssignment(${assignment.id})">
+                        <div class="assignment-header">
+                            <h3 class="assignment-title">${assignment.title}</h3>
+                            <span class="assignment-due ${isOverdue ? 'overdue' : ''}">${dueDate}</span>
+                        </div>
+                        <div class="assignment-meta">
+                            <span class="meta-badge">Points: ${assignment.points_possible || 100}</span>
+                            <span class="status-indicator ${statusClass}">${statusText}</span>
+                            <span class="meta-badge">Created: ${createdDate}</span>
+                        </div>
+                    </div>
+                    `;
+                });
+
+                studentList.innerHTML = studentHtml;
+            }
+        }
+
+        // Display exams in the exams tab
+        function displayExams(exams, isProfessor) {
+            const profList = document.getElementById("profExamsList");
+            const studentList = document.getElementById("studentExamsList");
+
+            if (isProfessor) {
+                profList.style.display = "block";
+                studentList.style.display = "none";
+
+                if (exams.length === 0) {
+                    profList.innerHTML = "<p>No exams available for this course.</p>";
+                    return;
+                }
+
+                let profHtml = "";
+                exams.forEach(exam => {
+                    const examDate = exam.exam_date ? new Date(exam.exam_date).toLocaleDateString() : "";
+                    const createdDate = exam.created_at ? new Date(exam.created_at).toLocaleString("en-US", {
+                        month: "short",
+                        day: "numeric",
+                        year: "numeric",
+                        hour: "numeric",
+                        minute: "numeric"
+                    }) : "";
+                    
+                    profHtml += `
+                    <div class="exam-box" onclick="enterExam(${exam.id})">
+                        <div class="exam-header">
+                            <div class="exam-title">
+                                <h2>${exam.title}</h2>
+                                <p>${examDate}</p>
+                                <p><small>Created: ${createdDate}</small></p>
+                            </div>
+                            <div class="exam-status">
+                                <img src="checkmark.svg" alt="Completed" width="24" height="24">
+                            </div>
+                        </div>
+                        <div class="info-box">
+                            <h3>Answer Scripts</h3>
+                            <div class="stats-grid">
+                                <div class="stat-item"><span>Uploaded:</span><span>45</span></div>
+                                <div class="stat-item"><span>Checked:</span><span>42</span></div>
+                            </div>
+                        </div>
+                        <div class="info-box">
+                            <h3>Marks Overview</h3>
+                            <div class="stats-grid">
+                                <div class="stat-item"><span>Total Marks:</span><span>${exam.points_possible}</span></div>
+                                <div class="stat-item"><span>Average Marks:</span><span>25</span></div>
+                            </div>
+                        </div>
+                    </div>`;
+                });
+
+                profList.innerHTML = profHtml;
+            } else {
+                studentList.style.display = "block";
+                profList.style.display = "none";
+
+                if (exams.length === 0) {
+                    studentList.innerHTML = "<p>No exams available for this course.</p>";
+                    return;
+                }
+
+                let studentHtml = "";
+                exams.forEach(exam => {
+                    const examDate = exam.exam_date ? new Date(exam.exam_date).toLocaleDateString() : "";
+                    const createdDate = exam.created_at ? new Date(exam.created_at).toLocaleString("en-US", {
+                        month: "short",
+                        day: "numeric",
+                        year: "numeric",
+                        hour: "numeric",
+                        minute: "numeric"
+                    }) : "";
+                    
+                    studentHtml += `
+                    <div class="exam-box" onclick="viewScripts(${exam.id})">
+                        <div class="exam-info">
+                            <div class="exam-name">
+                                <span class="exam-icon"></span>
+                                ${exam.title}
+                            </div>
+                            <div class="date">
+                                <span class="date-icon">📅</span>
+                                ${examDate}
+                                <br><small>Created: ${createdDate}</small>
+                            </div>
+                        </div>
+                        
+                        <div class="marks-section">
+                            <div class="marks-column">
+                                <div class="marks-label">
+                                <span class="marks-icon"></span>
+                                Your Score
+                                </div>
+                                <div class="your-score">
+                                <div>${exam.points_possible * 3 / 4}</div>
+                                <div class="total">/${exam.points_possible}</div>
+                                </div>
+                            </div>
+                            
+                            <div class="marks-column">
+                                <div class="marks-label">
+                                <span class="marks-icon"></span>
+                                Highest
+                                </div>
+                                <div class="marks-value">${exam.points_possible * 7 / 8}</div>
+                            </div>
+                            
+                            <div class="marks-column">
+                                <div class="marks-label">
+                                <span class="marks-icon"></span>
+                                Average
+                                </div>
+                                <div class="marks-value">${exam.points_possible / 2}</div>
+                            </div>
+                        </div>
+                        
+                        <div class="graded-label">Graded</div>
+                    </div>`;
+                });
+
+                studentList.innerHTML = studentHtml;
+            }
+        }
+
+        // Display all classwork (assignments and exams) in combined view
+        function displayAllClasswork(classwork, isProfessor) {
+            const allList = document.getElementById("allClassworkList");
+
+            if (classwork.length === 0) {
+                allList.innerHTML = "<p>No classwork available.</p>";
+                return;
+            }
+
+            let allHtml = "";
+            classwork.forEach(item => {
+                const dateStr = item.due_date || item.exam_date
+                    ? new Date(item.due_date || item.exam_date).toLocaleDateString()
+                    : "No date";
+                const createdDate = item.created_at ? new Date(item.created_at).toLocaleString("en-US", {
+                    month: "short",
+                    day: "numeric",
+                    year: "numeric",
+                    hour: "numeric",
+                    minute: "numeric"
+                }) : "";
+
+                const typeClass = item.type === 'assignment' ? 'assignment-item' : 'exam-item';
+                const typeIcon = item.type === 'assignment' ? '📝' : '📄';
+                const onClick = item.type === 'assignment'
+                    ? `onclick="openAssignment(${item.id})"`
+                    : isProfessor ? `onclick="enterExam(${item.id})"` : `onclick="viewScripts(${item.id})"`;
+
+                allHtml += `
+                <div class="classwork-item ${typeClass}" ${onClick}>
+                    <div class="classwork-icon">${typeIcon}</div>
+                    <div class="classwork-content">
+                        <h3 class="classwork-title">${item.title}</h3>
+                        <div class="classwork-meta">
+                            <span class="meta-badge">${item.type.charAt(0).toUpperCase() + item.type.slice(1)}</span>
+                            <span class="meta-badge ${item.due_date || item.exam_date ? 'meta-date' : ''}">${dateStr}</span>
+                            <span class="meta-badge">${item.points_possible} points</span>
+                            <span class="meta-badge">Created: ${createdDate}</span>
+                        </div>
+                    </div>
+                </div>
+                `;
+            });
+
+            allList.innerHTML = allHtml;
+        }
+
+        // Initialize the page
+        document.addEventListener("DOMContentLoaded", function () {
+            // Load class information for header
+            const classId = getQueryParam("class_id");
+            if (classId) {
+                loadClassInfo(classId);
+                loadClassMembers(classId);
+            }
+            
+            // Load announcements
+            if (typeof fetchAnnouncements === 'function') {
+                fetchAnnouncements();
+            }
+        });
+        
+        // Load class information for the header
+        async function loadClassInfo(classId) {
             try {
                 const response = await authFetch(`/classes/${classId}`, {
                     headers: { "Content-Type": "application/json" }
                 });
-                const data = await response.json();
-                if (data.user && data.user.full_name) {
-                    document.getElementById("userName").innerText = "Welcome, " + data.user.full_name;
-                }
-                console.log(data);
-                // Process exams
-                const examsList = data.user.is_professor ? document.getElementById("profExamsList") : document.getElementById("studentExamsList");
-                examsList.innerHTML = "";
-                if (data.exams && data.exams.length > 0) {
-                    data.exams.forEach((exam) => {
-                        const examHTML = 
-                            data.user.is_professor ? 
-                            `<div class="exam-box" onclick="enterExam(${exam.id})">
-                            
-                                <div class="exam-header">
-                                    <div class="exam-title">
-                                        <h2>${exam.title}</h2>
-                                        <p>${exam.exam_date ? new Date(exam.exam_date).toLocaleDateString() : ""}</p>
-                                    </div>
-                                    <div class="exam-status">
-                                        <img src="checkmark.svg" alt="Completed" width="24" height="24">
-                                    </div>
-                                </div>
-                                <div class="info-box">
-                                    <h3>Answer Scripts</h3>
-                                    <div class="stats-grid">
-                                        <div class="stat-item"><span>Uploaded:</span><span>45</span></div>
-                                        <div class="stat-item"><span>Checked:</span><span>42</span></div>
-                                    </div>
-                                </div>
-                                <div class="info-box">
-                                    <h3>Marks Overview</h3>
-                                    <div class="stats-grid">
-                                        <div class="stat-item"><span>Total Marks:</span><span>${exam.points_possible}</span></div>
-                                        <div class="stat-item"><span>Average Marks:</span><span>25</span></div>
-                                    </div>
-                                </div>
-                            
-                            </div>`
-                            :
-                            `<div class="student-exam-card" onclick="viewScripts(${exam.id})">
-                                <div class="exam-info">
-                                    <div class="exam-name">
-                                        <span class="exam-icon"></span>
-                                        ${exam.title}
-                                    </div>
-                                    <div class="date">
-                                        <span class="date-icon">📅</span>
-                                        ${exam.exam_date ? new Date(exam.exam_date).toLocaleDateString() : ""}
-                                    </div>
-                                </div>
-                                
-                                <div class="marks-section">
-                                    <div class="marks-column">
-                                        <div class="marks-label">
-                                        <span class="marks-icon"></span>
-                                        Your Score
-                                        </div>
-                                        <div class="your-score">
-                                        <div>${exam.points_possible*3/4}</div>
-                                        <div class="total">/${exam.points_possible}</div>
-                                        </div>
-                                    </div>
-                                    
-                                    <div class="marks-column">
-                                        <div class="marks-label">
-                                        <span class="marks-icon"></span>
-                                        Highest
-                                        </div>
-                                        <div class="marks-value">${exam.points_possible*7/8}</div>
-                                    </div>
-                                    
-                                    <div class="marks-column">
-                                        <div class="marks-label">
-                                        <span class="marks-icon"></span>
-                                        Average
-                                        </div>
-                                        <div class="marks-value">${exam.points_possible/2}</div>
-                                    </div>
-                                </div>
-                                
-                                <div class="graded-label">Graded</div>
-                            </div>`
-                            ;
-                        examsList.innerHTML += examHTML;
-                    });
-                } else {
-                    examsList.innerHTML = "<p>No exams available for this course.</p>";
+
+                if (!response.ok) {
+                    throw new Error("Failed to fetch class data");
                 }
 
-                // Show the "Add Exam" button if the user is a professor
-                if (data.user && data.user.is_professor) {
-                    document.getElementById("addExamBtn").style.display = "inline-block";
-                    document.getElementById("addExamBtn").onclick = openAddExamModal;
-                } else {
-                    document.getElementById("addExamBtn").style.display = "none";
+                const data = await response.json();
+                console.log("Class data received:", data); // Debug log
+                
+                document.getElementById("course-title").textContent = data.name || "Course";
+                document.getElementById("course-subtitle").textContent = data.subject || "";
+                
+                // Update course code if available
+                const courseCodeElement = document.getElementById("course-code");
+                if (courseCodeElement) {
+                    // Store the actual class code as a data attribute for easy access
+                    const classCode = data.class_code || "CODE";
+                    console.log("Class code value:", classCode); // Debug log
+                    courseCodeElement.setAttribute('data-code', classCode);
+                    // Display the class code with proper formatting
+                    courseCodeElement.innerHTML = `<i class="fas fa-key"></i>Class Code: ${classCode}<span class="tooltip" id="code-tooltip">Copied!</span>`;
                 }
+                
+                // Update page title with course name
+                document.title = `${data.name} | AutoGrade`;
+                
+                // Randomly choose a header color from Google Classroom-like colors
+                const colors = [
+                    'linear-gradient(to right, rgba(66, 133, 244, 0.85), rgba(94, 151, 246, 0.85))', // Blue
+                    'linear-gradient(to right, rgba(15, 157, 88, 0.85), rgba(51, 182, 121, 0.85))', // Green
+                    'linear-gradient(to right, rgba(219, 68, 55, 0.85), rgba(234, 96, 69, 0.85))', // Red
+                    'linear-gradient(to right, rgba(116, 77, 169, 0.85), rgba(147, 52, 230, 0.85))', // Purple
+                    'linear-gradient(to right, rgba(244, 180, 0, 0.85), rgba(255, 206, 68, 0.85))', // Yellow
+                    'linear-gradient(to right, rgba(95, 99, 104, 0.85), rgba(126, 134, 142, 0.85))', // Gray
+                    'linear-gradient(to right, rgba(66, 133, 244, 0.85), rgba(51, 182, 121, 0.85))', // Blue to Green
+                    'linear-gradient(to right, rgba(219, 68, 55, 0.85), rgba(244, 180, 0, 0.85))'  // Red to Yellow
+                ];
+                
+                const randomColor = colors[Math.floor(Math.random() * colors.length)];
+                document.querySelector('.course-header').style.backgroundImage = randomColor;
+                
             } catch (error) {
-                console.error("Error loading course details:", error);
+                console.error("Error loading class info:", error);
+                document.getElementById("course-title").textContent = "Class not found";
             }
         }
-        document.addEventListener("DOMContentLoaded", loadCourseDetails);
+
+        // Load class members for the People tab
+        async function loadClassMembers(classId) {
+            try {
+                const response = await authFetch(`/classes/${classId}/members`, {
+                    headers: { "Content-Type": "application/json" }
+                });
+
+                if (!response.ok) {
+                    throw new Error("Failed to fetch class members");
+                }
+
+                const data = await response.json();
+
+                // Display teachers
+                const teachersList = document.getElementById("teachersList");
+                teachersList.innerHTML = "";
+
+                if (data.teachers && data.teachers.length > 0) {
+                    data.teachers.forEach(teacher => {
+                        const li = document.createElement("li");
+                        const initials = getInitials(teacher.full_name);
+                        li.innerHTML = `
+                            <div class="user-avatar">${initials}</div>
+                            ${teacher.full_name}
+                        `;
+                        teachersList.appendChild(li);
+                    });
+                } else {
+                    teachersList.innerHTML = "<li>No teachers found</li>";
+                }
+
+                // Display students
+                const studentsList = document.getElementById("studentsList");
+                studentsList.innerHTML = "";
+
+                if (data.students && data.students.length > 0) {
+                    data.students.forEach(student => {
+                        const li = document.createElement("li");
+                        const initials = getInitials(student.full_name);
+                        li.innerHTML = `
+                            <div class="user-avatar">${initials}</div>
+                            ${student.full_name}
+                        `;
+                        studentsList.appendChild(li);
+                    });
+                } else {
+                    studentsList.innerHTML = "<li>No students enrolled</li>";
+                }
+            } catch (error) {
+                console.error("Error loading class members:", error);
+                document.getElementById("teachersList").innerHTML = "<li>Error loading teachers</li>";
+                document.getElementById("studentsList").innerHTML = "<li>Error loading students</li>";
+            }
+        }
+
+        // Get initials from name
+        function getInitials(name) {
+            if (!name) return "?";
+            return name.split(' ')
+                .map(part => part.charAt(0))
+                .join('')
+                .toUpperCase()
+                .slice(0, 2);
+        }
 
         // Toggle sidebar menu
         document.addEventListener("DOMContentLoaded", function () {
@@ -384,7 +1624,38 @@
                 sidebar.classList.toggle("collapsed");
             });
         });
+
+        // Function to copy class code to clipboard
+        function copyClassCode() {
+            const codeElement = document.getElementById("course-code");
+            // Get the code directly from the data attribute
+            const code = codeElement.getAttribute('data-code');
+            
+            // Create a temporary textarea element to copy from
+            const textarea = document.createElement('textarea');
+            textarea.value = code;
+            textarea.setAttribute('readonly', '');
+            textarea.style.position = 'absolute';
+            textarea.style.left = '-9999px';
+            document.body.appendChild(textarea);
+            
+            // Select and copy the text
+            textarea.select();
+            document.execCommand('copy');
+            
+            // Remove the temporary element
+            document.body.removeChild(textarea);
+            
+            // Show the tooltip
+            const tooltip = document.getElementById("code-tooltip");
+            tooltip.style.opacity = "1";
+            
+            // Hide the tooltip after 2 seconds
+            setTimeout(() => {
+                tooltip.style.opacity = "0";
+            }, 2000);
+        }
     </script>
-    <script src="announcements.js"></script>
 </body>
+
 </html>
