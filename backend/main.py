@@ -6,7 +6,7 @@ import os
 import logging
 
 from backend.database import engine, get_db, Base
-from backend.routers import auth, classes, enrollments, notifications, announcements, exams, geminiAPI, studentBackend, peopleManagement
+from backend.routers import auth, classes, enrollments, notifications, announcements, exams, geminiAPI, studentBackend, peopleManagement, examStats, user_routes, studentEdit
 from backend.config import settings
 
 from fastapi.staticfiles import StaticFiles
@@ -28,6 +28,8 @@ app.mount("/static", StaticFiles(directory="frontend", html=True), name="static"
 
 app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 
+# Mount profile pictures directory
+app.mount("/profile_pictures", StaticFiles(directory="profile_pictures"), name="profile_pictures")
 
 # Add CORS middleware
 app.add_middleware(
@@ -50,8 +52,9 @@ app.include_router(exams.router)
 app.include_router(geminiAPI.router)
 app.include_router(peopleManagement.router)
 app.include_router(studentBackend.router)  # <-- Added new student endpoints
-
-
+app.include_router(examStats.router)  # <-- Added new exam endpoints
+app.include_router(studentEdit.router)  # <-- Added new studentEdit endpoints
+app.include_router(user_routes.router)  # <-- Added new user endpoints
 @app.get("/")
 async def root(request: Request):
     return JSONResponse({"message": "Welcome to the Institute Classroom Portal API. Please login."})

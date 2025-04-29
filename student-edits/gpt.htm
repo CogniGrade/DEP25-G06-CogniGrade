@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>PDF Crop & Concatenate Editor</title>
+  <!-- PDF.js library: download from a CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+  <style>
+    body {
+      display: flex;
+      font-family: Arial, sans-serif;
+      margin: 20px;
+    }
+    #pdf-container {
+      position: relative;
+      border: 1px solid #ccc;
+      margin-right: 20px;
+    }
+    #pdf-canvas {
+      display: block;
+      border: 1px solid #333;
+    }
+    #selectionLayer {
+      position: absolute;
+      top: 0;
+      left: 0;
+      cursor: crosshair;
+    }
+    #sidebar {
+      width: 300px;
+      border: 1px solid #ccc;
+      padding: 10px;
+      overflow-y: auto;
+      max-height: 600px;
+    }
+    .cropItem {
+      border: 1px solid #aaa;
+      padding: 5px;
+      margin-bottom: 10px;
+      text-align: center;
+      background: #f9f9f9;
+    }
+    .cropItem img {
+      max-width: 100%;
+      display: block;
+      margin: 0 auto 5px;
+    }
+    button {
+      margin: 2px;
+    }
+    #concatenated {
+      margin-top: 20px;
+      border: 1px solid #333;
+    }
+  </style>
+</head>
+<body>
+  <div>
+    <h3>Upload PDF</h3>
+    <input type="file" id="pdfUploader" accept="application/pdf"><br><br>
+    <div id="pdf-container">
+      <canvas id="pdf-canvas"></canvas>
+      <!-- A transparent layer to capture selection events -->
+      <canvas id="selectionLayer"></canvas>
+    </div>
+    <br>
+    <button id="concatenateBtn">Concatenate Images</button>
+    <br><br>
+    <canvas id="concatenated"></canvas>
+  </div>
+  
+  <div id="sidebar">
+    <h3>Cropped Images</h3>
+    <div id="cropList"></div>
+  </div>
+
+  <script>
+    // ---- PDF.js Setup ----
+    const urlParams = new URLSearchParams(window.location.search);
+    // Use default workerSrc
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+
+    const pdfUploader = document.getElementById('pdfUploader');
+    const pdfCanvas = document.getElementById('pdf-canvas');
+    const pdfCtx = pdfCanvas.getContext('2d');
+    const selectionLayer = document.getElementById('selectionLayer');
+    const selCtx = selectionLayer.getContext('2d');
+    const cropList = document.getElementById('cropList');
+    const concatenateBtn = document.getElementById('concatenateBtn');
+    const concatenatedCanvas = document.getElementById('concatenated');
+    const concatCtx = concatenatedCanvas.getContext('2d');
+
+    let pdfDoc = null;
+    let pdfScale = 1.5;
+    let isSelecting = false;
+    let startX, startY, currentX, currentY;
+    let croppedImages = [];  // Array to hold cropped image objects in order
+
+    // ---- Handling PDF upload & rendering ----
+    pdfUploader.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (file && file.type === "application/pdf") {
+        const fileReader = new FileReader();
+        fileReader.onload = function() {
+          const typedarray = new Uint8Array(this.result);
+          pdfjsLib.getDocument(typedarray).promise.then((pdf) => {
+            pdfDoc = pdf;
+            // Render first page (you can extend to multiple pages)
+            pdf.getPage(1).then(renderPage);
+          });
+        };
+        fileReader.readAsArrayBuffer(file);
+      }
+    });
+
+    function renderPage(page) {
+      const viewport = page.getViewport({scale: pdfScale});
+      pdfCanvas.width = viewport.width;
+      pdfCanvas.height = viewport.height;
+      selectionLayer.width = viewport.width;
+      selectionLayer.height = viewport.height;
+
+      const renderContext = {
+        canvasContext: pdfCtx,
+        viewport: viewport
+      };
+      page.render(renderContext);
+    }
+
+    // ---- Selection and Cropping ----
+
+    selectionLayer.addEventListener('mousedown', (e) => {
+      isSelecting = true;
+      const rect = selectionLayer.getBoundingClientRect();
+      startX = e.clientX - rect.left;
+      startY = e.clientY - rect.top;
+    });
+
+    selectionLayer.addEventListener('mousemove', (e) => {
+      if (!isSelecting) return;
+      const rect = selectionLayer.getBoundingClientRect();
+      currentX = e.clientX - rect.left;
+      currentY = e.clientY - rect.top;
+      drawSelection();
+    });
+
+    selectionLayer.addEventListener('mouseup', (e) => {
+      isSelecting = false;
+      // Clear the selection overlay
+      selCtx.clearRect(0, 0, selectionLayer.width, selectionLayer.height);
+      // Calculate selection boundaries in case of dragging in different directions
+      const x = Math.min(startX, currentX);
+      const y = Math.min(startY, currentY);
+      const width = Math.abs(currentX - startX);
+      const height = Math.abs(currentY - startY);
+      if (width > 0 && height > 0) {
+        cropRegion(x, y, width, height);
+      }
+    });
+
+    function drawSelection() {
+      // Clear previous rectangle
+      selCtx.clearRect(0, 0, selectionLayer.width, selectionLayer.height);
+      const x = Math.min(startX, currentX);
+      const y = Math.min(startY, currentY);
+      const width = Math.abs(currentX - startX);
+      const height = Math.abs(currentY - startY);
+      selCtx.strokeStyle = 'red';
+      selCtx.lineWidth = 2;
+      selCtx.strokeRect(x, y, width, height);
+    }
+
+    function cropRegion(x, y, width, height) {
+      // Create a temporary canvas to crop the image from the rendered PDF canvas
+      const tempCanvas = document.createElement('canvas');
+      tempCanvas.width = width;
+      tempCanvas.height = height;
+      const tempCtx = tempCanvas.getContext('2d');
+      // Copy the selected region from the pdfCanvas onto the temporary canvas
+      tempCtx.drawImage(pdfCanvas, x, y, width, height, 0, 0, width, height);
+      const dataURL = tempCanvas.toDataURL('image/png');
+      addCroppedImage(dataURL);
+    }
+
+    // ---- Managing Cropped Images & Ordering ----
+
+    function addCroppedImage(dataURL) {
+      const cropItem = document.createElement('div');
+      cropItem.className = 'cropItem';
+
+      const img = document.createElement('img');
+      img.src = dataURL;
+      cropItem.appendChild(img);
+
+      // Create up/down buttons for reordering
+      const upBtn = document.createElement('button');
+      upBtn.textContent = 'Move Up';
+      upBtn.addEventListener('click', () => {
+        if (cropItem.previousElementSibling) {
+          cropList.insertBefore(cropItem, cropItem.previousElementSibling);
+          updateCroppedImagesOrder();
+        }
+      });
+      cropItem.appendChild(upBtn);
+
+      const downBtn = document.createElement('button');
+      downBtn.textContent = 'Move Down';
+      downBtn.addEventListener('click', () => {
+        if (cropItem.nextElementSibling) {
+          cropList.insertBefore(cropItem.nextElementSibling, cropItem);
+          updateCroppedImagesOrder();
+        }
+      });
+      cropItem.appendChild(downBtn);
+
+      cropList.appendChild(cropItem);
+      updateCroppedImagesOrder();
+    }
+
+    // Update the croppedImages array order based on DOM order.
+    function updateCroppedImagesOrder() {
+      croppedImages = [];
+      const items = cropList.getElementsByClassName('cropItem');
+      for (let item of items) {
+        const img = item.querySelector('img');
+        croppedImages.push(img.src);
+      }
+    }
+
+    // ---- Concatenating Images Vertically ----
+
+    concatenateBtn.addEventListener('click', () => {
+      if (croppedImages.length === 0) return alert("No cropped images to concatenate.");
+      
+      // Load all images so we can get their dimensions
+      let imagesLoaded = 0;
+      const imageObjs = [];
+      let finalWidth = 0, finalHeight = 0;
+      
+      croppedImages.forEach(src => {
+        const img = new Image();
+        img.onload = () => {
+          imagesLoaded++;
+          imageObjs.push(img);
+          // Determine the maximum width and sum of heights
+          finalWidth = Math.max(finalWidth, img.width);
+          finalHeight += img.height;
+          if (imagesLoaded === croppedImages.length) {
+            // All images loaded. Set final canvas dimensions.
+            concatenatedCanvas.width = finalWidth;
+            concatenatedCanvas.height = finalHeight;
+            // Draw images one below the other
+            let yOffset = 0;
+            imageObjs.forEach(image => {
+              concatCtx.drawImage(image, 0, yOffset);
+              yOffset += image.height;
+            });
+          }
+        };
+        img.src = src;
+      });
+    });
+  </script>
+</body>
+</html>

@@ -16,24 +16,24 @@ def available_documents(
 ):
     """
     Returns a dictionary indicating the availability of each document type for the given exam.
-    For Answer-Script, the query uses the current student (current_user.id).
-    For the other types (Question-Paper, Solution-Script, Marking-Scheme),
+    For answer_script, the query uses the current student (current_user.id).
+    For the other types (question_paper, solution_script, marking_scheme),
     the query is made against the Materials table using the exam_id.
     """
     available = {}
 
-    # Check for Answer-Script availability (stored in AnswerScript table)
+    # Check for answer_script availability (stored in AnswerScript table)
     answer_script = db.query(AnswerScript).filter(
         AnswerScript.exam_id == exam_id,
         AnswerScript.student_id == current_user.id
     ).first()
-    available["Answer-Script"] = bool(answer_script)
+    available["answer_script"] = bool(answer_script)
 
     # Mapping for the three document types stored in the Materials table.
     mapping = {
-        "Question-Paper": FileTypeEnum.question_paper,
-        "Solution-Script": FileTypeEnum.solution_script,
-        "Marking-Scheme": FileTypeEnum.marking_scheme,
+        "question_paper": FileTypeEnum.question_paper,
+        "solution_script": FileTypeEnum.solution_script,
+        "marking_scheme": FileTypeEnum.marking_scheme,
     }
     for option, file_enum in mapping.items():
         material = db.query(Material).filter(
@@ -54,23 +54,23 @@ def get_document(
 ):
     """
     Returns the document details (file_path and extracted_text) for the given exam and doc_type.
-    If doc_type is "Answer-Script", the AnswerScript table is used (with the current student's id);
-    Otherwise, for "Question-Paper", "Solution-Script", or "Marking-Scheme", the Materials table is used.
+    If doc_type is "answer_script", the AnswerScript table is used (with the current student's id);
+    Otherwise, for "question_paper", "solution_script", or "marking_scheme", the Materials table is used.
     """
     doc_type_norm = doc_type.lower()
 
-    if doc_type_norm == "answer-script":
+    if doc_type_norm == "answer_script":
         document = db.query(AnswerScript).filter(
             AnswerScript.exam_id == exam_id,
             AnswerScript.student_id == current_user.id
         ).first()
         if not document:
             raise HTTPException(status_code=404, detail="Answer Script not found.")
-    elif doc_type_norm in ["question-paper", "solution-script", "marking-scheme"]:
+    elif doc_type_norm in ["question_paper", "solution_script", "marking_scheme"]:
         mapping = {
-            "question-paper": FileTypeEnum.question_paper,
-            "solution-script": FileTypeEnum.solution_script,
-            "marking-scheme": FileTypeEnum.marking_scheme
+            "question_paper": FileTypeEnum.question_paper,
+            "solution_script": FileTypeEnum.solution_script,
+            "marking_scheme": FileTypeEnum.marking_scheme
         }
         file_enum = mapping.get(doc_type_norm)
         document = db.query(Material).filter(

@@ -124,8 +124,8 @@ def pdf_remove_red_and_save_opencv(pdf_path, dpi=300):
     pdf_name = os.path.splitext(os.path.basename(pdf_path))[0]
 
     # Create an output folder for optional per-page JPEGs
-    output_folder = os.path.join(pdf_dir, f"{pdf_name}_cleaned_pages")
-    os.makedirs(output_folder, exist_ok=True)
+    # output_folder = os.path.join(pdf_dir, f"{pdf_name}_cleaned_pages")
+    # os.makedirs(output_folder, exist_ok=True)
 
     # Convert PDF to list of PIL Images
     pages = convert_from_path(pdf_path, dpi=dpi)
@@ -157,5 +157,5 @@ def pdf_remove_red_and_save_opencv(pdf_path, dpi=300):
 
 # Example usage
 if __name__ == "__main__":
-    pdf_file_path = "data-fin/ge103/paper11.pdf"  # Replace with your PDF path
+    pdf_file_path = "data-fin/operating-system-2018/S1.pdf"  # Replace with your PDF path
     pdf_remove_red_and_save_opencv(pdf_file_path, dpi=300)

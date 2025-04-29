@@ -1,0 +1,813 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <title>Modern Course Cards</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+    
+    body {
+      background-color: #f9fafb;
+      padding: 40px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 30px;
+    }
+    
+    .course-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 30px;
+      width: 100%;
+    }
+
+    .card {
+      border-radius: 16px;
+      width: 340px;
+      height: 340px;
+      cursor: pointer;
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+      background: linear-gradient(to bottom, #111827 45%, #ffffff 45%);
+    }
+    
+    .card.dark-mode {
+      background: linear-gradient(to bottom, #111827 45%, #1f2937 45%);
+    }
+    
+    .card:hover {
+      transform: translateY(-6px) scale(1.02);
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.12);
+    }
+    
+    .card-top {
+      height: 45%;
+      position: relative;
+      overflow: hidden;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    
+    .card-pattern {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      opacity: 0.1;
+      background-image: radial-gradient(circle at 20px 20px, rgba(255,255,255,0.15) 2px, transparent 0);
+      background-size: 16px 16px;
+    }
+    
+    /* Geometric shapes */
+    .geometric-container {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      overflow: hidden;
+      opacity: 0.2;
+      z-index: 1;
+    }
+    
+    /* General shape style */
+    .shape {
+      position: absolute;
+      border: 2px solid white;
+    }
+    
+    .dark-mode .shape {
+      border-color: #000;
+    }
+    
+    .circle {
+      border-radius: 50%;
+    }
+    
+    .square {
+      transform: rotate(45deg);
+    }
+    
+    /* Hollow triangle using inline SVG */
+    .triangle {
+      /* Set dimensions corresponding to the viewBox in the SVG */
+      width: 40px;
+      height: 35px;
+      /* Remove CSS borders */
+      border: none;
+      /* Use currentColor for the SVG stroke */
+      color: white;
+    }
+    .triangle svg {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+    .dark-mode .triangle {
+      color: #000;
+    }
+    
+    .line {
+      height: 2px;
+      background-color: white;
+      border: none;
+      transform-origin: center;
+    }
+    
+    .dark-mode .line {
+      background-color: #000;
+    }
+    
+    /* Card-specific shapes */
+    .card-1-shapes .shape-1 {
+      width: 60px;
+      height: 60px;
+      top: 30px;
+      left: 40px;
+    }
+    
+    .card-1-shapes .shape-2 {
+      width: 40px;
+      height: 40px;
+      bottom: 20px;
+      left: 80px;
+    }
+    
+    .card-1-shapes .shape-3 {
+      width: 80px;
+      height: 2px;
+      top: 70px;
+      right: 40px;
+      transform: rotate(45deg);
+    }
+    
+    .card-1-shapes .shape-4 {
+      width: 100px;
+      height: 2px;
+      bottom: 40px;
+      right: 20px;
+      transform: rotate(-30deg);
+    }
+    
+    .card-1-shapes .shape-5 {
+      top: 50px;
+      right: 80px;
+    }
+    
+    .card-2-shapes .shape-1 {
+      width: 50px;
+      height: 50px;
+      top: 20px;
+      right: 60px;
+    }
+    
+    .card-2-shapes .shape-2 {
+      width: 70px;
+      height: 70px;
+      bottom: 10px;
+      left: 30px;
+    }
+    
+    .card-2-shapes .shape-3 {
+      width: 90px;
+      height: 2px;
+      top: 50px;
+      left: 20px;
+      transform: rotate(-20deg);
+    }
+    
+    .card-2-shapes .shape-4 {
+      top: 80px;
+      left: 100px;
+    }
+    
+    .card-2-shapes .shape-5 {
+      width: 110px;
+      height: 2px;
+      bottom: 30px;
+      right: 30px;
+      transform: rotate(15deg);
+    }
+    
+    .card-3-shapes .shape-1 {
+      width: 40px;
+      height: 40px;
+      top: 30px;
+      left: 50px;
+    }
+    
+    .card-3-shapes .shape-2 {
+      width: 60px;
+      height: 2px;
+      top: 60px;
+      left: 100px;
+      transform: rotate(70deg);
+    }
+    
+    .card-3-shapes .shape-3 {
+      width: 30px;
+      height: 30px;
+      bottom: 20px;
+      right: 70px;
+    }
+    
+    .card-3-shapes .shape-4 {
+      top: 40px;
+      right: 50px;
+    }
+    
+    .card-3-shapes .shape-5 {
+      width: 80px;
+      height: 2px;
+      bottom: 40px;
+      left: 40px;
+      transform: rotate(-60deg);
+    }
+    
+    .card-4-shapes .shape-1 {
+      width: 55px;
+      height: 55px;
+      top: 15px;
+      left: 70px;
+    }
+    
+    .card-4-shapes .shape-2 {
+      width: 35px;
+      height: 35px;
+      bottom: 25px;
+      left: 40px;
+    }
+    
+    .card-4-shapes .shape-3 {
+      width: 90px;
+      height: 2px;
+      top: 40px;
+      right: 30px;
+      transform: rotate(-35deg);
+    }
+    
+    .card-4-shapes .shape-4 {
+      top: 70px;
+      right: 80px;
+    }
+    
+    .card-4-shapes .shape-5 {
+      width: 70px;
+      height: 2px;
+      bottom: 30px;
+      right: 50px;
+      transform: rotate(25deg);
+    }
+    
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      z-index: 2;
+    }
+    
+    .card-badge {
+      background-color: rgba(255, 255, 255, 0.15);
+      color: white;
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      backdrop-filter: blur(5px);
+    }
+    
+    .card-title-area {
+      z-index: 2;
+    }
+    
+    .card-title {
+      font-size: 20px;
+      font-weight: 700;
+      color: white;
+      margin-bottom: 4px;
+      line-height: 1.3;
+    }
+    
+    .card-subtitle {
+      font-size: 13px;
+      color: rgba(255, 255, 255, 0.7);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    
+    .card-dot {
+      display: inline-block;
+      width: 4px;
+      height: 4px;
+      border-radius: 50%;
+      background-color: rgba(255, 255, 255, 0.7);
+    }
+    
+    .card-bottom {
+      height: 55%;
+      padding: 20px;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .card-info {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+    
+    .info-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      color: #64748b;
+    }
+    
+    .dark-mode .info-item {
+      color: #e0dada;
+    }
+    
+    .info-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+    }
+    
+    .professor-card .info-icon {
+      background-color: rgba(124, 58, 237, 0.2);
+      color: #6a2bc3;
+    }
+    
+    .student-card .info-icon {
+      background-color: rgba(14, 165, 233, 0.2);
+      color: #463aed;
+    }
+    .dark-mode .info-icon {
+      color: #e2e8f0;
+    }
+    
+    .professor-info {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    
+    .avatar {
+      width: 38px;
+      height: 38px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      color: white;
+      font-weight: 600;
+      background: linear-gradient(135deg, #0ea5e9, #38bdf8);
+    }
+    
+    .professor-details {
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .professor-name {
+      font-weight: 600;
+      color: #1e293b;
+      font-size: 14px;
+      margin-bottom: 2px;
+    }
+    
+    .dark-mode .professor-name {
+      color: #e2e8f0;
+    }
+    
+    .professor-title {
+      font-size: 12px;
+      color: #64748b;
+    }
+    
+    .dark-mode .professor-title {
+      color: #94a3b8;
+    }
+    
+    .notification-container {
+      margin-top: auto;
+      position: relative;
+    }
+    
+    .notification-box {
+      padding: 12px;
+      border-radius: 10px;
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    
+    .notification-graded {
+      background-color: rgba(34, 197, 94, 0.1);
+      border: 1px solid rgba(34, 197, 94, 0.2);
+    }
+    
+    .notification-comment {
+      background-color: rgba(249, 115, 22, 0.1);
+      border: 1px solid rgba(249, 115, 22, 0.2);
+    }
+    
+    .dark-mode .notification-graded {
+      background-color: rgba(34, 197, 94, 0.15);
+      border: 1px solid rgba(34, 197, 94, 0.25);
+    }
+    
+    .dark-mode .notification-comment {
+      background-color: rgba(249, 115, 22, 0.15);
+      border: 1px solid rgba(249, 115, 22, 0.25);
+    }
+    
+    .notification-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      flex-shrink: 0;
+    }
+    
+    .notification-graded .notification-icon {
+      background-color: rgba(34, 197, 94, 0.15);
+      color: #22c55e;
+    }
+    
+    .notification-comment .notification-icon {
+      background-color: rgba(249, 115, 22, 0.15);
+      color: #f97316;
+    }
+    
+    .notification-content {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    
+    .notification-title {
+      font-weight: 600;
+      color: #1e293b;
+      font-size: 13px;
+    }
+    
+    .notification-text {
+      color: #64748b;
+      font-size: 12px;
+    }
+    
+    .dark-mode .notification-title {
+      color: #e2e8f0;
+    }
+    
+    .dark-mode .notification-text {
+      color: #94a3b8;
+    }
+    
+    .empty-notification {
+      height: 58px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #94a3b8;
+      font-size: 13px;
+      font-style: italic;
+      background-color: #f8fafc;
+      border-radius: 10px;
+    }
+    
+    .dark-mode .empty-notification {
+      background-color: rgba(255, 255, 255, 0.05);
+      color: #64748b;
+    }
+    
+    .card-actions {
+      position: absolute;
+      right: 20px;
+      bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .action-btn {
+      width: 38px;
+      height: 38px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      transition: all 0.2s ease;
+      cursor: pointer;
+      background: #f1f5f9;
+      color: #64748b;
+    }
+    
+    .dark-mode .action-btn {
+      background: rgba(255, 255, 255, 0.05);
+      color: #94a3b8;
+    }
+    
+    .action-btn:hover {
+      background: #e2e8f0;
+      color: #334155;
+    }
+    
+    .dark-mode .action-btn:hover {
+      background: rgba(255, 255, 255, 0.1);
+      color: #e2e8f0;
+    }
+    
+    .primary-btn {
+      padding: 10px 20px;
+      border-radius: 10px;
+      font-weight: 600;
+      font-size: 13px;
+      transition: all 0.2s ease;
+      cursor: pointer;
+      position: absolute;
+      left: 20px;
+      bottom: 20px;
+    }
+    
+    .professor-card .primary-btn {
+      background: linear-gradient(135deg, #7c3aed, #8b5cf6);
+      color: white;
+      box-shadow: 0 4px 12px rgba(124, 58, 237, 0.25);
+    }
+    
+    .student-card .primary-btn {
+      background: linear-gradient(135deg, #0ea5e9, #38bdf8);
+      color: white;
+      box-shadow: 0 4px 12px rgba(14, 165, 233, 0.25);
+    }
+    
+    .primary-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+    }
+    
+    .accent-line {
+      position: absolute;
+      top: 0;
+      left: 20px;
+      right: 20px;
+      height: 4px;
+      border-radius: 0 0 4px 4px;
+    }
+    
+    .professor-card .accent-line {
+      background: linear-gradient(90deg, #7c3aed, #8b5cf6);
+    }
+    
+    .student-card .accent-line {
+      background: linear-gradient(90deg, #0ea5e9, #38bdf8);
+    }
+    
+    .semester {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      background: rgba(255, 255, 255, 0.1);
+      color: white;
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 500;
+      backdrop-filter: blur(5px);
+    }
+  </style>
+</head>
+<body>
+  <div class="course-grid">
+    <!-- Professor Card with Pattern 1 -->
+    <div class="card professor-card">
+      <div class="accent-line"></div>
+      <div class="card-top">
+        <div class="card-pattern"></div>
+        <div class="geometric-container card-1-shapes">
+          <div class="shape circle shape-1"></div>
+          <div class="shape square shape-2"></div>
+          <div class="shape line shape-3"></div>
+          <div class="shape line shape-4"></div>
+          <!-- Replace the triangle element with inline SVG for a hollow triangle -->
+          <div class="shape triangle shape-5">
+            <svg viewBox="0 0 40 35" xmlns="http://www.w3.org/2000/svg">
+              <polygon points="20,0 0,35 40,35" fill="none" stroke="currentColor" stroke-width="2" />
+            </svg>
+          </div>
+        </div>
+        <div class="card-header">
+          <div class="card-badge">Professor</div>
+          <div class="semester">Spring 2025</div>
+        </div>
+        <div class="card-title-area">
+          <h2 class="card-title">Advanced Data Structures</h2>
+          <p class="card-subtitle">Computer Science</p>
+        </div>
+      </div>
+      
+      <div class="card-bottom">
+        <div class="card-info">
+            <div class="info-item">
+              <div class="info-icon"><i class="fas fa-users"></i></div>
+              <span>0 Students</span>
+            </div>
+            <div class="info-item">
+              <div class="info-icon"><i class="fas fa-trophy"></i></div>
+              <span>3 Credits</span>
+            </div>
+        </div>
+        
+        <div class="primary-btn">Manage Course</div>
+        <div class="card-actions">
+          <div class="action-btn">⋮</div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Student Card with Pattern 2 -->
+    <div class="card student-card">
+      <div class="accent-line"></div>
+      <div class="card-top">
+        <div class="card-pattern"></div>
+        <div class="geometric-container card-2-shapes">
+          <div class="shape square shape-1"></div>
+          <div class="shape circle shape-2"></div>
+          <div class="shape line shape-3"></div>
+          <!-- Using hollow triangle with inline SVG -->
+          <div class="shape triangle shape-4">
+            <svg viewBox="0 0 40 35" xmlns="http://www.w3.org/2000/svg">
+              <polygon points="20,0 0,35 40,35" fill="none" stroke="currentColor" stroke-width="2" />
+            </svg>
+          </div>
+          <div class="shape line shape-5"></div>
+        </div>
+        <div class="card-header">
+          <div class="card-badge">Student</div>
+          <div class="semester">Spring 2025</div>
+        </div>
+        <div class="card-title-area">
+          <h2 class="card-title">Machine Learning</h2>
+          <p class="card-subtitle">Computer Science</p>
+        </div>
+      </div>
+      
+      <div class="card-bottom">
+        <div class="card-info">
+            <div class="info-item">
+              <div class="info-icon"><i class="fas fa-users"></i></div>
+              <span>0 Students</span>
+            </div>
+            <div class="info-item">
+              <div class="info-icon"><i class="fas fa-trophy"></i></div>
+              <span>3 Credits</span>
+            </div>
+        </div>
+        <div class="professor-info">
+          <div class="avatar">DJ</div>
+          <div class="professor-details">
+            <span class="professor-name">Dr. John Smith</span>
+            <span class="professor-title">Course Instructor</span>
+          </div>
+        </div>
+        
+        <div class="primary-btn">View Course</div>
+        <div class="card-actions">
+          <div class="action-btn">⋮</div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Dark Mode Professor Card with Pattern 3 -->
+    <div class="card professor-card dark-mode">
+        <div class="accent-line"></div>
+        <div class="card-top">
+          <div class="card-pattern"></div>
+          <div class="geometric-container card-3-shapes">
+            <div class="shape square shape-1"></div>
+            <div class="shape line shape-2"></div>
+            <div class="shape circle shape-3"></div>
+            <!-- Hollow triangle -->
+            <div class="shape triangle shape-4">
+              <svg viewBox="0 0 40 35" xmlns="http://www.w3.org/2000/svg">
+                <polygon points="20,0 0,35 40,35" fill="none" stroke="currentColor" stroke-width="2" />
+              </svg>
+            </div>
+            <div class="shape line shape-5"></div>
+          </div>
+          <div class="card-header">
+            <div class="card-badge">Professor</div>
+            <div class="semester">Spring 2025</div>
+          </div>
+          <div class="card-title-area">
+            <h2 class="card-title">Web Development</h2>
+            <p class="card-subtitle">Computer Science</p>
+          </div>
+        </div>
+        
+        <div class="card-bottom">
+          <div class="card-info">
+            <div class="info-item">
+              <div class="info-icon"><i class="fas fa-users"></i></div>
+              <span>0 Students</span>
+            </div>
+            <div class="info-item">
+              <div class="info-icon"><i class="fas fa-trophy"></i></div>
+              <span>3 Credits</span>
+            </div>
+          </div>
+          
+          <div class="primary-btn">Manage Course</div>
+          <div class="card-actions">
+            <div class="action-btn">⋮</div>
+          </div>
+        </div>
+    </div>
+    
+    <!-- Dark Mode Student Card with Pattern 4 -->
+    <div class="card student-card dark-mode">
+      <div class="accent-line"></div>
+      <div class="card-top">
+        <div class="card-pattern"></div>
+        <div class="geometric-container card-4-shapes">
+          <div class="shape circle shape-1"></div>
+          <div class="shape square shape-2"></div>
+          <div class="shape line shape-3"></div>
+          <!-- Hollow triangle -->
+          <div class="shape triangle shape-4">
+            <svg viewBox="0 0 40 35" xmlns="http://www.w3.org/2000/svg">
+              <polygon points="20,0 0,35 40,35" fill="none" stroke="currentColor" stroke-width="2" />
+            </svg>
+          </div>
+          <div class="shape line shape-5"></div>
+        </div>
+        <div class="card-header">
+          <div class="card-badge">Student</div>
+          <div class="semester">Spring 2025</div>
+        </div>
+        <div class="card-title-area">
+          <h2 class="card-title">Artificial Intelligence</h2>
+          <p class="card-subtitle">Computer Science</p>
+        </div>
+      </div>
+      
+      <div class="card-bottom">
+        <div class="card-info">
+            <div class="info-item">
+              <div class="info-icon"><i class="fas fa-users"></i></div>
+              <span>0 Students</span>
+            </div>
+            <div class="info-item">
+              <div class="info-icon"><i class="fas fa-trophy"></i></div>
+              <span>3 Credits</span>
+            </div>
+          </div>
+        
+        <div class="professor-info">
+          <div class="avatar">DJ</div>
+          <div class="professor-details">
+            <span class="professor-name">Dr. Jane Doe</span>
+            <span class="professor-title">Course Instructor</span>
+          </div>
+        </div>
+        
+        <div class="primary-btn">View Course</div>
+        <div class="card-actions">
+          <div class="action-btn">⋮</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

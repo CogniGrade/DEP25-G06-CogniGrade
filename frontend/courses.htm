@@ -793,6 +793,25 @@
             padding: 4px 8px;
             border-radius: 4px;
         }
+        .exam-results-btn {
+            background: #1a73e8;
+            color: #fff;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+            position: absolute;
+            top: 20px;
+            right: 20px;
+        }
+
+        .exam-results-btn:hover {
+            background: #1557b0;
+        }
+
     </style>
 </head>
 
@@ -1317,7 +1336,7 @@
             const studentList = document.getElementById("studentExamsList");
 
             if (isProfessor) {
-                profList.style.display = "block";
+                profList.style.display = "grid";
                 studentList.style.display = "none";
 
                 if (exams.length === 0) {
@@ -1326,6 +1345,7 @@
                 }
 
                 let profHtml = "";
+                // In displayExams (for professor view)
                 exams.forEach(exam => {
                     const examDate = exam.exam_date ? new Date(exam.exam_date).toLocaleDateString() : "";
                     const createdDate = exam.created_at ? new Date(exam.created_at).toLocaleString("en-US", {
@@ -1335,9 +1355,9 @@
                         hour: "numeric",
                         minute: "numeric"
                     }) : "";
-                    
+                    console.log(exam.class_id);
                     profHtml += `
-                    <div class="exam-box" onclick="enterExam(${exam.id})">
+                    <div class="exam-box" onclick="enterExam(${exam.id})" style="position: relative;">
                         <div class="exam-header">
                             <div class="exam-title">
                                 <h2>${exam.title}</h2>
@@ -1362,8 +1382,10 @@
                                 <div class="stat-item"><span>Average Marks:</span><span>25</span></div>
                             </div>
                         </div>
+                        <button class="exam-results-btn" onclick="event.stopPropagation(); window.location.href='exam-stats.htm?exam_id=${exam.id}';">Results</button>
                     </div>`;
                 });
+
 
                 profList.innerHTML = profHtml;
             } else {
@@ -1616,14 +1638,14 @@
                 .slice(0, 2);
         }
 
-        // Toggle sidebar menu
-        document.addEventListener("DOMContentLoaded", function () {
-            const menuButton = document.querySelector(".menu-btn");
-            const sidebar = document.querySelector(".sidebar");
-            menuButton.addEventListener("click", function () {
-                sidebar.classList.toggle("collapsed");
-            });
-        });
+        // // Toggle sidebar menu
+        // document.addEventListener("DOMContentLoaded", function () {
+        //     const menuButton = document.querySelector(".menu-btn");
+        //     const sidebar = document.querySelector(".sidebar");
+        //     menuButton.addEventListener("click", function () {
+        //         sidebar.classList.toggle("collapsed");
+        //     });
+        // });
 
         // Function to copy class code to clipboard
         function copyClassCode() {

@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>PDF Editor with Box and Freehand Cuts</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        #pdf-container {
+            flex: 1;
+            min-width: 300px;
+            max-width: 800px;
+            overflow-x: auto;
+            margin-right: 20px;
+        }
+        .page-container {
+            position: relative;
+            margin-bottom: 20px;
+        }
+        .overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+        .selection-box {
+            position: absolute;
+            border: 2px dashed blue;
+            background: rgba(0, 0, 255, 0.1);
+            display: none;
+            pointer-events: none;
+        }
+        .freehand-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            display: none;
+        }
+        #cropped-images-container {
+            width: 250px;
+        }
+        #cropped-images {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        #cropped-images > div {
+            border: 1px solid #ccc;
+            padding: 5px;
+            background: #f9f9f9;
+        }
+        #cropped-images img {
+            max-width: 100%;
+            height: auto;
+        }
+        #concatenate-btn {
+            margin-top: 10px;
+            padding: 5px 10px;
+        }
+        #result {
+            margin-top: 20px;
+        }
+        #result img {
+            max-width: 100%;
+            height: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Mode Selection -->
+        <div>
+            <label><input type="radio" name="cut-mode" value="box" checked> Box Cut</label>
+            <label><input type="radio" name="cut-mode" value="freehand"> Freehand Cut</label>
+        </div>
+        <input type="file" id="pdf-upload" accept=".pdf">
+        <div id="pdf-container"></div>
+        <div id="cropped-images-container">
+            <h3>Cropped Images</h3>
+            <div id="cropped-images"></div>
+            <button id="concatenate-btn">Concatenate</button>
+        </div>
+        <div id="result">
+            <h3>Result</h3>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script>
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+
+        // Global variables
+        let isSelecting = false;
+        let startX, startY;
+        let currentOverlay, currentSelectionBox;
+        let pathPoints = [];
+        let cutMode = 'box'; // Default to box cut
+
+        // Mode selection event listener
+        document.querySelectorAll('input[name="cut-mode"]').forEach(radio => {
+            radio.addEventListener('change', (e) => {
+                cutMode = e.target.value;
+            });
+        });
+
+        // PDF upload handler
+        document.getElementById('pdf-upload').addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file || !file.type.match('pdf')) return;
+            const reader = new FileReader();
+            reader.onload = (event) => loadPDF(event.target.result);
+            reader.readAsArrayBuffer(file);
+        });
+
+        function loadPDF(arrayBuffer) {
+            const pdfContainer = document.getElementById('pdf-container');
+            pdfContainer.innerHTML = '';
+            pdfjsLib.getDocument(arrayBuffer).promise.then((pdf) => {
+                for (let i = 1; i <= pdf.numPages; i++) {
+                    pdf.getPage(i).then(renderPage);
+                }
+            }).catch((err) => {
+                console.error('Error loading PDF:', err);
+                alert('Failed to load PDF.');
+            });
+        }
+
+        function renderPage(page) {
+            const displayScale = 1;
+            const renderScale = 2;
+            const displayViewport = page.getViewport({ scale: displayScale });
+            const renderViewport = page.getViewport({ scale: renderScale });
+
+            const canvas = document.createElement('canvas');
+            const context = canvas.getContext('2d');
+            canvas.width = renderViewport.width;
+            canvas.height = renderViewport.height;
+            canvas.style.width = `${displayViewport.width}px`;
+            canvas.style.height = `${displayViewport.height}px`;
+
+            const pageContainer = document.createElement('div');
+            pageContainer.className = 'page-container';
+            pageContainer.style.width = `${displayViewport.width}px`;
+            pageContainer.style.height = `${displayViewport.height}px`;
+
+            const overlay = document.createElement('div');
+            overlay.className = 'overlay';
+            overlay.style.width = `${displayViewport.width}px`;
+            overlay.style.height = `${displayViewport.height}px`;
+            overlay.dataset.ratio = renderScale;
+
+            const selectionBox = document.createElement('div');
+            selectionBox.className = 'selection-box';
+            overlay.appendChild(selectionBox);
+
+            const freehandCanvas = document.createElement('canvas');
+            freehandCanvas.className = 'freehand-canvas';
+            freehandCanvas.width = displayViewport.width;
+            freehandCanvas.height = displayViewport.height;
+            freehandCanvas.style.width = `${displayViewport.width}px`;
+            freehandCanvas.style.height = `${displayViewport.height}px`;
+            freehandCanvas.style.display = 'none';
+            overlay.appendChild(freehandCanvas);
+
+            pageContainer.appendChild(canvas);
+            pageContainer.appendChild(overlay);
+            document.getElementById('pdf-container').appendChild(pageContainer);
+
+            page.render({ canvasContext: context, viewport: renderViewport }).promise.then(() => {
+                overlay.addEventListener('mousedown', startSelection);
+                overlay.addEventListener('mousemove', updateSelection);
+                overlay.addEventListener('mouseup', endSelection);
+            });
+        }
+
+        function startSelection(event) {
+            currentOverlay = event.target;
+            if (cutMode === 'box') {
+                currentSelectionBox = currentOverlay.querySelector('.selection-box');
+                startX = event.offsetX;
+                startY = event.offsetY;
+                isSelecting = true;
+                currentSelectionBox.style.left = startX + 'px';
+                currentSelectionBox.style.top = startY + 'px';
+                currentSelectionBox.style.width = '0px';
+                currentSelectionBox.style.height = '0px';
+                currentSelectionBox.style.display = 'block';
+            } else if (cutMode === 'freehand') {
+                const freehandCanvas = currentOverlay.querySelector('.freehand-canvas');
+                freehandCanvas.style.display = 'block';
+                const ctx = freehandCanvas.getContext('2d');
+                ctx.clearRect(0, 0, freehandCanvas.width, freehandCanvas.height);
+                ctx.beginPath();
+                ctx.moveTo(event.offsetX, event.offsetY);
+                ctx.strokeStyle = 'blue';
+                ctx.lineWidth = 2;
+                pathPoints = [{ x: event.offsetX, y: event.offsetY }];
+                isSelecting = true;
+            }
+        }
+
+        function updateSelection(event) {
+            if (!isSelecting) return;
+            if (cutMode === 'box') {
+                const currentX = event.offsetX;
+                const currentY = event.offsetY;
+                const minX = Math.min(startX, currentX);
+                const minY = Math.min(startY, currentY);
+                const width = Math.abs(currentX - startX);
+                const height = Math.abs(currentY - startY);
+                currentSelectionBox.style.left = minX + 'px';
+                currentSelectionBox.style.top = minY + 'px';
+                currentSelectionBox.style.width = width + 'px';
+                currentSelectionBox.style.height = height + 'px';
+            } else if (cutMode === 'freehand') {
+                const freehandCanvas = currentOverlay.querySelector('.freehand-canvas');
+                const ctx = freehandCanvas.getContext('2d');
+                ctx.lineTo(event.offsetX, event.offsetY);
+                ctx.stroke();
+                pathPoints.push({ x: event.offsetX, y: event.offsetY });
+            }
+        }
+
+        function endSelection() {
+            if (!isSelecting) return;
+            isSelecting = false;
+            const ratio = parseFloat(currentOverlay.dataset.ratio);
+            if (cutMode === 'box') {
+                const selectionBox = currentOverlay.querySelector('.selection-box');
+                const minX = parseInt(selectionBox.style.left);
+                const minY = parseInt(selectionBox.style.top);
+                const width = parseInt(selectionBox.style.width);
+                const height = parseInt(selectionBox.style.height);
+                selectionBox.style.display = 'none';
+                if (width < 5 || height < 5) return;
+                const canvasMinX = minX * ratio;
+                const canvasMinY = minY * ratio;
+                const canvasWidth = width * ratio;
+                const canvasHeight = height * ratio;
+                cropAndAddImage(canvasMinX, canvasMinY, canvasWidth, canvasHeight);
+            } else if (cutMode === 'freehand') {
+                const freehandCanvas = currentOverlay.querySelector('.freehand-canvas');
+                freehandCanvas.style.display = 'none';
+                cropWithPath(pathPoints, ratio);
+                pathPoints = [];
+            }
+        }
+
+        function cropAndAddImage(canvasMinX, canvasMinY, canvasWidth, canvasHeight) {
+            const canvas = currentOverlay.previousElementSibling;
+            const newCanvas = document.createElement('canvas');
+            newCanvas.width = canvasWidth;
+            newCanvas.height = canvasHeight;
+            const ctx = newCanvas.getContext('2d');
+            ctx.drawImage(canvas, canvasMinX, canvasMinY, canvasWidth, canvasHeight, 0, 0, canvasWidth, canvasHeight);
+            addImageToSidebar(newCanvas.toDataURL());
+        }
+
+        function getBoundingBox(points) {
+            let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+            points.forEach(p => {
+                minX = Math.min(minX, p.x);
+                minY = Math.min(minY, p.y);
+                maxX = Math.max(maxX, p.x);
+                maxY = Math.max(maxY, p.y);
+            });
+            return { minX, minY, width: maxX - minX, height: maxY - minY };
+        }
+
+        function cropWithPath(points, ratio) {
+            const bbox = getBoundingBox(points);
+            const canvasMinX = bbox.minX * ratio;
+            const canvasMinY = bbox.minY * ratio;
+            const canvasWidth = bbox.width * ratio;
+            const canvasHeight = bbox.height * ratio;
+
+            const newCanvas = document.createElement('canvas');
+            newCanvas.width = canvasWidth;
+            newCanvas.height = canvasHeight;
+            const ctx = newCanvas.getContext('2d');
+
+            ctx.translate(-canvasMinX, -canvasMinY);
+            ctx.beginPath();
+            points.forEach((p, i) => {
+                const canvasX = p.x * ratio;
+                const canvasY = p.y * ratio;
+                if (i === 0) ctx.moveTo(canvasX, canvasY);
+                else ctx.lineTo(canvasX, canvasY);
+            });
+            ctx.closePath();
+            ctx.clip();
+
+            const canvas = currentOverlay.previousElementSibling;
+            ctx.drawImage(canvas, 0, 0);
+
+            addImageToSidebar(newCanvas.toDataURL());
+        }
+
+        function addImageToSidebar(dataURL) {
+            const img = document.createElement('img');
+            img.src = dataURL;
+            const wrapper = document.createElement('div');
+            wrapper.appendChild(img);
+            document.getElementById('cropped-images').appendChild(wrapper);
+        }
+
+        // Sortable for reordering cropped images
+        new Sortable(document.getElementById('cropped-images'), {
+            animation: 150,
+            ghostClass: 'sortable-ghost',
+        });
+
+        // Concatenate button handler
+        document.getElementById('concatenate-btn').addEventListener('click', () => {
+            const croppedImages = document.getElementById('cropped-images').querySelectorAll('img');
+            if (croppedImages.length === 0) {
+                alert('No images to concatenate.');
+                return;
+            }
+
+            let maxWidth = 0;
+            let totalHeight = 0;
+            croppedImages.forEach((img) => {
+                maxWidth = Math.max(maxWidth, img.naturalWidth);
+                totalHeight += img.naturalHeight;
+            });
+
+            const resultCanvas = document.createElement('canvas');
+            resultCanvas.width = maxWidth;
+            resultCanvas.height = totalHeight;
+            const ctx = resultCanvas.getContext('2d');
+            let currentY = 0;
+
+            croppedImages.forEach((img) => {
+                const x = (maxWidth - img.naturalWidth) / 2;
+                ctx.drawImage(img, x, currentY);
+                currentY += img.naturalHeight;
+            });
+
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = '<h3>Result</h3>';
+            const resultImg = document.createElement('img');
+            resultImg.src = resultCanvas.toDataURL();
+            resultDiv.appendChild(resultImg);
+
+            const downloadBtn = document.createElement('button');
+            downloadBtn.textContent = 'Download as PDF';
+            downloadBtn.addEventListener('click', () => {
+                const { jsPDF } = window.jspdf;
+                const pdf = new jsPDF();
+                const pageWidth = pdf.internal.pageSize.getWidth();
+                const pageHeight = pdf.internal.pageSize.getHeight();
+                const imgWidth = resultImg.naturalWidth;
+                const imgHeight = resultImg.naturalHeight;
+                const ratio = pageWidth / imgWidth;
+                let y = 0;
+
+                while (y < imgHeight) {
+                    const sliceHeight = Math.min(pageHeight / ratio, imgHeight - y);
+                    const tempCanvas = document.createElement('canvas');
+                    tempCanvas.width = imgWidth;
+                    tempCanvas.height = sliceHeight;
+                    const tempCtx = tempCanvas.getContext('2d');
+                    tempCtx.drawImage(resultImg, 0, y, imgWidth, sliceHeight, 0, 0, imgWidth, sliceHeight);
+                    pdf.addImage(tempCanvas.toDataURL(), 'PNG', 0, 0, pageWidth, sliceHeight * ratio);
+                    y += sliceHeight;
+                    if (y < imgHeight) pdf.addPage();
+                }
+                pdf.save('concatenated.pdf');
+            });
+            resultDiv.appendChild(downloadBtn);
+        });
+    </script>
+</body>
+</html>

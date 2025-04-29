@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Modern Course Cards</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    }
+    
+    body {
+      background-color: #f9fafb;
+      padding: 40px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 30px;
+    }
+    
+    .course-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 30px;
+      width: 100%;
+    }
+
+    .card {
+      background-color: white;
+      border-radius: 24px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04), 0 1px 3px rgba(0, 0, 0, 0.03);
+      width: 340px;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      border: 1px solid rgba(0, 0, 0, 0.04);
+      backface-visibility: hidden;
+    }
+    
+    .card:hover {
+      transform: translateY(-8px);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+    }
+    
+    .card-banner {
+      height: 120px;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .card-banner::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      opacity: 0.9;
+      z-index: 1;
+    }
+    
+    .card-banner::after {
+      content: "";
+      position: absolute;
+      width: 250px;
+      height: 250px;
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 50%;
+      top: -125px;
+      right: -80px;
+      z-index: 2;
+    }
+    
+    .card-banner.card-professor::before {
+      background: linear-gradient(135deg, #7366ff, #aa66ff);
+    }
+    
+    .card-banner.card-student::before {
+      background: linear-gradient(135deg, #0ea5e9, #0be8e8);
+    }
+    
+    .card-body {
+      padding: 24px 28px;
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      z-index: 3;
+    }
+    
+    .card-title {
+      font-size: 20px;
+      font-weight: 700;
+      color: #1e293b;
+      margin-bottom: 6px;
+      line-height: 1.3;
+    }
+    
+    .card-subtitle {
+      font-size: 14px;
+      color: #64748b;
+      margin-bottom: 24px;
+      display: flex;
+      align-items: center;
+    }
+    
+    .card-subtitle::before {
+      content: "";
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      margin-right: 8px;
+    }
+    
+    .professor-card .card-subtitle::before {
+      background-color: #aa66ff;
+    }
+    
+    .student-card .card-subtitle::before {
+      background-color: #0ea5e9;
+    }
+    
+    .card-badge {
+      position: absolute;
+      top: 90px;
+      right: 28px;
+      background-color: white;
+      padding: 6px 16px;
+      border-radius: 30px;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+      z-index: 4;
+    }
+    
+    .student-badge {
+      color: #0ea5e9;
+    }
+    
+    .professor-badge {
+      color: #aa66ff;
+    }
+    
+    .card-info {
+      display: flex;
+      justify-content: space-between;
+      font-size: 14px;
+      color: #64748b;
+      margin-bottom: 24px;
+      background-color: #f8fafc;
+      padding: 12px 18px;
+      border-radius: 14px;
+    }
+    
+    .info-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .info-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+    }
+    
+    .student-card .info-icon {
+      background-color: rgba(14, 165, 233, 0.1);
+      color: #0ea5e9;
+    }
+    
+    .professor-card .info-icon {
+      background-color: rgba(170, 102, 255, 0.1);
+      color: #aa66ff;
+    }
+    
+    .professor-info {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 24px;
+      padding-top: 4px;
+    }
+    
+    .avatar {
+      width: 48px;
+      height: 48px;
+      border-radius: 14px;
+      background: linear-gradient(135deg, #0ea5e9, #0be8e8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      color: white;
+      font-weight: 600;
+      box-shadow: 0 4px 12px rgba(14, 165, 233, 0.2);
+    }
+    
+    .professor-details {
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .professor-name {
+      font-weight: 600;
+      color: #1e293b;
+      font-size: 15px;
+      margin-bottom: 3px;
+    }
+    
+    .professor-title {
+      font-size: 13px;
+      color: #64748b;
+    }
+    
+    .notification-container {
+      margin-top: auto;
+      min-height: 90px;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .notification-box {
+      padding: 16px;
+      border-radius: 14px;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    
+    .notification-graded {
+      background-color: #f0fdf4;
+      border: 1px solid rgba(34, 197, 94, 0.2);
+    }
+    
+    .notification-comment {
+      background-color: #fff7ed;
+      border: 1px solid rgba(249, 115, 22, 0.2);
+    }
+    
+    .notification-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+    
+    .notification-graded .notification-icon {
+      background-color: rgba(34, 197, 94, 0.1);
+      color: #22c55e;
+    }
+    
+    .notification-comment .notification-icon {
+      background-color: rgba(249, 115, 22, 0.1);
+      color: #f97316;
+    }
+    
+    .notification-content {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    
+    .notification-title {
+      font-weight: 600;
+      color: #1e293b;
+    }
+    
+    .notification-text {
+      color: #64748b;
+      line-height: 1.4;
+    }
+    
+    .card-footer {
+      padding: 20px 28px;
+      border-top: 1px solid #f1f5f9;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: auto;
+    }
+    
+    .view-btn {
+      padding: 10px 20px;
+      border-radius: 12px;
+      font-weight: 600;
+      font-size: 14px;
+      transition: all 0.2s ease;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .professor-card .view-btn {
+      background-color: rgba(170, 102, 255, 0.1);
+      color: #aa66ff;
+    }
+    
+    .professor-card .view-btn:hover {
+      background-color: rgba(170, 102, 255, 0.15);
+    }
+    
+    .student-card .view-btn {
+      background-color: rgba(14, 165, 233, 0.1);
+      color: #0ea5e9;
+    }
+    
+    .student-card .view-btn:hover {
+      background-color: rgba(14, 165, 233, 0.15);
+    }
+    
+    .menu-dots {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: background-color 0.2s ease;
+      font-size: 18px;
+    }
+    
+    .menu-dots:hover {
+      background-color: #f1f5f9;
+    }
+    
+    .dropdown-menu {
+      position: absolute;
+      bottom: 80px;
+      right: 28px;
+      background-color: white;
+      border-radius: 14px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+      display: none;
+      min-width: 200px;
+      z-index: 10;
+      border: 1px solid #f1f5f9;
+      overflow: hidden;
+    }
+    
+    .dropdown-menu.show {
+      display: block;
+    }
+    
+    .dropdown-item {
+      padding: 14px 18px;
+      font-size: 14px;
+      color: #1e293b;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    
+    .dropdown-item:hover {
+      background-color: #f8fafc;
+    }
+    
+    .dropdown-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      background-color: #f8fafc;
+    }
+    
+    .dropdown-item.archive .dropdown-icon {
+      color: #ef4444;
+    }
+    
+    .dropdown-item.archive {
+      color: #ef4444;
+    }
+    
+    .semester-badge {
+      position: absolute;
+      top: 24px;
+      left: 28px;
+      background-color: rgba(255, 255, 255, 0.2);
+      color: white;
+      padding: 6px 12px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      backdrop-filter: blur(4px);
+      z-index: 5;
+    }
+    
+    /* Dark Mode Cards */
+    .card.dark-mode {
+      background-color: #1a1f2b;
+      border: 1px solid rgba(255, 255, 255, 0.03);
+    }
+    
+    .dark-mode .card-title {
+      color: #f8fafc;
+    }
+    
+    .dark-mode .card-subtitle {
+      color: #94a3b8;
+    }
+    
+    .dark-mode .card-info {
+      background-color: rgba(255, 255, 255, 0.05);
+      color: #94a3b8;
+    }
+    
+    .dark-mode .professor-name {
+      color: #f1f5f9;
+    }
+    
+    .dark-mode .professor-title {
+      color: #94a3b8;
+    }
+    
+    .dark-mode .notification-box {
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    
+    .dark-mode .notification-graded {
+      background-color: rgba(34, 197, 94, 0.1);
+    }
+    
+    .dark-mode .notification-comment {
+      background-color: rgba(249, 115, 22, 0.1);
+    }
+    
+    .dark-mode .notification-title {
+      color: #f1f5f9;
+    }
+    
+    .dark-mode .notification-text {
+      color: #94a3b8;
+    }
+    
+    .dark-mode .card-footer {
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    
+    .dark-mode .menu-dots:hover {
+      background-color: rgba(255, 255, 255, 0.05);
+    }
+    
+    .dark-mode .dropdown-menu {
+      background-color: #1a1f2b;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    
+    .dark-mode .dropdown-item {
+      color: #f1f5f9;
+    }
+    
+    .dark-mode .dropdown-item:hover {
+      background-color: rgba(255, 255, 255, 0.05);
+    }
+    
+    .dark-mode .dropdown-icon {
+      background-color: rgba(255, 255, 255, 0.05);
+    }
+  </style>
+</head>
+<body>
+  <div class="course-grid">
+    <!-- Professor Card - Light Mode -->
+    <div class="card professor-card">
+      <div class="card-banner card-professor">
+        <div class="semester-badge">Spring 2025</div>
+      </div>
+      <div class="card-badge professor-badge">Professor</div>
+      <div class="card-body">
+        <h2 class="card-title">Advanced Data Structures</h2>
+        <p class="card-subtitle">Computer Science</p>
+        
+        <div class="card-info">
+          <div class="info-item">
+            <div class="info-icon">👥</div>
+            <span>0 Students</span>
+          </div>
+          <div class="info-item">
+            <div class="info-icon">🏆</div>
+            <span>3 Credits</span>
+          </div>
+        </div>
+        
+        <div class="notification-container">
+          <div class="notification-box notification-comment">
+            <div class="notification-icon">💬</div>
+            <div class="notification-content">
+              <div class="notification-title">No Update Yet!</div>
+              <div class="notification-text">Sarah Wilson on Assignment 3</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="card-footer">
+        <div class="view-btn">
+          <span>Manage Course</span>
+        </div>
+        <div class="menu-dots">⋮</div>
+      </div>
+    </div>
+    
+    <!-- Student Card - Light Mode -->
+    <div class="card student-card">
+      <div class="card-banner card-student">
+        <div class="semester-badge">Spring 2025</div>
+      </div>
+      <div class="card-badge student-badge">Student</div>
+      <div class="card-body">
+        <h2 class="card-title">Intro to Machine Learning</h2>
+        <p class="card-subtitle">Computer Science</p>
+        
+        <div class="card-info">
+          <div class="info-item">
+            <div class="info-icon">👥</div>
+            <span>42 Students</span>
+          </div>
+          <div class="info-item">
+            <div class="info-icon">🏆</div>
+            <span>3 Credits</span>
+          </div>
+        </div>
+        
+        <div class="professor-info">
+          <div class="avatar">DJ</div>
+          <div class="professor-details">
+            <span class="professor-name">Dr. John Smith</span>
+            <span class="professor-title">Course Instructor</span>
+          </div>
+        </div>
+        
+        <div class="notification-container">
+          <div class="notification-box notification-graded">
+            <div class="notification-icon">✓</div>
+            <div class="notification-content">
+              <div class="notification-title">Assignment Graded</div>
+              <div class="notification-text">Project 1: Introduction to Algorithms</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="card-footer">
+        <div class="view-btn">
+          <span>View Course</span>
+        </div>
+        <div class="menu-dots">⋮</div>
+      </div>
+    </div>
+    
+    <!-- Professor Card - Dark Mode -->
+    <div class="card professor-card dark-mode">
+      <div class="card-banner card-professor">
+        <div class="semester-badge">Spring 2025</div>
+      </div>
+      <div class="card-badge professor-badge">Professor</div>
+      <div class="card-body">
+        <h2 class="card-title">Web Development</h2>
+        <p class="card-subtitle">Computer Science</p>
+        
+        <div class="card-info">
+          <div class="info-item">
+            <div class="info-icon">👥</div>
+            <span>0 Students</span>
+          </div>
+          <div class="info-item">
+            <div class="info-icon">🏆</div>
+            <span>3 Credits</span>
+          </div>
+        </div>
+        
+        <div class="notification-container">
+          <div class="notification-box notification-comment">
+            <div class="notification-icon">💬</div>
+            <div class="notification-content">
+              <div class="notification-title">No Update Yet!</div>
+              <div class="notification-text">Sarah Wilson on Assignment 3</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="card-footer">
+        <div class="view-btn">
+          <span>Manage Course</span>
+        </div>
+        <div class="menu-dots">⋮</div>
+      </div>
+    </div>
+    
+    <!-- Student Card - Dark Mode -->
+    <div class="card student-card dark-mode">
+      <div class="card-banner card-student">
+        <div class="semester-badge">Spring 2025</div>
+      </div>
+      <div class="card-badge student-badge">Student</div>
+      <div class="card-body">
+        <h2 class="card-title">Artificial Intelligence</h2>
+        <p class="card-subtitle">Computer Science</p>
+        
+        <div class="card-info">
+          <div class="info-item">
+            <div class="info-icon">👥</div>
+            <span>42 Students</span>
+          </div>
+          <div class="info-item">
+            <div class="info-icon">🏆</div>
+            <span>3 Credits</span>
+          </div>
+        </div>
+        
+        <div class="professor-info">
+          <div class="avatar">DJ</div>
+          <div class="professor-details">
+            <span class="professor-name">Dr. Jane Doe</span>
+            <span class="professor-title">Course Instructor</span>
+          </div>
+        </div>
+        
+        <div class="notification-container">
+          <div class="notification-box notification-graded">
+            <div class="notification-icon">✓</div>
+            <div class="notification-content">
+              <div class="notification-title">Assignment Graded</div>
+              <div class="notification-text">Project 1: Introduction to Algorithms</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="card-footer">
+        <div class="view-btn">
+          <span>View Course</span>
+        </div>
+        <div class="menu-dots">⋮</div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

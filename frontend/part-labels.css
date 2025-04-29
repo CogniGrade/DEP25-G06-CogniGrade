@@ -1,0 +1,254 @@
+
+    .question-card {
+      background-color: #fff;
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+    
+    .question-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+    
+    .question-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: #333;
+    }
+    
+    .question-content {
+      margin-bottom: 15px;
+      color: #444;
+      border-bottom: 1px solid #eee;
+      padding-bottom: 15px;
+    }
+    
+    .parts-container {
+      margin-top: 15px;
+    }
+    
+    .part-item {
+      padding: 12px;
+      margin-bottom: 10px;
+      position: relative;
+      background-color: #f9f9f9;
+      border-radius: 6px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .level-0 {
+        border-left: 4px solid #3498db;
+        margin-left: 0;
+    }
+
+    .level-1 {
+        border-left: 4px solid #e74c3c;
+        margin-left: 20px;
+    }
+
+    .level-2 {
+        border-left: 4px solid #2ecc71;
+        margin-left: 40px;
+    }
+
+    .level-3 {
+        border-left: 4px solid #f39c12;
+        margin-left: 60px;
+    }
+
+    .level-4 {
+        border-left: 4px solid #9b59b6; /* Purple */
+        margin-left: 80px;
+    }
+
+    .level-5 {
+        border-left: 4px solid #1abc9c; /* Teal */
+        margin-left: 100px;
+    }
+
+    .level-6 {
+        border-left: 4px solid #8e44ad; /* Dark purple */
+        margin-left: 120px;
+    }
+
+    .part-item:hover {
+      background-color: #f0f0f0;
+    }
+    
+    .part-label {
+      font-weight: 500;
+      margin-right: 10px;
+      color: #2c3e50;
+    }
+    
+    .part-actions {
+      display: flex;
+      gap: 8px;
+    }
+    
+    .add-btn {
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      padding: 6px 12px;
+      font-size: 13px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      transition: all 0.2s ease;
+    }
+    
+    .add-btn i {
+      margin-right: 5px;
+    }
+    
+    .add-btn:hover {
+      background-color: #45a049;
+      transform: translateY(-1px);
+    }
+    
+    .add-subpart-btn {
+      background-color: #3498db;
+      margin-bottom: 15px;
+      padding: 8px 14px;
+    }
+    
+    .add-subpart-btn:hover {
+      background-color: #2980b9;
+    }
+    
+    .save-container {
+      display: flex;
+      justify-content: flex-end;
+      margin-top: 20px;
+    }
+    
+    .save-btn {
+      background-color: #2196F3;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      padding: 10px 20px;
+      font-size: 14px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      transition: all 0.3s ease;
+    }
+    
+    .save-btn i {
+      margin-right: 8px;
+    }
+    
+    .save-btn:hover {
+      background-color: #0b7dda;
+      transform: translateY(-2px);
+    }
+    
+    .no-parts {
+      font-style: italic;
+      color: #888;
+      margin: 10px 0;
+      padding: 10px;
+      text-align: center;
+      background-color: #f9f9f9;
+      border-radius: 6px;
+    }
+    
+    .loading-spinner {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100px;
+    }
+    
+    .spinner {
+      border: 4px solid rgba(0, 0, 0, 0.1);
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      border-left-color: #2196F3;
+      animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+      0% {
+        transform: rotate(0deg);
+      }
+      100% {
+        transform: rotate(360deg);
+      }
+    }
+    
+    .alert {
+      padding: 15px;
+      margin-bottom: 20px;
+      border-radius: 4px;
+    }
+    
+    .alert-success {
+      background-color: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+    }
+    
+    .alert-danger {
+      background-color: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+    }
+    
+    .page-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 25px;
+    }
+    
+    .page-title {
+      font-size: 24px;
+      font-weight: 600;
+      color: #2c3e50;
+    }
+    
+    .remove-btn {
+      background-color: #e74c3c;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      padding: 6px 12px;
+      font-size: 13px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+    }
+    
+    .remove-btn i {
+      margin-right: 5px;
+    }
+    
+    .remove-btn:hover {
+      background-color: #c0392b;
+    }
+    
+    .part-count {
+      background-color: #f1f1f1;
+      border-radius: 4px;
+      padding: 4px 8px;
+      font-size: 14px;
+      margin-left: 10px;
+      color: #666;
+    }
+    
+    .exam-name {
+      font-size: 16px;
+      font-weight: 500;
+      color: #666;
+    }

@@ -128,7 +128,8 @@ class Exam(Base):
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
     classroom_id = Column(Integer, ForeignKey("classrooms.id", ondelete="CASCADE"))
     author_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"))
-    
+    exam_stage = Column(Integer, default=0)  # e.g., "Question Upload", "Label Extract", "Solution Upload", "Marking Annotate", Answer Script Upload", "Answer Script Annotate", "Grading", "Graded"
+
     classroom = relationship("Classroom", back_populates="exams")
     author = relationship("User")
     results = relationship("ExamResult", back_populates="exam", cascade="all, delete-orphan", passive_deletes=True)
@@ -162,6 +163,12 @@ class Question(Base):
     ideal_marking_scheme = Column(Text, nullable=True)  # Marking scheme for the ideal answer
     max_marks = Column(Integer, nullable=False)
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    part_labels = Column(Text, nullable=True) 
+
+    ms_text_images = Column(Text, nullable=True)
+    ms_table_images = Column(Text, nullable=True)
+    ms_diagram_images = Column(Text, nullable=True)
+    
     exam = relationship("Exam", back_populates="questions")
     responses = relationship("QuestionResponse", back_populates="question", cascade="all, delete-orphan", passive_deletes=True)
 
@@ -170,13 +177,16 @@ class QuestionResponse(Base):
     id = Column(Integer, primary_key=True, index=True)
     question_id = Column(Integer, ForeignKey("questions.id", ondelete="CASCADE"), nullable=False)
     student_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
-    answer_text = Column(Text, nullable=True)  # The answer submitted by the student.
+    answer_text = Column(Text, nullable=True)
     marks_obtained = Column(Integer, nullable=True)
-    query = Column(Text, nullable=True)        # Query raised for that question.
-    reasoning = Column(Text, nullable=True)      # Explanation for the awarded marks.
+    query = Column(Text, nullable=True)
+    reasoning = Column(Text, nullable=True)
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    # New columns to store extracted regions JSON data (as a JSON string)
+    ans_text_images = Column(Text, nullable=True)
+    ans_table_images = Column(Text, nullable=True)
+    ans_diagram_images = Column(Text, nullable=True)
     
-    # Relationships
     question = relationship("Question", back_populates="responses")
     student = relationship("User", back_populates="question_responses")
 

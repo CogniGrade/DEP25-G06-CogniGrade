@@ -11,17 +11,335 @@
   <!-- Custom CSS -->
   <link rel="stylesheet" href="professor-styles.css">
   <style>
-    /* Header & Layout */
-    .user-info {
-      margin-right: 10px;
-      font-size: 1rem;
-      color: #000;
+    /* New Card Styles */
+    .card {
+      border-radius: 16px;
+      width: 340px;
+      height: 340px;
+      cursor: pointer;
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+      background: linear-gradient(to bottom, #111827 45%, #ffffff 45%);
+      transition: all 0.2s ease;
     }
+    
+    .card.dark-mode {
+      background: linear-gradient(to bottom, #111827 45%, #1f2937 45%);
+    }
+    
+    .card:hover {
+      transform: translateY(-0px) scale(1.01);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    }
+    
+    .card-top {
+      height: 45%;
+      position: relative;
+      overflow: hidden;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    
+    .card-pattern {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      opacity: 0.1;
+      background-image: radial-gradient(circle at 20px 20px, rgba(255,255,255,0.15) 2px, transparent 0);
+      background-size: 16px 16px;
+    }
+    
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      z-index: 2;
+    }
+    
+    .card-badge {
+      background-color: rgba(255, 255, 255, 0.15);
+      color: white;
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      backdrop-filter: blur(5px);
+    }
+    
+    .card-title-area {
+      z-index: 2;
+    }
+    
+    .card-title {
+      font-size: 20px;
+      font-weight: 700;
+      color: white;
+      margin-bottom: 4px;
+      line-height: 1.3;
+    }
+    
+    .card-subtitle {
+      font-size: 13px;
+      color: rgba(255, 255, 255, 0.7);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    
+    .card-dot {
+      display: inline-block;
+      width: 4px;
+      height: 4px;
+      border-radius: 50%;
+      background-color: rgba(255, 255, 255, 0.7);
+    }
+    
+    .card-bottom {
+      height: 55%;
+      padding: 20px;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .card-info {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+    
+    .info-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      color: #64748b;
+    }
+    
+    .dark-mode .info-item {
+      color: #e0dada;
+    }
+    
+    .info-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px; /* Adjust icon size for better visibility */
+    }
+    
+    .professor-card .info-icon {
+      background-color: rgba(124, 58, 237, 0.2);
+      color: #6a2bc3;
+    }
+    
+    .student-card .info-icon {
+      background-color: rgba(14, 165, 233, 0.2);
+      color: #463aed;
+    }
+    .dark-mode .info-icon {
+        color: #e2e8f0; /* Light gray, matching other dark mode text colors */
+    }
+    
+    .professor-info {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    
+    .avatar {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      display: flex;
+      /* align-items: center; */
+      /* justify-content: center; */
+      /* font-size: 14px; */
+      /* color: white; */
+      /* font-weight: 600; */
+      /* background: linear-gradient(135deg, #0ea5e9, #38bdf8); */
+    }
+    
+    .professor-details {
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .professor-name {
+      font-weight: 600;
+      color: #1e293b;
+      font-size: 14px;
+      margin-bottom: 2px;
+    }
+    
+    .dark-mode .professor-name {
+      color: #e2e8f0;
+    }
+    
+    .professor-title {
+      font-size: 12px;
+      color: #64748b;
+    }
+    
+    .dark-mode .professor-title {
+      color: #94a3b8;
+    }
+    
+    .primary-btn {
+      padding: 10px 20px;
+      border-radius: 10px;
+      font-weight: 600;
+      font-size: 13px;
+      transition: all 0.2s ease;
+      cursor: pointer;
+      position: absolute;
+      left: 20px;
+      bottom: 20px;
+    }
+    
+    .professor-card .primary-btn {
+      background: linear-gradient(135deg, #7c3aed, #8b5cf6);
+      color: white;
+      box-shadow: 0 4px 12px rgba(124, 58, 237, 0.25);
+    }
+    
+    .student-card .primary-btn {
+      background: linear-gradient(135deg, #0ea5e9, #38bdf8);
+      color: white;
+      box-shadow: 0 4px 12px rgba(14, 165, 233, 0.25);
+    }
+    
+    .primary-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+    }
+    
+    .accent-line {
+      position: absolute;
+      top: 0;
+      left: 20px;
+      right: 20px;
+      height: 5px;
+      border-radius: 0 0 4px 4px;
+      /* border-top:1px solid purple; */
+    }
+    
+    .professor-card .accent-line {
+      background: linear-gradient(90deg, #7c3aed, #8b5cf6);
+    }
+    
+    .student-card .accent-line {
+      background: linear-gradient(90deg, #0ea5e9, #38bdf8);
+    }
+    
+    .semester {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      background: rgba(255, 255, 255, 0.1);
+      color: white;
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 500;
+      backdrop-filter: blur(5px);
+    }
+    
+    .card-actions {
+      position: absolute;
+      right: 20px;
+      bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .action-btn {
+      width: 38px;
+      height: 38px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      transition: all 0.2s ease;
+      cursor: pointer;
+      background: #f1f5f9;
+      color: #64748b;
+    }
+    
+    .dark-mode .action-btn {
+      background: rgba(255, 255, 255, 0.05);
+      color: #94a3b8;
+    }
+    
+    .action-btn:hover {
+      background: #e2e8f0;
+      color: #334155;
+    }
+    
+    .dark-mode .action-btn:hover {
+      background: rgba(255, 255, 255, 0.1);
+      color: #e2e8f0;
+    }
+    
+    .dropdown-menu {
+      position: absolute;
+      bottom: 60px;
+      right: 20px;
+      background-color: white;
+      border-radius: 12px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+      display: none;
+      min-width: 180px;
+      z-index: 10;
+      border: 1px solid #e6e9ec;
+      overflow: hidden;
+    }
+    
+    .dropdown-menu.show {
+      display: block;
+    }
+    
+    .dropdown-item {
+      padding: 12px 16px;
+      font-size: 14px;
+      color: #1e293b;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+    }
+    
+    .dropdown-item:hover {
+      background-color: #f8fafc;
+    }
+    
+    .icon {
+      font-size: 16px;
+    }
+    
+    .dropdown-item.archive {
+      color: #ef4444;
+    }
+    
+    /* Other Dashboard Styles (Header, Layout, Modal, etc.) */
     .header-row {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      /* margin-bottom: 1rem; */
     }
     .header-row h1{
       font-family: 'Poppins', sans-serif;
@@ -63,13 +381,19 @@
     .create-class-button:hover {
       background-color: #0056b3;
     }
-    /* Horizontal divider style */
     .section-divider {
       border: none;
       border-top: 1px solid #e0e0e0;
       margin: 10px 0 20px 0;
     }
-    /* Modal styling for Create & Join */
+    .course-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, auto));
+        gap: 30px 50px;
+        justify-content: start;
+        margin-bottom: 2rem;
+    }
+    /* Modal Styles */
     .modal {
       display: none;
       position: fixed;
@@ -133,287 +457,233 @@
     .button-row a:hover {
       background-color: #0056b3;
     }
+
+    /* Geometric shapes */
+    .geometric-container {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      overflow: hidden;
+      opacity: 0.2;
+      z-index: 1;
+    }
     
-    .course-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(300px, auto));
-        gap: 30px 50px;
-        justify-content: start;
-        margin-bottom: 2rem;
+    .shape {
+      position: absolute;
+      border: 1px solid white;
     }
-
-    .card {
-        background-color: white;
-        border-radius: 16px;
-        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
-        width: 320px;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        position: relative;
-        border: 1px solid #e6e9ec;
-        display: flex;
-        flex-direction: column;
-        overflow: hidden;
+    
+    .dark-mode .shape {
+      border-color: #fff;
     }
-
-    .card.student-card {
-        height: 480px;
+    
+    .circle {
+      border-radius: 50%;
     }
-
-    .card.professor-card {
-        height: 410px;
+    
+    .square {
+      transform: rotate(45deg);
     }
-
-    .card:hover {
-        transform: translateY(-8px);
-        box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+    
+    /* Hollow triangle using inline SVG */
+    .triangle {
+      /* Set dimensions corresponding to the viewBox in the SVG */
+      width: 40px;
+      height: 35px;
+      /* Remove CSS borders */
+      border: none;
+      /* Use currentColor for the SVG stroke */
+      color: white;
     }
-
-    .card-banner {
-        height: 6px;
-        background: linear-gradient(90deg, #6366f1, #8b5cf6);
+    .triangle svg {
+      display: block;
+      width: 100%;
+      height: 100%;
     }
-
-    .card-professor {
-        background: linear-gradient(180deg, #6366f1, #8b5cf6);
+    
+    .dark-mode .triangle::after {
+      border-bottom-color: #111827; /* Match dark mode card top background */
     }
-
-    .card-student {
-        background: linear-gradient(180deg, #3b82f6, #2dd4bf);
+    
+    .line {
+      border: none;
+      border-bottom: 1px solid white;
+      transform-origin: center;
     }
-
-    .card-badge {
-        position: absolute;
-        top: 20px;
-        right: 20px;
-        padding: 6px 12px;
-        border-radius: 30px;
-        font-size: 12px;
-        font-weight: 600;
-        letter-spacing: 0.5px;
-        text-transform: uppercase;
+    
+    .dark-mode .line {
+      background-color: #000;
     }
-
-    .student-badge {
-        background-color: rgba(59, 130, 246, 0.1);
-        color: #3b82f6;
+    
+    /* Card-specific shapes */
+    .card-1-shapes .shape-1 {
+      width: 30px;
+      height: 30px;
+      top: 30px;
+      left: 40px;
     }
-
-    .professor-badge {
-        background-color: rgba(99, 102, 241, 0.1);
-        color: #6366f1;
+    
+    .card-1-shapes .shape-2 {
+      width: 40px;
+      height: 40px;
+      bottom: 20px;
+      left: 80px;
     }
-
-    .card-body {
-        padding: 24px;
-        flex-grow: 1;
-        display: flex;
-        flex-direction: column;
-        margin-left: 8px;
+    
+    .card-1-shapes .shape-3 {
+      width: 50px;
+      height: 50px;
+      /* width: 80px;
+      height: 2px; */
+      top: 70px;
+      right: 60px;
+      transform: rotate(45deg);
     }
+    
+    .card-1-shapes .shape-4 {
+      width: 60px;
+      height: 60px;
 
-    .card-title {
-        font-size: 20px;
-        font-weight: 600;
-        margin: 0 0 6px 0;
-        color: #1e293b;
+      /* width: 100px;
+      height: 2px; */
+      bottom: 40px;
+      right: 20px;
+      transform: rotate(-30deg);
     }
+    
+    .card-1-shapes .shape-5 {
+      width: 70px;
+      height: 70px;
 
-    .card-subtitle {
-        font-size: 14px;
-        color: #64748b;
-        margin: 0 0 20px 0;
-        letter-spacing: 0.3px;
+      top: 20px;
+      right: 140px;
     }
-
-    .card-info {
-        display: flex;
-        justify-content: space-between;
-        font-size: 14px;
-        color: #64748b;
-        margin-top: 16px;
-        background-color: #f8fafc;
-        padding: 10px 16px;
-        border-radius: 10px;
+    
+    .card-2-shapes .shape-1 {
+      width: 30px;
+      height: 30px;
+      top: 20px;
+      right: 60px;
     }
-
-    .info-item {
-        display: flex;
-        align-items: center;
-        gap: 6px;
+    
+    .card-2-shapes .shape-2 {
+      width: 40px;
+      height: 40px;
+      bottom: 10px;
+      left: 30px;
     }
+    
+    .card-2-shapes .shape-3 {
+      width: 50px;
+      height: 50px;
 
-    .professor-info {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        margin-top: 20px;
-        padding-top: 20px;
-        border-top: 1px solid #f1f5f9;
+      /* width: 90px;
+      height: 2px; */
+      top: 50px;
+      left: 20px;
+      transform: rotate(-20deg);
     }
+    
+    .card-2-shapes .shape-4 {
+      width: 60px;
+      height: 60px;
 
-    .avatar {
-        width: 40px;
-        height: 40px;
-        border-radius: 50%;
-        background: linear-gradient(45deg, #6366f1, #8b5cf6);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 14px;
-        color: white;
-        font-weight: 600;
+      top: 80px;
+      left: 100px;
     }
-
-    .professor-details {
-        display: flex;
-        flex-direction: column;
+    
+    .card-2-shapes .shape-5 {
+      width: 70px;
+      height: 70px;
+      /* width: 110px;
+      height: 2px; */
+      bottom: 30px;
+      right: 30px;
+      transform: rotate(15deg);
     }
-
-    .professor-name {
-        font-weight: 600;
-        color: #1e293b;
-        font-size: 14px;
+    
+    .card-3-shapes .shape-1 {
+      width: 30px;
+      height: 30px;
+      top: 30px;
+      left: 50px;
     }
-
-    .professor-title {
-        font-size: 12px;
-        color: #64748b;
+    
+    .card-3-shapes .shape-2 {
+      width: 40px;
+      height: 40px;
+      /* width: 60px;
+      height: 2px; */
+      top: 60px;
+      left: 100px;
+      transform: rotate(70deg);
     }
-
-    .notification-container {
-        margin-top: 20px;
-        min-height: 80px;
-        display: flex;
-        flex-direction: column;
+    
+    .card-3-shapes .shape-3 {
+      width: 50px;
+      height: 50px;
+      bottom: 20px;
+      right: 70px;
     }
-
-    .notification-box {
-        padding: 14px 16px;
-        border-radius: 10px;
-        font-size: 14px;
-        display: flex;
-        align-items: center;
-        gap: 10px;
+    
+    .card-3-shapes .shape-4 {
+      width: 60px;
+      height: 60px;
+      top: 40px;
+      right: 50px;
     }
-
-    .notification-empty {
-        color: #94a3b8;
-        font-style: italic;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        height: 80px;
+    
+    .card-3-shapes .shape-5 {
+      /* width: 80px;
+      height: 2px; */
+      width: 70px;
+      height: 70px;
+      bottom: 40px;
+      left: 40px;
+      transform: rotate(-60deg);
     }
-
-    .notification-icon {
-        width: 32px;
-        height: 32px;
-        border-radius: 8px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 16px;
+    
+    .card-4-shapes .shape-1 {
+      width: 30px;
+      height: 30px;
+      top: 15px;
+      left: 70px;
     }
-
-    .notification-graded {
-        background-color: #ecfdf5;
-        color: #10b981;
-        border-left: 4px solid #10b981;
+    
+    .card-4-shapes .shape-2 {
+      width: 40px;
+      height: 40px;
+      bottom: 45px;
+      left: 40px;
     }
-
-    .notification-graded .notification-icon {
-        background-color: rgba(16, 185, 129, 0.1);
+    
+    .card-4-shapes .shape-3 {
+      /* width: 90px;
+      height: 2px; */
+      width: 50;
+      height: 50px;
+      top: 40px;
+      right: 30px;
+      transform: rotate(-35deg);
     }
-
-    .notification-comment {
-        background-color: #fff7ed;
-        color: #f97316;
-        border-left: 4px solid #f97316;
+    
+    .card-4-shapes .shape-4 {
+      width: 60px;
+      height: 60px;
+      top: 30px;
+      right: 150px;
     }
-
-    .notification-comment .notification-icon {
-        background-color: rgba(249, 115, 22, 0.1);
-    }
-
-    .card-footer {
-        padding: 16px 24px;
-        border-top: 1px solid #f1f5f9;
-        font-size: 14px;
-        font-weight: 600;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-top: auto;
-        margin-left: 8px;
-    }
-
-    .view-btn {
-        padding: 8px 16px;
-        border-radius: 8px;
-        background-color: #f1f5f9;
-        color: #1e293b;
-        transition: all 0.2s ease;
-        cursor: pointer;
-    }
-
-    .view-btn:hover {
-        background-color: #e2e8f0;
-    }
-
-    .menu-dots {
-        width: 32px;
-        height: 32px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-        transition: background-color 0.2s ease;
-    }
-
-    .menu-dots:hover {
-        background-color: #f1f5f9;
-    }
-
-    .dropdown-menu {
-        position: absolute;
-        bottom: 60px;
-        right: 20px;
-        background-color: white;
-        border-radius: 12px;
-        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-        display: none;
-        min-width: 180px;
-        z-index: 10;
-        border: 1px solid #e6e9ec;
-        overflow: hidden;
-    }
-
-    .dropdown-menu.show {
-        display: block;
-    }
-
-    .dropdown-item {
-        padding: 12px 16px;
-        font-size: 14px;
-        color: #1e293b;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        cursor: pointer;
-    }
-
-    .dropdown-item:hover {
-        background-color: #f8fafc;
-    }
-
-    .icon {
-        font-size: 16px;
-    }
-
-    .dropdown-item.archive {
-        color: #ef4444;
+    
+    .card-4-shapes .shape-5 {
+      /* width: 70px;
+      height: 2px; */
+      width: 70px;
+      height: 70px;
+      bottom: 15px;
+      right: 35px;
+      transform: rotate(25deg);
     }
   </style>
 </head>
@@ -617,7 +887,69 @@
         document.getElementById("enrolledGrid").innerHTML = "";
         document.getElementById("teachingGrid").innerHTML = "";
 
-        // Adjust sidebar based on user role and available sections
+        // const colors = [
+        //     'linear-gradient(to right, rgba(66, 133, 244, 0.85), rgba(94, 151, 246, 0.85))', // Blue
+        //     'linear-gradient(to right, rgba(15, 157, 88, 0.85), rgba(51, 182, 121, 0.85))', // Green
+        //     'linear-gradient(to right, rgba(219, 68, 55, 0.85), rgba(234, 96, 69, 0.85))', // Red
+        //     'linear-gradient(to right, rgba(116, 77, 169, 0.85), rgba(147, 52, 230, 0.85))', // Purple
+        //     'linear-gradient(to right, rgba(244, 180, 0, 0.85), rgba(255, 206, 68, 0.85))', // Yellow
+        //     'linear-gradient(to right, rgba(95, 99, 104, 0.85), rgba(126, 134, 142, 0.85))', // Gray
+        //     'linear-gradient(to right, rgba(66, 133, 244, 0.85), rgba(51, 182, 121, 0.85))', // Blue to Green
+        //     'linear-gradient(to right, rgba(219, 68, 55, 0.85), rgba(244, 180, 0, 0.85))'  // Red to Yellow
+        // ];
+        
+        // For professor cards:
+        const professorAccentColors = [
+          // 🌈 Tri-Color Gradients (slightly deeper tones)
+          'linear-gradient(90deg, #f8b6c1, #f79ec0, #8895e9)',
+          'linear-gradient(90deg, #6ea8fe, #86c5f4, #8ac926)',
+          'linear-gradient(90deg, #ffb3b3, #f79898, #e8a1f5)',
+          'linear-gradient(90deg, #b48dd3, #729bfa, #dc94e3)',
+          'linear-gradient(90deg, #f8c877, #f3aa23, #b4e33d)',
+
+          // 🎨 Two-Color Gradients (darker variants)
+          'linear-gradient(90deg, #ea83c0, #7e9dd6)',
+          'linear-gradient(90deg, #96e3c3, #2c4f81)',
+          'linear-gradient(90deg, #d6d8e0, #8c9cb5)',
+          'linear-gradient(90deg, #e2a67a, #db5f2f)',
+          'linear-gradient(90deg, #a7e44a, #5dc284)',
+
+          // ✨ Slightly Deeper Plain Colors
+          '#e89fb1',
+          '#a4d8c2',
+          '#e6d168',
+          '#95bcd3',
+          '#b08ae6',
+          '#f5b7b7',
+          '#6edfa1',
+          '#c7c6f0',
+          '#f39dc0',
+          '#a6e6ff'
+        ];
+
+        // For student cards:
+        const studentAccentColors = [
+          'linear-gradient(90deg, #c5f9d7, #f7d486, #f27a7d)',
+          'linear-gradient(90deg, #9bafd9, #103783)',
+          'linear-gradient(90deg, #ff5858, #ffc8c8)',
+          'linear-gradient(90deg, #ff930f, #fff95b)',
+          'linear-gradient(90deg, #ffcf67, #d3321d)',
+          'linear-gradient(90deg, #ea98da, #5b6cf9)',
+          'linear-gradient(90deg, #8244ae, #07f49e)',
+          'linear-gradient(90deg, #a4e9f9, #c5aef2, #8578ea)',
+           'linear-gradient(90deg, #ebf4f5, #b5c6e0)',
+           '#8de9d5',
+           '#f7d486',
+           '#a9ff68'
+        ];
+        const shapeTypes = ['square', 'circle', 'triangle', 'line'];
+            const cardTypes = [
+              { type: 'card-1-shapes', count: 5 },
+              { type: 'card-2-shapes', count: 5 },
+              { type: 'card-3-shapes', count: 5 },
+              { type: 'card-4-shapes', count: 5 },
+            ];
+        
         if (data.user && data.user.is_professor) {
           // Professor view
           document.getElementById("dashboardHeading").innerText = "My Courses";
@@ -626,7 +958,7 @@
           document.getElementById("courseGrid").style.display = "grid";
           document.getElementById("studentSections").style.display = "none";
 
-          // Remove Teaching and Enrolled tabs from the sidebar
+          // Remove Teaching and Enrolled tabs from the sidebar (if present)
           let teachingTab = document.getElementById("teachingTab");
           if (teachingTab) teachingTab.parentElement.remove();
           let enrolledTab = document.getElementById("enrolledTab");
@@ -635,51 +967,77 @@
           if (data.teaching_courses.length === 0) {
             noClassesContainerProf.style.display = "block";
           } else {
-            noClassesContainerProf.style.display = "none";
+            noClassesContainerProf.style.display = "none"; 
+
             data.teaching_courses.forEach((course, idx) => {
-              const colors = ['#1a73e8', '#4285f4', '#5f6368', '#34a853', '#ea4335', '#fbbc04'];
-              const randomColor = colors[Math.floor(Math.random() * colors.length)];
+              const randomColor = professorAccentColors[Math.floor(Math.random() * professorAccentColors.length)];
+
+              // Pick a random card type
+              const randomCard = cardTypes[Math.floor(Math.random() * cardTypes.length)];
+              const shapeCount = randomCard.count;
+              const cardClass = randomCard.type;
+
+              // Generate shape divs with random shape types
+              let shapeDivs = '';
+              for (let i = 1; i <= shapeCount; i++) {
+                const randomShape = shapeTypes[Math.floor(Math.random() * shapeTypes.length)];
+                let shape = `<div class="shape ${randomShape} shape-${i}"></div>\n`;
+                if(randomShape === 'triangle') {
+                  shape = `<div class="shape ${randomShape} shape-${i}">
+                    <svg viewBox="0 0 40 35" xmlns="http://www.w3.org/2000/svg">
+                      <polygon points="20,0 0,35 40,35" fill="none" stroke="currentColor" stroke-width="1" />
+                    </svg>
+                  </div>`;
+                }else{
+                  shape = `<div class="shape ${randomShape} shape-${i}"></div>`;
+                }
+                shapeDivs += shape;
+              }
               const cardHTML = `
               <div class="card professor-card" onclick="enterClass(${course.id})">
-                <div class="card-banner card-professor"></div>
-                <div class="card-body">
-                  <h2 class="card-title">${course.name || "Department"}</h2>
-                  <p class="card-subtitle">${course.subject || "N/A"} • Spring 2025</p>
+                <div class="accent-line" style="background: ${randomColor}; "></div>
+                <div class="card-top">
+                  <div class="card-pattern"></div>
+                  <div class="geometric-container ${cardClass}">
+                    ${shapeDivs.trim()}
+                  </div>
+
+                  <div class="card-header">
+                    <div class="card-badge">Professor</div>
+                    <div class="semester">Spring 2025</div>
+                  </div>
+                  <div class="card-title-area">
+                    <h2 class="card-title">${course.name || "Advanced Data Structures"}</h2>
+                    <p class="card-subtitle">${course.subject || "Computer Science"}</p>
+                  </div>
+                </div>
+                <div class="card-bottom">
                   <div class="card-info">
                     <div class="info-item">
-                      <span>👥</span>
-                      <span>${"0 Students"}</span>
+                      <div class="info-icon"><i class="fas fa-users"></i></div>
+                      <span>${course.number_of_students} Students</span>
                     </div>
                     <div class="info-item">
-                      <span>🏆</span>
+                      <div class="info-icon"><i class="fas fa-trophy"></i></div>
                       <span>${"3 Credits"}</span>
                     </div>
                   </div>
-                  <div class="notification-container">
-                    <div class="notification-box notification-comment">
-                      <div class="notification-icon">💬</div>
-                      <div>
-                        <strong>No Update Yet!</strong>
-                        <div>Sarah Wilson on Assignment 3</div>
+                  <div class="primary-btn" onclick="enterClass(${course.id})">Manage Course</div>
+                  <div class="card-actions">
+                    <div class="action-btn" onclick="toggleDropdown(event, ${idx})">⋮</div>
+                    <div class="dropdown-menu" id="dropdownMenu-${idx}">
+                      <div class="dropdown-item" onclick="copyClassCode('${course.class_code}')">
+                        <span class="icon">📋</span>
+                        <span>Copy Class Code</span>
                       </div>
-                    </div>
-                  </div>
-                </div>
-                <div class="card-footer">
-                  <div class="view-btn" onclick="enterClass(${course.id})">Manage Course</div>
-                  <div class="menu-dots" onclick="toggleDropdown(event, ${idx})">⋮</div>
-                  <div class="dropdown-menu" id="dropdownMenu-${idx}">
-                    <div class="dropdown-item" onclick="copyClassCode('${course.class_code}')">
-                      <span class="icon">📋</span>
-                      <span>Copy Class Code</span>
-                    </div>
-                    <div class="dropdown-item" onclick="/* Edit functionality */">
-                      <span class="icon">✏️</span>
-                      <span>Edit</span>
-                    </div>
-                    <div class="dropdown-item archive" onclick="/* Archive functionality */">
-                      <span class="icon">🗄️</span>
-                      <span>Archive Course</span>
+                      <div class="dropdown-item" onclick="/* Edit functionality */">
+                        <span class="icon">✏️</span>
+                        <span>Edit</span>
+                      </div>
+                      <div class="dropdown-item archive" onclick="/* Archive functionality */">
+                        <span class="icon">🗄️</span>
+                        <span>Archive Course</span>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -700,50 +1058,78 @@
           if (data.enrolled_courses && data.enrolled_courses.length > 0) {
             document.getElementById("enrolledSection").style.display = "block";
             data.enrolled_courses.forEach((course, idx) => {
+              // Pick a random card type
+              const randomCard = cardTypes[Math.floor(Math.random() * cardTypes.length)];
+              const shapeCount = randomCard.count;
+              const cardClass = randomCard.type;
+
+              // Generate shape divs with random shape types
+              let shapeDivs = '';
+              for (let i = 1; i <= shapeCount; i++) {
+                const randomShape = shapeTypes[Math.floor(Math.random() * shapeTypes.length)];
+                let shape = `<div class="shape ${randomShape} shape-${i}"></div>\n`;
+                if(randomShape === 'triangle') {
+                  shape = `<div class="shape ${randomShape} shape-${i}">
+                    <svg viewBox="0 0 40 35" xmlns="http://www.w3.org/2000/svg">
+                      <polygon points="20,0 0,35 40,35" fill="none" stroke="currentColor" stroke-width="1" />
+                    </svg>
+                  </div>`;
+                }else{
+                  shape = `<div class="shape ${randomShape} shape-${i}"></div>`;
+                }
+                shapeDivs += shape;
+              }
+              console.log(shapeDivs);
+
+              const randomColor = studentAccentColors[Math.floor(Math.random() * studentAccentColors.length)];
+              owner_photo_src = "../" + course.owner_photo.replace("./", "");
               const cardHTML = `
               <div class="card student-card" onclick="enterClass(${course.id})">
-                <div class="card-banner card-student"></div>
-                <div class="card-body">
-                  <h2 class="card-title">${course.name || "Department"}</h2>
-                  <p class="card-subtitle">${course.subject || "N/A"} • Spring 2025</p>
+                <div class="accent-line" style="background: ${randomColor};"></div>
+                <div class="card-top">
+                  <div class="card-pattern"></div>
+                   <div class="geometric-container ${cardClass}">
+                      ${shapeDivs.trim()}
+                    </div>
+                  <div class="card-header">
+                    <div class="card-badge">Student</div>
+                    <div class="semester">Spring 2025</div>
+                  </div>
+                  <div class="card-title-area">
+                    <h2 class="card-title">${course.name || "Machine Learning"}</h2>
+                    <p class="card-subtitle">${course.subject || "Computer Science"}</p>
+                  </div>
+                </div>
+                <div class="card-bottom">
                   <div class="card-info">
                     <div class="info-item">
-                      <span>👥</span>
-                      <span>42 Students</span>
+                      <div class="info-icon"><i class="fas fa-users"></i></div>
+                      <span>${course.number_of_students} Students</span>
                     </div>
                     <div class="info-item">
-                      <span>🏆</span>
-                      <span>3 Credits</span>
+                      <div class="info-icon"><i class="fas fa-trophy"></i></div>
+                      <span>${"3 Credits"}</span>
                     </div>
                   </div>
                   <div class="professor-info">
-                    <div class="avatar">DJ</div>
+                    <img class="avatar" src = "${owner_photo_src}"></img>
                     <div class="professor-details">
-                      <span class="professor-name">${course.owner_name || "Unknown Instructor"}</span>
+                      <span class="professor-name">${course.owner_name || "Dr. John Smith"}</span>
                       <span class="professor-title">Course Instructor</span>
                     </div>
                   </div>
-                  <div class="notification-container">
-                    <div class="notification-box notification-graded">
-                      <div class="notification-icon">✓</div>
-                      <div>
-                        <strong>Assignment Graded</strong>
-                        <div>Project 1: Introduction to Algorithms</div>
+                  <div class="primary-btn" onclick="enterClass(${course.id})">View Course</div>
+                  <div class="card-actions">
+                    <div class="action-btn" onclick="toggleDropdown(event, ${idx})">⋮</div>
+                    <div class="dropdown-menu" id="dropdownMenu-${idx}">
+                      <div class="dropdown-item" onclick="copyClassCode('${course.class_code}')">
+                        <span class="icon">📋</span>
+                        <span>Copy Class Code</span>
                       </div>
-                    </div>
-                  </div>
-                </div>
-                <div class="card-footer">
-                  <div class="view-btn" onclick="enterClass(${course.id})">View Course</div>
-                  <div class="menu-dots" onclick="toggleDropdown(event, ${idx})">⋮</div>
-                  <div class="dropdown-menu" id="dropdownMenu-${idx}">
-                    <div class="dropdown-item" onclick="copyClassCode('${course.class_code}')">
-                      <span class="icon">📋</span>
-                      <span>Copy Class Code</span>
-                    </div>
-                    <div class="dropdown-item archive" onclick="/* Archive functionality */">
-                      <span class="icon">🗄️</span>
-                      <span>Archive Course</span>
+                      <div class="dropdown-item archive" onclick="/* Archive functionality */">
+                        <span class="icon">🗄️</span>
+                        <span>Archive Course</span>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -754,54 +1140,81 @@
           } else {
             document.getElementById("enrolledSection").style.display = "none";
           }
-          // Teaching Courses Section (as TA)
+          // Teaching Courses Section (if the student is a TA)
           if (data.teaching_courses && data.teaching_courses.length > 0) {
             document.getElementById("teachingSection").style.display = "block";
             data.teaching_courses.forEach((course, idx) => {
+              // Pick a random card type
+              const randomCard = cardTypes[Math.floor(Math.random() * cardTypes.length)];
+              const shapeCount = randomCard.count;
+              const cardClass = randomCard.type;
+
+              // Generate shape divs with random shape types
+              let shapeDivs = '';
+              for (let i = 1; i <= shapeCount; i++) {
+                const randomShape = shapeTypes[Math.floor(Math.random() * shapeTypes.length)];
+                let shape = `<div class="shape ${randomShape} shape-${i}"></div>\n`;
+                if(randomShape === 'triangle') {
+                  shape = `<div class="shape ${randomShape} shape-${i}">
+                    <svg viewBox="0 0 40 35" xmlns="http://www.w3.org/2000/svg">
+                      <polygon points="20,0 0,35 40,35" fill="none" stroke="currentColor" stroke-width="1" />
+                    </svg>
+                  </div>`;
+                }else{
+                  shape = `<div class="shape ${randomShape} shape-${i}"></div>`;
+                }
+                shapeDivs += shape;
+              }
+
+              const randomColor = studentAccentColors[Math.floor(Math.random() * studentAccentColors.length)];
+              owner_photo_src = "../" + course.owner_photo.replace("./", "");
               const cardHTML = `
               <div class="card student-card" onclick="enterClass(${course.id})">
-                <div class="card-banner card-student"></div>
-                <div class="card-body">
-                  <h2 class="card-title">${course.name || "Department"}</h2>
-                  <p class="card-subtitle">${course.subject || "N/A"} • Spring 2025</p>
+                <div class="accent-line" style="background: ${randomColor};"></div>
+                <div class="card-top">
+                  <div class="card-pattern"></div>
+                  <div class="geometric-container ${cardClass}">
+                    ${shapeDivs.trim()}
+                  </div>
+                  <div class="card-header">
+                    <div class="card-badge">Student</div>
+                    <div class="semester">Spring 2025</div>
+                  </div>
+                  <div class="card-title-area">
+                    <h2 class="card-title">${course.name || "Machine Learning"}</h2>
+                    <p class="card-subtitle">${course.subject || "Computer Science"}</p>
+                  </div>
+                </div>
+                <div class="card-bottom">
                   <div class="card-info">
                     <div class="info-item">
-                      <span>👥</span>
-                      <span>42 Students</span>
+                      <div class="info-icon"><i class="fas fa-users"></i></div>
+                      <span>${course.number_of_students} Students</span>
                     </div>
                     <div class="info-item">
-                      <span>🏆</span>
-                      <span>3 Credits</span>
+                      <div class="info-icon"><i class="fas fa-trophy"></i></div>
+                      <span>${"3 Credits"}</span>
                     </div>
                   </div>
                   <div class="professor-info">
-                    <div class="avatar">DJ</div>
+                    <div class="avatar" src = "${owner_photo_src}"></div>
                     <div class="professor-details">
-                      <span class="professor-name">${course.owner_name || "Unknown Instructor"}</span>
+                      <span class="professor-name">${course.owner_name || "Dr. John Smith"}</span>
                       <span class="professor-title">Course Instructor</span>
                     </div>
                   </div>
-                  <div class="notification-container">
-                    <div class="notification-box notification-graded">
-                      <div class="notification-icon">✓</div>
-                      <div>
-                        <strong>Assignment Graded</strong>
-                        <div>Project 1: Introduction to Algorithms</div>
+                  <div class="primary-btn" onclick="enterClass(${course.id})">View Course</div>
+                  <div class="card-actions">
+                    <div class="action-btn" onclick="toggleDropdown(event, ${idx})">⋮</div>
+                    <div class="dropdown-menu" id="dropdownMenu-${idx}">
+                      <div class="dropdown-item" onclick="copyClassCode('${course.class_code}')">
+                        <span class="icon">📋</span>
+                        <span>Copy Class Code</span>
                       </div>
-                    </div>
-                  </div>
-                </div>
-                <div class="card-footer">
-                  <div class="view-btn" onclick="enterClass(${course.id})">View Course</div>
-                  <div class="menu-dots" onclick="toggleDropdown(event, ${idx})">⋮</div>
-                  <div class="dropdown-menu" id="dropdownMenu-${idx}">
-                    <div class="dropdown-item" onclick="copyClassCode('${course.class_code}')">
-                      <span class="icon">📋</span>
-                      <span>Copy Class Code</span>
-                    </div>
-                    <div class="dropdown-item archive" onclick="/* Archive functionality */">
-                      <span class="icon">🗄️</span>
-                      <span>Archive Course</span>
+                      <div class="dropdown-item archive" onclick="/* Archive functionality */">
+                        <span class="icon">🗄️</span>
+                        <span>Archive Course</span>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -812,40 +1225,16 @@
           } else {
             document.getElementById("teachingSection").style.display = "none";
           }
-          // Adjust sidebar tabs for student view:
-          // Remove Teaching tab if no teaching courses, or add scrolling functionality if available.
+          
+          // Adjust sidebar tabs for student view if necessary
           if (!data.teaching_courses || data.teaching_courses.length === 0) {
             let teachingTab = document.getElementById("teachingTab");
             if (teachingTab) teachingTab.parentElement.remove();
-          } else {
-            let teachingTab = document.getElementById("teachingTab");
-            if (teachingTab) {
-              teachingTab.addEventListener("click", function(e) {
-                e.preventDefault();
-                let teachingSection = document.getElementById("teachingSection");
-                if (teachingSection) {
-                  teachingSection.scrollIntoView({ behavior: "smooth" });
-                }
-              });
-            }
           }
-          // Remove Enrolled tab if no enrolled courses, or add scrolling functionality if available.
           if (!data.enrolled_courses || data.enrolled_courses.length === 0) {
             let enrolledTab = document.getElementById("enrolledTab");
             if (enrolledTab) enrolledTab.parentElement.remove();
-          } else {
-            let enrolledTab = document.getElementById("enrolledTab");
-            if (enrolledTab) {
-              enrolledTab.addEventListener("click", function(e) {
-                e.preventDefault();
-                let enrolledSection = document.getElementById("enrolledSection");
-                if (enrolledSection) {
-                  enrolledSection.scrollIntoView({ behavior: "smooth" });
-                }
-              });
-            }
           }
-          // If both sections are missing, show the "No Classes Yet" message.
           if (((!data.enrolled_courses || data.enrolled_courses.length === 0) && (!data.teaching_courses || data.teaching_courses.length === 0))) {
             noClassesContainerStudent.style.display = "block";
           } else {
@@ -863,7 +1252,7 @@
 
     // Global click listener to hide dropdown when clicking outside
     document.addEventListener('click', function(event) {
-      if (!event.target.closest('.menu-dots') && !event.target.closest('.dropdown-menu')) {
+      if (!event.target.closest('.action-btn') && !event.target.closest('.dropdown-menu')) {
         document.querySelectorAll('.dropdown-menu.show').forEach(function(dropdown) {
           dropdown.classList.remove('show');
         });
@@ -880,6 +1269,7 @@
         });
       }
     });
+    
   </script>
 </body>
 </html>

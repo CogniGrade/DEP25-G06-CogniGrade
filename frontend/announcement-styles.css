@@ -130,14 +130,6 @@
   position: relative;
 }
 
-.menu-btn {
-  background: none;
-  border: none;
-  font-size: 18px;
-  cursor: pointer;
-  padding: 4px;
-}
-
 .menu-options {
   position: absolute;
   top: 25px;

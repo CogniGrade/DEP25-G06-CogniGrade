@@ -182,10 +182,11 @@ function displayAnnouncements() {
 
         // Use can_edit from the API response
         const canEdit = ann.can_edit || false;
-
+        console.log(ann.owner_photo);
+        ann_owner_photo = "../" + ann.owner_photo.replace("./", "");
         card.innerHTML = `
         <div class="announcement-header">
-            <img src="profile-pic.jpg" class="profile-pic" alt="Profile Picture" />
+            <img src="${ann_owner_photo}" class="profile-pic" alt="Profile Picture" />
             <div class="announcement-info">
                 <span class="teacher-name">${authorName}</span>
                 <span class="announcement-date">${dateString}</span>

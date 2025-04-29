@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Student-Edit | AutoGrade</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <link rel="stylesheet" href="professor-styles.css">
+  <link rel="stylesheet" href="crop-edit.css">
+</head>
+<body>
+  <div id="topbar-container"></div>
+  <div class="dashboard-container">
+    <div id="sidebar-container"></div>
+    <main class="content">
+      <div class="container"> 
+        <div id="left-panel">
+          <div id="top-controls">
+            <!-- <label>
+              <input type="radio" name="select-mode" value="sequential" checked>
+              Sequential Mode
+            </label>
+            <label>
+              <input type="radio" name="select-mode" value="dropdown">
+              Dropdown Mode
+            </label> -->
+          
+            <!-- existing controls -->
+            <span>Current Selection: <span id="question-number"></span></span>
+            <button id="part-btn">Done</button>
+            <button id="edit-order-btn">Edit Order</button>
+            <label>
+              <input type="radio" name="cut-mode" value="box" checked> Box Cut
+            </label>
+            <label>
+              <input type="radio" name="cut-mode" value="freehand"> Freehand Cut
+            </label>
+          
+            <!-- NEW: question dropdown (hidden in Sequential mode) -->
+            <label id="selector-label" style="display:none; align-items:center;">
+              <span>Select Question:</span>
+              <select id="question-selector"></select>
+            </label>
+          
+            <!-- NEW: submit always here (visibility controlled in JS) -->
+            <button id="submit-btn" style="display:none;">Submit All Responses</button>
+          
+          </div>
+          <div id="pdf-container"></div>
+          <div id="cropped-images-container">
+            <h3>Cropped Images</h3>
+            <div id="cropped-images"></div>
+          </div>
+        </div>
+        <div id="responses-container">
+          <h2>Question Responses</h2>
+        </div>
+        <!-- <div id="submit-panel" style="display:none; margin-top:20px;">
+          <button id="submit-btn">Submit All Responses</button>
+        </div> -->
+        <div id="edit-modal" class="modal">
+          <div class="modal-content">
+            <span class="close">&times;</span>
+            <h3>Edit Region Order</h3>
+            <div id="edit-order-container" style="display: flex; gap: 10px; flex-wrap: wrap;"></div>
+            <button id="save-edit-order">Save Order</button>
+          </div>
+        </div>
+      </div>  
+    </main>
+  </div>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <!-- <script src="load-components.js"></script> -->
+  <script src = "load-components.js"></script>
+  <script src = "stage-management.js"></script>
+  <script>
+    function getQueryParam(param) {
+      const urlParams = new URLSearchParams(window.location.search);
+      return urlParams.get(param);
+    }
+    document.addEventListener("DOMContentLoaded", async function() {
+      const examId = getQueryParam('exam_id');
+      await fetchExamStage();
+      console.log("Current Exam Stage:", currentStage);
+
+      await initialise_crop_edit(examId);    
+    });
+  </script>
+  <script src = "crop-edit.js"></script>
+  
+</body>
+</html>

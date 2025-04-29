@@ -12,13 +12,11 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         .assignment-container {
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 24px;
-            background: white;
+            background-color: #fff;
             border-radius: 8px;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
-            transition: box-shadow 0.3s ease;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+            margin-bottom: 24px;
+            padding: 28px 32px;
         }
 
         .assignment-header {
@@ -26,14 +24,18 @@
             justify-content: space-between;
             align-items: flex-start;
             margin-bottom: 24px;
-            padding-bottom: 16px;
+            padding-bottom: 20px;
             border-bottom: 1px solid #e0e0e0;
+            background-color: #f8f9fa;
+            margin: -28px -32px 24px;
+            padding: 24px 32px;
+            border-radius: 8px 8px 0 0;
         }
 
         .assignment-title {
-            font-size: 24px;
+            font-size: 28px;
             color: #1a73e8;
-            margin-bottom: 8px;
+            margin-bottom: 10px;
             font-weight: 500;
             letter-spacing: -0.02em;
         }
@@ -54,16 +56,43 @@
             color: #c62828;
         }
 
+        /* View toggle for teacher/student perspectives */
+        .view-toggle {
+            background-color: #f1f3f4;
+            border-radius: 20px;
+            padding: 4px;
+            display: inline-flex;
+            margin-bottom: 20px;
+        }
+        
+        .view-toggle-btn {
+            border: none;
+            background: none;
+            padding: 8px 16px;
+            border-radius: 16px;
+            font-size: 14px;
+            font-weight: 500;
+            color: #5f6368;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .view-toggle-btn.active {
+            background-color: #fff;
+            color: #1a73e8;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+        }
+
         .status-pill {
             display: inline-block;
-            padding: 6px 12px;
-            border-radius: 16px;
+            padding: 8px 16px;
+            border-radius: 20px;
             font-size: 14px;
             font-weight: 500;
             margin-bottom: 16px;
             letter-spacing: 0.01em;
             transition: transform 0.2s ease;
-            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
 
         .status-missing {
@@ -91,18 +120,20 @@
         }
 
         .submission-section {
-            margin-top: 24px;
-            padding: 20px;
-            background-color: #f8f9fa;
+            background-color: #fff;
             border-radius: 8px;
-            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1) inset;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+            margin-bottom: 32px;
+            padding: 28px 32px;
         }
 
         .submission-title {
-            font-size: 18px;
-            font-weight: 500;
-            margin-bottom: 16px;
             color: #202124;
+            font-size: 20px;
+            font-weight: 500;
+            margin-bottom: 24px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #e0e0e0;
         }
 
         .submission-form {
@@ -141,28 +172,107 @@
             display: none;
         }
 
+        /* Success toast notification */
+        .success-toast {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background-color: #0f9d58;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            z-index: 9999;
+            font-weight: 500;
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+
+        .success-toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .success-toast i {
+            font-size: 18px;
+        }
+
+        /* Loading spinner animation */
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loading-indicator {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 12px 16px;
+            background-color: #f1f3f4;
+            border-radius: 8px;
+            color: #5f6368;
+            font-size: 14px;
+            margin: 10px 0;
+        }
+
+        .loading-spinner {
+            width: 20px;
+            height: 20px;
+            border: 2px solid #f1f3f4;
+            border-top: 2px solid #1a73e8;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        /* Grade input container styling */
+        .grade-input-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .grade-input-container span {
+            color: #5f6368;
+            font-weight: 500;
+        }
+
+        /* Improve submit button */
         .submit-btn {
             background-color: #1a73e8;
             color: white;
             border: none;
-            border-radius: 4px;
-            padding: 10px 24px;
+            border-radius: 6px;
+            padding: 12px 24px;
             font-size: 14px;
             font-weight: 500;
             cursor: pointer;
             transition: all 0.2s ease;
-            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
-        }
-
-        .submit-btn:disabled {
-            background-color: #9ec1f0;
-            cursor: not-allowed;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
         }
 
         .submit-btn:hover:not(:disabled) {
             background-color: #1557b0;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-            transform: translateY(-1px);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .submit-btn:disabled {
+            background-color: #c2dbff;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .submit-btn i {
+            font-size: 16px;
         }
 
         .feedback-section {
@@ -260,22 +370,24 @@
         .file-item {
             display: flex;
             align-items: center;
-            padding: 12px;
+            padding: 14px;
             background-color: white;
-            border-radius: 6px;
-            margin-bottom: 8px;
-            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            margin-bottom: 10px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
             transition: all 0.2s ease;
+            border: 1px solid #f1f3f4;
         }
         
         .file-item:hover {
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
             transform: translateY(-2px);
+            border-color: #e8f0fe;
         }
 
         .file-item .file-icon {
             color: #4285f4;
-            margin-right: 12px;
+            margin-right: 14px;
             font-size: 18px;
         }
 
@@ -307,16 +419,62 @@
             height: 100%;
             background-color: rgba(0, 0, 0, 0.5);
             overflow-y: auto;
+            transition: opacity 0.3s ease;
+            opacity: 0;
+        }
+
+        .modal.show {
+            opacity: 1;
         }
 
         .modal-content {
             background-color: white;
             margin: 5% auto;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            padding: 28px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
             width: 80%;
             max-width: 900px;
+            transform: translateY(-20px);
+            transition: transform 0.3s ease;
+        }
+
+        .modal.show .modal-content {
+            transform: translateY(0);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .modal-title {
+            font-size: 24px;
+            font-weight: 500;
+            color: #202124;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 22px;
+            color: #5f6368;
+            cursor: pointer;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background-color 0.2s ease;
+        }
+
+        .modal-close:hover {
+            background-color: #f1f3f4;
         }
         
         .grading-form {
@@ -335,29 +493,54 @@
         
         .form-control {
             width: 100%;
-            padding: 8px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
+            padding: 10px 12px;
+            border: 1px solid #dadce0;
+            border-radius: 6px;
             font-size: 14px;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+        
+        .form-control:focus {
+            border-color: #1a73e8;
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(26, 115, 232, 0.2);
+        }
+        
+        .form-group {
+            margin-bottom: 18px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #202124;
         }
         
         .grade-btn {
             background-color: #4caf50;
             color: white;
             border: none;
-            border-radius: 4px;
-            padding: 10px 18px;
-            cursor: pointer;
+            border-radius: 6px;
+            padding: 10px 16px;
             font-size: 14px;
             font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
             transition: all 0.2s ease;
-            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
         }
         
         .grade-btn:hover {
             background-color: #43a047;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.12);
             transform: translateY(-1px);
+        }
+        
+        .grade-btn i {
+            font-size: 16px;
         }
         
         .cancel-btn {
@@ -449,12 +632,11 @@
         
         /* File preview container */
         .file-preview-container {
-            width: 100%;
-            margin: 10px 0;
-            border: 1px solid #e0e0e0;
-            border-radius: 4px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+            border-radius: 10px;
             overflow: hidden;
-            display: none;
+            margin-top: 20px;
+            border: 1px solid #e0e0e0;
         }
         
         .file-preview {
@@ -509,48 +691,1043 @@
             margin-bottom: 16px;
         }
         
-        .comment {
-            padding: 16px;
+        .comment-section {
+            margin-top: 32px;
+            border-top: 1px solid #e0e0e0;
+            padding-top: 24px;
             background-color: #f8f9fa;
             border-radius: 8px;
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+        
+        .comment-section h3 {
+            font-size: 18px;
+            font-weight: 500;
+            color: #202124;
             margin-bottom: 16px;
-            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .comment-section h3 i {
+            color: #1a73e8;
+            font-size: 20px;
+        }
+        
+        .comments-list {
+            margin-bottom: 20px;
+        }
+        
+        .comment {
+            background-color: white;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 16px;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e0e0e0;
         }
         
         .comment:hover {
-            background-color: #f1f3f4;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            background-color: #f8f9fa;
         }
         
-        .comment-input {
+        .comment-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background-color: #1a73e8;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 500;
+            flex-shrink: 0;
+        }
+        
+        .comment-main {
+            flex-grow: 1;
+            position: relative;
+            padding-right: 40px; /* Make room for the options button */
+        }
+        
+        .comment-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 6px;
+        }
+        
+        .comment-author-info {
+            display: flex;
+            align-items: baseline;
+            gap: 8px;
+        }
+        
+        .comment-author {
+            font-weight: 500;
+            color: #202124;
+            font-size: 14px;
+        }
+        
+        .comment-date {
+            color: #5f6368;
+            font-size: 12px;
+        }
+        
+        .comment-content {
+            color: #202124;
+            font-size: 14px;
+            line-height: 1.5;
+            word-break: break-word;
+            padding-right: 8px;
+        }
+        
+        .comment-actions {
+            position: absolute;
+            top: 0;
+            right: 0;
+        }
+        
+        .comment-options-btn {
+            background: none;
+            border: none;
+            padding: 6px;
+            cursor: pointer;
+            color: #5f6368;
+            border-radius: 50%;
+            width: 28px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background-color 0.2s;
+        }
+        
+        .comment-options-btn:hover {
+            background-color: rgba(0, 0, 0, 0.05);
+            color: #202124;
+        }
+        
+        .comment-options-menu {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background: white;
+            border-radius: 4px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+            display: none;
+            z-index: 100;
+            min-width: 150px;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+        }
+        
+        .comment-options-menu.active {
+            display: block;
+        }
+        
+        .comment-option {
+            padding: 8px 16px;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: background-color 0.2s;
+            font-size: 14px;
+            color: #202124;
+        }
+        
+        .comment-option:hover {
+            background-color: #f1f3f4;
+        }
+        
+        .comment-option i {
+            margin-right: 8px;
+            width: 16px;
+            color: #5f6368;
+        }
+
+        /* Comment edit form */
+        .comment-edit-form {
+            margin-top: 8px;
+        }
+
+        .comment-edit-input {
+            width: 100%;
+            padding: 8px 12px;
             border: 1px solid #dadce0;
             border-radius: 4px;
-            padding: 10px 12px;
+            margin-bottom: 8px;
             font-size: 14px;
-            flex-grow: 1;
-            margin-right: 8px;
-            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+            color: #202124;
         }
-        
-        .comment-input:focus {
+
+        .comment-edit-input:focus {
             border-color: #1a73e8;
             outline: none;
-            box-shadow: 0 0 0 2px rgba(26, 115, 232, 0.2);
         }
-        
-        .post-comment-btn {
+
+        .comment-edit-actions {
+            display: flex;
+            gap: 8px;
+            justify-content: flex-end;
+        }
+
+        .comment-save-btn,
+        .comment-cancel-btn {
+            padding: 6px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            font-size: 14px;
+        }
+
+        .comment-save-btn {
             background-color: #1a73e8;
             color: white;
             border: none;
-            border-radius: 4px;
+        }
+
+        .comment-save-btn:hover {
+            background-color: #1557b0;
+        }
+
+        .comment-cancel-btn {
+            background-color: #f1f3f4;
+            color: #5f6368;
+            border: none;
+        }
+
+        .comment-cancel-btn:hover {
+            background-color: #e8eaed;
+        }
+
+        /* Comment input section */
+        .comment-input-wrapper {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            margin-top: 16px;
+        }
+
+        .comment-input-container {
+            display: flex;
+            flex-grow: 1;
+            border: 1px solid #dadce0;
+            border-radius: 24px;
+            padding: 0 4px 0 16px;
+            background-color: white;
+            transition: border-color 0.2s;
+        }
+
+        .comment-input-container:focus-within {
+            border-color: #1a73e8;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+        }
+
+        .comment-input {
+            border: none;
+            outline: none;
+            flex-grow: 1;
+            padding: 10px 0;
+            font-size: 14px;
+            background-color: transparent;
+        }
+        
+        .post-comment-btn {
+            border: none;
+            background-color: #1a73e8;
+            color: white;
+            border-radius: 24px;
             padding: 8px 16px;
             font-size: 14px;
+            font-weight: 500;
             cursor: pointer;
-            transition: all 0.2s ease;
+            transition: background-color 0.2s;
         }
         
         .post-comment-btn:hover {
             background-color: #1557b0;
+        }
+
+        .post-comment-btn:disabled {
+            background-color: #dadce0;
+            color: #5f6368;
+            cursor: not-allowed;
+        }
+
+        .no-comments {
+            text-align: center;
+            padding: 32px 0;
+            color: #5f6368;
+            font-style: italic;
+            font-size: 14px;
+        }
+
+        .loading-indicator {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+            color: #5f6368;
+            font-size: 14px;
+        }
+
+        .loading-spinner {
+            width: 16px;
+            height: 16px;
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid #1a73e8;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 8px;
+        }
+
+        /* Improved file view button */
+        .view-files-btn {
+            background-color: #e8f0fe;
+            color: #1a73e8;
+            border: none;
+            border-radius: 6px;
+            padding: 10px 16px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s ease;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+        }
+        
+        .view-files-btn:hover {
+            background-color: #d2e3fc;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.12);
+            transform: translateY(-1px);
+        }
+        
+        .view-files-btn i {
+            font-size: 16px;
+        }
+        
+        /* Enhanced submission item styling */
+        .submission-item {
+            background-color: white;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 16px;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+            border: 1px solid #e0e0e0;
+            transition: all 0.2s ease;
+        }
+        
+        .submission-item:hover {
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+            transform: translateY(-2px);
+            border-color: #dadce0;
+        }
+        
+        .submission-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+        
+        .student-name {
+            font-weight: 500;
+            font-size: 16px;
+            color: #202124;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .student-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background-color: #e8f0fe;
+            color: #1a73e8;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 500;
+            font-size: 16px;
+        }
+        
+        .submission-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .submission-date {
+            color: #5f6368;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .submission-date i {
+            margin-right: 6px;
+            color: #5f6368;
+        }
+        
+        .submission-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .view-files-btn, .grade-btn {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background-color: #f1f3f4;
+            color: #202124;
+            border: none;
+            border-radius: 4px;
+            padding: 8px 12px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .view-files-btn:hover {
+            background-color: #e8eaed;
+        }
+        
+        .grade-btn {
+            background-color: #1a73e8;
+            color: white;
+        }
+        
+        .grade-btn:hover {
+            background-color: #1557b0;
+        }
+        
+        .no-grade-btn {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background-color: #f1f3f4;
+            color: #5f6368;
+            border: none;
+            border-radius: 4px;
+            padding: 8px 12px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .no-grade-btn:hover {
+            background-color: #e8eaed;
+            color: #d93025;
+        }
+        
+        /* New styles for submission stats and actions bar */
+        .submission-stats {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 12px 16px;
+            margin-bottom: 16px;
+            color: #5f6368;
+            font-size: 14px;
+            text-align: center;
+            border: 1px solid #e0e0e0;
+        }
+        
+        .submission-stats span {
+            font-weight: 500;
+            color: #1a73e8;
+        }
+        
+        .submission-actions-bar {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 20px;
+        }
+        
+        .grade-all-btn {
+            background-color: #1a73e8;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 10px 16px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s ease;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+        
+        .grade-all-btn:hover {
+            background-color: #1557b0;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+        }
+        
+        .no-grade-btn {
+            background-color: #f1f3f4;
+            color: #5f6368;
+            border: none;
+            border-radius: 6px;
+            padding: 8px 12px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s ease;
+        }
+        
+        .no-grade-btn:hover {
+            background-color: #e8eaed;
+            color: #d93025;
+        }
+        
+        .grading-options {
+            margin-bottom: 20px;
+        }
+        
+        .grading-options label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            color: #5f6368;
+            cursor: pointer;
+        }
+        
+        .grading-options input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+        }
+        
+        /* Status pill for no grading */
+        .status-no-grade {
+            background-color: #f1f3f4;
+            color: #5f6368;
+        }
+        
+        /* Late submission indicator */
+        .late-indicator {
+            display: inline-block;
+            background-color: #ea4335;
+            color: white;
+            font-size: 12px;
+            font-weight: 600;
+            padding: 3px 8px;
+            border-radius: 12px;
+            margin-left: 10px;
+        }
+        
+        .submission-late-note {
+            color: #ea4335;
+            font-weight: 500;
+            font-style: italic;
+            font-size: 13px;
+            margin-left: 8px;
+        }
+        
+        /* Save materials button */
+        .save-materials-btn {
+            background-color: #1a73e8;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 10px 20px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+        
+        .save-materials-btn:hover {
+            background-color: #0d5bdd;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+            transform: translateY(-1px);
+        }
+        
+        /* Material preview container */
+        .material-preview-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+        }
+        
+        .material-preview-image {
+            max-width: 100px;
+            max-height: 100px;
+            object-fit: contain;
+            margin-bottom: 8px;
+        }
+        
+        .material-preview-icon {
+            font-size: 48px;
+            color: #e51c23;
+            margin-bottom: 8px;
+        }
+        
+        .material-file-count {
+            font-size: 14px;
+            color: #5f6368;
+            background-color: #f1f3f4;
+            padding: 4px 8px;
+            border-radius: 12px;
+        }
+        
+        /* Material dropzone when dragging over */
+        .material-dropzone.drag-over {
+            border-color: #1a73e8;
+            background-color: #e8f0fe;
+        }
+        
+        /* Materials actions container */
+        .materials-actions {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 16px;
+        }
+        
+        /* Improve responsive layout for materials container */
+        @media (max-width: 768px) {
+            .materials-container {
+                flex-direction: column;
+            }
+            
+            .material-upload-card {
+                margin-bottom: 16px;
+            }
+            
+            .stats-content {
+                flex-direction: column;
+            }
+            
+            .stats-item {
+                margin-bottom: 12px;
+            }
+        }
+
+        /* Status pill for no grading */
+        .status-no-grade {
+            background-color: #f1f3f4;
+            color: #5f6368;
+        }
+
+        /* Materials container styling */
+        .materials-container {
+            display: flex;
+            gap: 24px;
+            margin-bottom: 28px;
+        }
+
+        .material-upload-card {
+            flex: 1;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 20px;
+            transition: all 0.3s ease;
+            background-color: #fafafa;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+
+        .material-upload-card:hover {
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .material-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .material-header i {
+            font-size: 24px;
+            color: #1a73e8;
+        }
+
+        .material-dropzone {
+            border: 2px dashed #dadce0;
+            border-radius: 8px;
+            padding: 32px;
+            text-align: center;
+            margin-bottom: 16px;
+            background-color: #fff;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .material-dropzone:hover {
+            border-color: #1a73e8;
+            background-color: #f8f9fa;
+            transform: translateY(-2px);
+        }
+
+        .material-dropzone.drag-over {
+            border-color: #1a73e8;
+            background-color: #e8f0fe;
+        }
+
+        .material-dropzone i {
+            font-size: 36px;
+            color: #5f6368;
+            margin-bottom: 12px;
+        }
+
+        .material-dropzone p {
+            font-size: 14px;
+            color: #5f6368;
+        }
+
+        .material-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 16px;
+        }
+
+        .material-upload-btn {
+            background-color: #1a73e8;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 10px 16px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+        }
+
+        .material-upload-btn:hover {
+            background-color: #1557b0;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .material-view-btn {
+            background-color: #f1f3f4;
+            color: #5f6368;
+            border: none;
+            border-radius: 6px;
+            padding: 10px 16px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+        }
+
+        .material-view-btn:hover {
+            background-color: #e8eaed;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.12);
+            transform: translateY(-1px);
+        }
+
+        .material-view-btn i {
+            font-size: 16px;
+        }
+
+        /* Stats card styling */
+        .submission-stats-card {
+            background-color: #fff;
+            border-radius: 8px;
+            padding: 24px;
+            margin-bottom: 32px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e0e0e0;
+        }
+
+        .stats-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .stats-header i {
+            font-size: 24px;
+            color: #1a73e8;
+        }
+
+        .stats-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .stats-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .stats-label {
+            font-size: 14px;
+            color: #5f6368;
+        }
+
+        .stats-value {
+            font-size: 24px;
+            font-weight: 600;
+            color: #1a73e8;
+        }
+
+        /* Material files modal styling */
+        .material-files-container {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .material-file-item {
+            flex: 1;
+            background-color: #fff;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .material-file-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .material-file-header i {
+            font-size: 24px;
+            color: #1a73e8;
+        }
+
+        .material-file-preview {
+            width: 100%;
+            height: 500px;
+            border: none;
+        }
+
+        .file-preview-container {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+            border-radius: 10px;
+            overflow: hidden;
+            margin-top: 20px;
+            border: 1px solid #e0e0e0;
+        }
+
+        .file-preview {
+            width: 100%;
+            height: 500px;
+            border: none;
+        }
+
+        .image-preview {
+            max-width: 100%;
+            max-height: 500px;
+            display: block;
+            margin: 0 auto;
+        }
+
+        .preview-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #f5f5f5;
+            padding: 8px 12px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+            
+        .preview-title {
+            font-weight: 500;
+            font-size: 14px;
+            color: #202124;
+        }
+
+        .preview-close {
+            cursor: pointer;
+            color: #5f6368;
+            font-size: 18px;
+        }
+
+        .preview-close:hover {
+            color: #d93025;
+        }
+
+        .extract-text-btn {
+            background-color: #1a73e8;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 10px 16px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+        }
+            
+        .extract-text-btn:hover {
+            background-color: #1557b0;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .extract-text-btn i {
+            font-size: 16px;
+        }
+
+        /* Late submission indicator */
+        .late-indicator {
+            display: inline-block;
+            background-color: #ea4335;
+            color: white;
+            font-size: 12px;
+            font-weight: 600;
+            padding: 3px 8px;
+            border-radius: 12px;
+            margin-left: 10px;
+        }
+        
+        .submission-late-note {
+            color: #ea4335;
+            font-weight: 500;
+            font-style: italic;
+            font-size: 13px;
+            margin-left: 8px;
+        }
+        
+        /* Save materials button */
+        .save-materials-btn {
+            background-color: #1a73e8;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 10px 20px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+        
+        .save-materials-btn:hover {
+            background-color: #0d5bdd;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+            transform: translateY(-1px);
+        }
+        
+        /* Material preview container */
+        .material-preview-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+        }
+        
+        .material-preview-image {
+            max-width: 100px;
+            max-height: 100px;
+            object-fit: contain;
+            margin-bottom: 8px;
+        }
+        
+        .material-preview-icon {
+            font-size: 48px;
+            color: #e51c23;
+            margin-bottom: 8px;
+        }
+        
+        .material-file-count {
+            font-size: 14px;
+            color: #5f6368;
+            background-color: #f1f3f4;
+            padding: 4px 8px;
+            border-radius: 12px;
+        }
+        
+        /* Materials actions container */
+        .materials-actions {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 16px;
+        }
+        
+        /* Improve responsive layout for materials container */
+        @media (max-width: 768px) {
+            .materials-container {
+                flex-direction: column;
+            }
+            
+            .material-upload-card {
+                margin-bottom: 16px;
+            }
+            
+            .stats-content {
+                flex-direction: column;
+            }
+            
+            .stats-item {
+                margin-bottom: 12px;
+            }
+        }
+
+        /* Student submission status badge */
+        .submission-status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background-color: #e8f0fe;
+            color: #1a73e8;
+            padding: 8px 14px;
+            border-radius: 16px;
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 16px;
+        }
+        
+        .submission-status-badge i {
+            font-size: 16px;
+        }
+        
+        .submission-status-badge.graded {
+            background-color: #e6f4ea;
+            color: #137333;
+        }
+        
+        /* Improved file item style */
+        .file-item {
+            display: flex;
+            align-items: center;
+            padding: 14px;
+            background-color: white;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            transition: all 0.2s ease;
+            border: 1px solid #f1f3f4;
+        }
+        
+        .file-item:hover {
+            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
+            transform: translateY(-2px);
+            border-color: #e8f0fe;
         }
     </style>
 </head>
@@ -568,28 +1745,27 @@
             <div class="assignment-container">
                 <div class="assignment-header">
                     <div class="left-panel">
-                        <h1 class="assignment-title" id="assignmentTitle">Loading assignment...</h1>
+                        <h1 class="assignment-title" id="assignmentTitle">Lab Assignment 1</h1>
                         <div class="assignment-meta">
-                            <span id="assignmentAuthor">Loading...</span> •
-                            <span id="assignmentDate">Loading...</span>
+                            <span id="assignmentAuthor">Ankush Naskar</span> •
+                            <span id="assignmentDate">Apr 4, 2025</span>
                         </div>
                         <div class="assignment-meta">
-                            <span class="assignment-points" id="assignmentPoints">Loading...</span> •
-                            <span class="assignment-due" id="assignmentDue">Loading...</span>
+                            <span class="assignment-points" id="assignmentPoints">20 points</span> •
+                            <span class="assignment-due" id="assignmentDue">Past due</span>
                         </div>
                     </div>
                     <div class="right-panel">
-                        <div class="status-pill" id="statusPill">Loading...</div>
-                        <div id="assignmentClass">Loading...</div>
+                        <div id="assignmentClass">Software Engineering</div>
                     </div>
                 </div>
 
                 <div class="assignment-description" id="assignmentDescription">
-                    Loading assignment description...
+                    Please find the questions for lab 1
                 </div>
 
                 <!-- Student View - Submission Section -->
-                <div class="submission-section" id="studentSubmissionSection" style="display: none;">
+                <div class="submission-section" id="studentSubmissionSection">
                     <h2 class="submission-title">Your work</h2>
 
                     <!-- No Submission Yet View -->
@@ -607,24 +1783,31 @@
                                 </div>
                                 <div class="file-upload-text">
                                     <p>Drag and drop files here or click to upload</p>
+                                    <p style="color: #80868b; font-size: 12px; margin-top: 8px;">Accepted file types: PDF, images, Word, Excel, and text files</p>
                                 </div>
                                 <input type="file" id="fileInput" class="file-input" multiple />
                             </div>
-                            <button class="submit-btn" id="submitBtn" disabled>Turn in</button>
+                            <button class="submit-btn" id="submitBtn" disabled><i class="fas fa-paper-plane"></i> Turn in</button>
                         </div>
                     </div>
 
                     <!-- Submission Already Made View -->
                     <div id="submissionMadeView" style="display: none;">
+                        <div class="submission-status-badge">
+                            <i class="fas fa-check-circle"></i> Turned in
+                        </div>
                         <div id="submittedFiles" class="submitted-files">
                             <!-- Files will be loaded here -->
                         </div>
                         <div id="submissionDate" class="assignment-meta">Submitted Apr 10, 2023</div>
-                        <button class="file-action-btn" id="unsubmitBtn" style="margin-top: 10px;">Unsubmit</button>
+                        <button class="file-action-btn" id="unsubmitBtn" style="margin-top: 10px;"><i class="fas fa-undo"></i> Unsubmit</button>
                     </div>
 
                     <!-- Graded View -->
                     <div id="gradedView" style="display: none;">
+                        <div class="submission-status-badge graded">
+                            <i class="fas fa-check-circle"></i> Graded
+                        </div>
                         <div class="grade-display">
                             <div class="grade-title">Grade</div>
                             <div class="grade-value" id="gradeValue">85/100</div>
@@ -637,16 +1820,151 @@
                 </div>
 
                 <!-- Teacher View - Grading Section -->
-                <div class="submission-section" id="teacherGradingSection" style="display: none;">
+                <div class="submission-section" id="teacherGradingSection">
+                    <h2 class="submission-title">Assignment Materials</h2>
+                    
+                    <!-- Upload Sections (similar to exam.htm but styled like Google Classroom) -->
+                    <div class="materials-container">
+                        <div class="material-upload-card">
+                            <div class="material-header">
+                                <i class="fas fa-file-alt"></i>
+                                <h3>Question Paper</h3>
+                            </div>
+                            <div class="material-dropzone" id="dropZoneQuestions">
+                                <i class="fas fa-cloud-upload-alt"></i>
+                                <p>Drag & drop files here</p>
+                            </div>
+                            <input type="file" id="questionInput" accept="image/*,application/pdf" multiple class="file-input">
+                            <div class="material-actions">
+                                <button class="material-upload-btn" onclick="triggerFileInput('questionInput')">
+                                    <i class="fas fa-plus"></i> Add File
+                                </button>
+                                <button class="material-view-btn" id="viewQuestionFiles" onclick="viewMaterialFiles('Questions')" disabled>
+                                    <i class="fas fa-eye"></i> View Files
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="material-upload-card">
+                            <div class="material-header">
+                                <i class="fas fa-check-circle"></i>
+                                <h3>Answer Key</h3>
+                            </div>
+                            <div class="material-dropzone" id="dropZoneSolution">
+                                <i class="fas fa-cloud-upload-alt"></i>
+                                <p>Drag & drop files here</p>
+                            </div>
+                            <input type="file" id="solutionInput" accept="image/*,application/pdf" multiple class="file-input">
+                            <div class="material-actions">
+                                <button class="material-upload-btn" onclick="triggerFileInput('solutionInput')">
+                                    <i class="fas fa-plus"></i> Add File
+                                </button>
+                                <button class="material-view-btn" id="viewSolutionFiles" onclick="viewMaterialFiles('Solution')" disabled>
+                                    <i class="fas fa-eye"></i> View Files
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="material-upload-card">
+                            <div class="material-header">
+                                <i class="fas fa-clipboard-list"></i>
+                                <h3>Marking Scheme</h3>
+                            </div>
+                            <div class="material-dropzone" id="dropZoneMarking">
+                                <i class="fas fa-cloud-upload-alt"></i>
+                                <p>Drag & drop files here</p>
+                            </div>
+                            <input type="file" id="markingInput" accept="image/*,application/pdf" multiple class="file-input">
+                            <div class="material-actions">
+                                <button class="material-upload-btn" onclick="triggerFileInput('markingInput')">
+                                    <i class="fas fa-plus"></i> Add File
+                                </button>
+                                <button class="material-view-btn" id="viewMarkingFiles" onclick="viewMaterialFiles('Marking')" disabled>
+                                    <i class="fas fa-eye"></i> View Files
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="materials-actions">
+                        <button class="save-materials-btn" onclick="saveMaterials()">
+                            <i class="fas fa-save"></i> Save Materials
+                        </button>
+                    </div>
+                    
+                    <div class="submission-stats-card">
+                        <div class="stats-header">
+                            <i class="fas fa-chart-bar"></i>
+                            <h3>Submission Statistics</h3>
+                        </div>
+                        <div class="stats-content">
+                            <div class="stats-item">
+                                <span class="stats-label">Submitted:</span>
+                                <div class="stats-value">
+                                    <span id="submission-count">0</span> / <span id="student-count">0</span> students
+                                </div>
+                            </div>
+                            <div class="stats-item">
+                                <span class="stats-label">Late Submissions:</span>
+                                <div class="stats-value">
+                                    <span id="late-submission-count">0</span> students
+                                </div>
+                            </div>
+                            <div class="stats-item">
+                                <span class="stats-label">Graded:</span>
+                                <div class="stats-value">
+                                    <span id="graded-count">0</span> submissions
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="submission-actions-bar">
+                        <button class="grade-all-btn" id="gradeAllBtn">
+                            <i class="fas fa-graduation-cap"></i> Grade All Submissions
+                        </button>
+                    </div>
+                    
                     <h2 class="submission-title">Student Submissions</h2>
+                    
                     <div id="submissionsList">
-                        Loading submissions...
+                        <div class="submission-item">
+                            <div class="submission-header">
+                                <div class="student-name">
+                                    <div class="student-avatar">A</div>
+                                    Ashish Gupta
+                                    <i class="fas fa-file-alt" style="color: #4285f4;"></i>
+                                    <span style="font-size: 14px; color: #5f6368;">(1 file)</span>
+                                </div>
+                                <div class="status-pill status-turned-in">Submitted</div>
+                            </div>
+                            <div class="submission-content">
+                                <div class="submission-date">
+                                    <i class="far fa-clock"></i> Submitted on Apr 4, 2025
+                                </div>
+                                <div class="submission-actions">
+                                    <button class="view-files-btn" onclick="viewFiles(1)">
+                                        <i class="fas fa-eye"></i>
+                                        View Files
+                                    </button>
+                                    <button class="grade-btn" onclick="gradeSubmission(1)">
+                                        <i class="fas fa-graduation-cap"></i> Grade
+                                    </button>
+                                    <button class="no-grade-btn" onclick="markNoGrading(1)">
+                                        <i class="fas fa-ban"></i> No Grading
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                     
                     <!-- Student Submission Detail Modal -->
                     <div id="submissionModal" class="modal">
                         <div class="modal-content">
-                            <h2>Student Submission</h2>
+                            <div class="modal-header">
+                                <h2 class="modal-title">Grade Submission</h2>
+                                <button class="modal-close" id="closeModalBtn"><i class="fas fa-times"></i></button>
+                            </div>
                             <div id="submissionFiles" class="submission-files">
                                 <h3>Submitted Files</h3>
                                 <div id="submissionFilesList"></div>
@@ -655,35 +1973,78 @@
                                 <h3>Grading</h3>
                                 <div class="form-group">
                                     <label for="gradeInput">Grade:</label>
+                                    <div class="grade-input-container">
                                     <input type="number" id="gradeInput" min="0" max="100" class="form-control">
                                     <span>/ <span id="maxPoints">100</span></span>
+                                    </div>
                                 </div>
                                 <div class="form-group">
                                     <label for="feedbackInput">Feedback:</label>
-                                    <textarea id="feedbackInput" class="form-control" rows="4"></textarea>
+                                    <textarea id="feedbackInput" class="form-control" rows="4" placeholder="Enter feedback for the student..."></textarea>
+                                </div>
+                                <div class="grading-options">
+                                    <label>
+                                        <input type="checkbox" id="noGradingCheckbox">
+                                        Submission will not be graded
+                                    </label>
                                 </div>
                                 <div class="button-row">
-                                    <button id="saveGradeBtn" class="grade-btn">Save Grade</button>
-                                    <button id="closeModalBtn" class="cancel-btn">Close</button>
+                                    <button id="saveGradeBtn" class="grade-btn"><i class="fas fa-save"></i> Save Grade</button>
+                                    <button id="closeModalBtn2" class="cancel-btn">Cancel</button>
                                 </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Material Files Modal -->
+                    <div id="materialFilesModal" class="modal">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h2 class="modal-title" id="materialFilesModalTitle">View Files</h2>
+                                <button class="modal-close" id="closeMaterialFilesModalBtn"><i class="fas fa-times"></i></button>
+                            </div>
+                            <div class="material-files-container">
+                                <div id="materialFilesList"></div>
+                                <div class="file-preview-container" id="materialFilePreview">
+                                    <div class="preview-header">
+                                        <div class="preview-title" id="previewFileName">File Preview</div>
+                                    </div>
+                                    <div class="preview-content" id="previewContent"></div>
+                                </div>
+                            </div>
+                            <div class="button-row">
+                                <button id="extractTextBtn" class="extract-text-btn"><i class="fas fa-file-alt"></i> Extract Text</button>
+                                <button id="closeMaterialFilesModalBtn2" class="cancel-btn">Close</button>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Comments Section -->
-                <div class="announcement-comments" id="comments-section">
-                    <h3>Class comments</h3>
+                <!-- View Files Modal -->
+                <div id="filesModal" class="modal">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h2 class="modal-title">Submitted Files</h2>
+                            <button class="modal-close" id="closeFilesModalBtn"><i class="fas fa-times"></i></button>
+                        </div>
+                        <div id="filesModalContent">
+                            <div id="filesModalList"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Improved Comments Section -->
+                <div class="comment-section" id="comments-section">
+                    <h3><i class="fas fa-comments"></i> Class comments</h3>
                     <div class="comments-list" id="comments-list">
                         <!-- Comments will be loaded here -->
                     </div>
-                    <div class="add-comment">
+                    <div class="comment-input-wrapper">
                         <div class="comment-avatar">
                             <span>U</span>
                         </div>
                         <div class="comment-input-container">
-                            <input type="text" class="comment-input" id="comment-input"
-                                placeholder="Add class comment...">
+                            <input type="text" class="comment-input" id="comment-input" placeholder="Add class comment...">
                             <button class="post-comment-btn" id="post-comment-btn">Post</button>
                         </div>
                     </div>
@@ -749,6 +2110,10 @@
                 return;
             }
 
+            // Show loading state
+            document.getElementById("assignmentTitle").innerHTML = '<div class="loading-indicator"><div class="loading-spinner"></div> Loading assignment...</div>';
+            document.getElementById("assignmentDescription").innerHTML = '<div class="loading-indicator"><div class="loading-spinner"></div> Loading...</div>';
+
             try {
                 // Fetch assignment data
                 const response = await authFetch(`/assignments/${assignmentId}`, {
@@ -791,6 +2156,7 @@
             } catch (error) {
                 console.error("Error loading assignment:", error);
                 document.getElementById("assignmentTitle").textContent = "Error loading assignment";
+                document.getElementById("assignmentDescription").innerHTML = "There was an error loading this assignment. Please try refreshing the page.";
             }
         }
 
@@ -871,7 +2237,7 @@
                                 <a href="${fileUrl}" download class="file-action-btn">Download</a>
                             </div>
                         </div>
-                        <div id="student-preview-${index}" class="file-preview-container">
+                        <div id="student-preview-${index}" class="file-preview-container" style="display: none;">
                             <div class="preview-header">
                                 <div class="preview-title">${fileName}</div>
                                 <div class="preview-close" onclick="closeFilePreview('student-preview-${index}')">
@@ -900,7 +2266,7 @@
                             <a href="${fileUrl}" download class="file-action-btn">Download</a>
                         </div>
                     </div>
-                    <div id="student-preview-single" class="file-preview-container">
+                    <div id="student-preview-single" class="file-preview-container" style="display: none;">
                         <div class="preview-header">
                             <div class="preview-title">${fileName}</div>
                             <div class="preview-close" onclick="closeFilePreview('student-preview-single')">
@@ -924,14 +2290,21 @@
 
         // Update the status pill
         function updateSubmissionStatus(status) {
-            const statusPill = document.getElementById("statusPill");
-            statusPill.textContent = status.charAt(0).toUpperCase() + status.slice(1);
-
-            // Remove all status classes
-            statusPill.classList.remove("status-missing", "status-turned-in", "status-graded");
-
-            // Add appropriate class
-            statusPill.classList.add(`status-${status}`);
+            // The statusPill no longer exists in the header
+            // Instead, we'll update the submission section appropriately
+            if (status === "missing") {
+                document.getElementById("noSubmissionView").style.display = "block";
+                document.getElementById("submissionMadeView").style.display = "none";
+                document.getElementById("gradedView").style.display = "none";
+            } else if (status === "turned-in") {
+                document.getElementById("noSubmissionView").style.display = "none";
+                document.getElementById("submissionMadeView").style.display = "block";
+                document.getElementById("gradedView").style.display = "none";
+            } else if (status === "graded") {
+                document.getElementById("noSubmissionView").style.display = "none";
+                document.getElementById("submissionMadeView").style.display = "none";
+                document.getElementById("gradedView").style.display = "block";
+            }
         }
 
         // Load all submissions (for teachers)
@@ -948,6 +2321,55 @@
                 const data = await response.json();
                 submissions = data.submissions || [];
 
+                // Get student count from the class members
+                try {
+                    const membersResponse = await authFetch(`/classes/${classId}/members`, {
+                        headers: { "Content-Type": "application/json" }
+                    });
+                    
+                    if (membersResponse.ok) {
+                        const membersData = await membersResponse.json();
+                        const studentCount = membersData.students ? membersData.students.length : 0;
+                        document.getElementById("student-count").textContent = studentCount;
+                    }
+                } catch (e) {
+                    console.error("Error fetching class members:", e);
+                }
+                
+                // Reset counters
+                let submissionCount = 0;
+                let lateSubmissionCount = 0;
+                let gradedCount = 0;
+                
+                // Process submissions and update counts
+                submissions.forEach(submission => {
+                    submissionCount++;
+                    
+                    if (submission.grade !== null) {
+                        gradedCount++;
+                    }
+                    
+                    // Check if submission is late
+                    if (assignment.due_date && submission.submitted_at) {
+                        const dueDate = new Date(assignment.due_date);
+                        const submittedDate = new Date(submission.submitted_at);
+                        
+                        if (submittedDate > dueDate) {
+                            submission.is_late = true;
+                            lateSubmissionCount++;
+                        } else {
+                            submission.is_late = false;
+                        }
+                    } else {
+                        submission.is_late = false;
+                    }
+                });
+                
+                // Update the UI with counts
+                document.getElementById("submission-count").textContent = submissionCount;
+                document.getElementById("late-submission-count").textContent = lateSubmissionCount;
+                document.getElementById("graded-count").textContent = gradedCount;
+
                 const submissionsList = document.getElementById("submissionsList");
                 if (submissions.length === 0) {
                     submissionsList.innerHTML = "<p>No submissions yet</p>";
@@ -956,8 +2378,20 @@
 
                 let submissionsHTML = "";
                 submissions.forEach(submission => {
-                    const status = submission.grade !== null ? "Graded" : "Submitted";
-                    const statusClass = submission.grade !== null ? "status-graded" : "status-turned-in";
+                    const isGraded = submission.grade !== null;
+                    const isNoGrade = submission.no_grade === true; 
+                    const isLate = submission.is_late;
+                    
+                    let status = "Submitted";
+                    let statusClass = "status-turned-in";
+                    
+                    if (isGraded) {
+                        status = "Graded";
+                        statusClass = "status-graded";
+                    } else if (isNoGrade) {
+                        status = "No Grading";
+                        statusClass = "status-no-grade";
+                    }
                     
                     // Check if submission has multiple files or a single file
                     const hasFiles = (submission.has_files && submission.file_paths && submission.file_paths.length > 0) || submission.file_path;
@@ -974,23 +2408,48 @@
                         fileCountText = "(1 file)";
                     }
 
+                    // Change grade button to re-grade for graded submissions
+                    const gradeButtonText = isGraded ? "Re-grade" : "Grade";
+
+                    // Get initial of student name for avatar
+                    const studentInitial = submission.student_name ? submission.student_name.charAt(0).toUpperCase() : 'S';
+
                     submissionsHTML += `
-                    <div class="submission-item">
+                    <div class="submission-item" data-id="${submission.id}" data-student="${submission.student_name}">
                         <div class="submission-header">
-                            <div class="student-name">${submission.student_name} ${fileIcon} ${fileCountText}</div>
+                            <div class="student-name">
+                                ${studentInitial}
+                                ${submission.student_name} ${fileIcon} ${fileCountText}
+                                ${isLate ? '<span class="late-indicator">LATE</span>' : ''}
+                            </div>
                             <div class="status-pill ${statusClass}">${status}</div>
                         </div>
                         <div class="submission-content">
-                            <div class="submission-date">Submitted on ${formatDate(submission.submitted_at)}</div>
+                            <div class="submission-date">
+                                Submitted on ${formatDate(submission.submitted_at)}
+                                ${isLate ? '<span class="submission-late-note">Past due date</span>' : ''}
+                            </div>
                             <div class="submission-actions">
                                 ${hasFiles ? 
-                                    `<button class="view-btn" onclick="viewSubmission(${submission.id})">View Files</button>` : 
+                                    `<button class="view-files-btn" onclick="viewFiles(${submission.id})">
+                                        <i class="fas fa-eye"></i> View Files
+                                    </button>` : 
                                     `<span class="no-file">No files</span>`
                                 }
-                            ${submission.grade !== null ?
-                            `<div class="submission-grade">Grade: ${submission.grade}/${assignment.points_possible}</div>` :
-                                    `<button class="grade-btn" onclick="viewSubmission(${submission.id})">Grade</button>`
-                        }
+                            ${isGraded ?
+                                `<div class="submission-grade">
+                                    <span>Grade: ${submission.grade}/${assignment.points_possible}</span>
+                                </div>
+                                <button class="grade-btn" onclick="gradeSubmission(${submission.id})">
+                                    <i class="fas fa-graduation-cap"></i> ${gradeButtonText}
+                                </button>` :
+                                `<button class="grade-btn" onclick="gradeSubmission(${submission.id})">
+                                    <i class="fas fa-graduation-cap"></i> ${gradeButtonText}
+                                </button>`
+                            }
+                                <button class="no-grade-btn" onclick="markNoGrading(${submission.id})">
+                                    <i class="fas fa-ban"></i> No Grading
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -1004,8 +2463,517 @@
             }
         }
 
-        // View submission details - opens the modal
-        function viewSubmission(submissionId) {
+        // Global variable to store uploaded materials
+        let uploadedMaterials = {
+            Questions: [],
+            Solution: [],
+            Marking: []
+        };
+        
+        // Trigger file input for material uploads
+        function triggerFileInput(inputId) {
+            document.getElementById(inputId).click();
+        }
+        
+        // Initialize material upload event listeners
+        function initMaterialUploads() {
+            // Question Paper uploads
+            document.getElementById('questionInput').addEventListener('change', function(e) {
+                handleMaterialFiles(e, 'Questions');
+            });
+            
+            // Answer Key uploads
+            document.getElementById('solutionInput').addEventListener('change', function(e) {
+                handleMaterialFiles(e, 'Solution');
+            });
+            
+            // Marking Scheme uploads
+            document.getElementById('markingInput').addEventListener('change', function(e) {
+                handleMaterialFiles(e, 'Marking');
+            });
+            
+            // Set up drag and drop for material uploads
+            setupMaterialDragAndDrop('dropZoneQuestions', 'questionInput', 'Questions');
+            setupMaterialDragAndDrop('dropZoneSolution', 'solutionInput', 'Solution');
+            setupMaterialDragAndDrop('dropZoneMarking', 'markingInput', 'Marking');
+            
+            // Material Files Modal close buttons
+            document.getElementById('closeMaterialFilesModalBtn').addEventListener('click', closeMaterialFilesModal);
+            document.getElementById('closeMaterialFilesModalBtn2').addEventListener('click', closeMaterialFilesModal);
+            
+            // Extract text button
+            document.getElementById('extractTextBtn').addEventListener('click', extractMaterialText);
+        }
+        
+        // Handle material file uploads
+        function handleMaterialFiles(event, materialType) {
+            const files = event.target.files;
+            if (!files || files.length === 0) return;
+            
+            // Add files to uploadedMaterials
+            for (let i = 0; i < files.length; i++) {
+                uploadedMaterials[materialType].push(files[i]);
+            }
+            
+            // Update UI to show files are uploaded
+            updateMaterialUploadUI(materialType);
+            
+            // Clear the input to allow uploading the same file again
+            event.target.value = '';
+        }
+        
+        // Set up drag and drop for material uploads
+        function setupMaterialDragAndDrop(dropZoneId, inputId, materialType) {
+            const dropZone = document.getElementById(dropZoneId);
+            
+            // Prevent default drag behaviors
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                dropZone.addEventListener(eventName, preventDefaults, false);
+            });
+            
+            // Highlight drop zone when dragging over it
+            ['dragenter', 'dragover'].forEach(eventName => {
+                dropZone.addEventListener(eventName, () => {
+                    dropZone.classList.add('drag-over');
+                }, false);
+            });
+            
+            ['dragleave', 'drop'].forEach(eventName => {
+                dropZone.addEventListener(eventName, () => {
+                    dropZone.classList.remove('drag-over');
+                }, false);
+            });
+            
+            // Handle dropped files
+            dropZone.addEventListener('drop', (e) => {
+                const dt = e.dataTransfer;
+                const files = dt.files;
+                
+                // Add files to uploadedMaterials
+                for (let i = 0; i < files.length; i++) {
+                    uploadedMaterials[materialType].push(files[i]);
+                }
+                
+                // Update UI to show files are uploaded
+                updateMaterialUploadUI(materialType);
+            }, false);
+            
+            // Handle click on drop zone
+            dropZone.addEventListener('click', () => {
+                document.getElementById(inputId).click();
+            });
+            
+            function preventDefaults(e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+        }
+        
+        // Update UI to show material files are uploaded
+        function updateMaterialUploadUI(materialType) {
+            const files = uploadedMaterials[materialType];
+            const dropZone = document.getElementById(`dropZone${materialType}`);
+            const viewBtn = document.getElementById(`view${materialType}Files`);
+            
+            // Update drop zone to show file preview
+            if (files.length > 0) {
+                // Clear existing content
+                dropZone.innerHTML = '';
+                
+                // Create preview container
+                const previewContainer = document.createElement('div');
+                previewContainer.className = 'material-preview-container';
+                
+                // Add file icon or preview
+                const firstFile = files[0];
+                let fileIcon;
+                
+                if (firstFile.type.startsWith('image/')) {
+                    fileIcon = document.createElement('img');
+                    fileIcon.src = URL.createObjectURL(firstFile);
+                    fileIcon.className = 'material-preview-image';
+                } else {
+                    fileIcon = document.createElement('i');
+                    fileIcon.className = 'fas fa-file-pdf material-preview-icon';
+                }
+                
+                previewContainer.appendChild(fileIcon);
+                
+                // Add file count
+                const fileCount = document.createElement('div');
+                fileCount.className = 'material-file-count';
+                fileCount.textContent = files.length > 1 ? `${files.length} files` : '1 file';
+                previewContainer.appendChild(fileCount);
+                
+                dropZone.appendChild(previewContainer);
+                
+                // Enable view button
+                viewBtn.disabled = false;
+            } else {
+                // Reset drop zone to default state
+                dropZone.innerHTML = `
+                    <i class="fas fa-cloud-upload-alt"></i>
+                    <p>Drag & drop files here</p>
+                `;
+                
+                // Disable view button
+                viewBtn.disabled = true;
+            }
+        }
+        
+        // View material files in modal
+        function viewMaterialFiles(materialType) {
+            const files = uploadedMaterials[materialType];
+            if (!files || files.length === 0) {
+                alert('No files to view.');
+                return;
+            }
+            
+            // Update modal title
+            document.getElementById('materialFilesModalTitle').textContent = `${materialType} Files`;
+            
+            // Generate file list
+            const filesList = document.getElementById('materialFilesList');
+            filesList.innerHTML = '';
+            
+            files.forEach((file, index) => {
+                const fileItem = document.createElement('div');
+                fileItem.className = 'file-item';
+                
+                let fileIconClass = 'fas fa-file';
+                
+                // Set appropriate icon based on file type
+                if (file.type.startsWith('image/')) {
+                    fileIconClass = 'fas fa-file-image';
+                } else if (file.type === 'application/pdf') {
+                    fileIconClass = 'fas fa-file-pdf';
+                }
+                
+                fileItem.innerHTML = `
+                    <i class="${fileIconClass} file-icon"></i>
+                    <div class="file-name">${file.name}</div>
+                    <div class="file-actions">
+                        <button class="file-action-btn" onclick="previewMaterialFile('${materialType}', ${index})">
+                            <i class="fas fa-eye"></i> View
+                        </button>
+                    </div>
+                `;
+                
+                filesList.appendChild(fileItem);
+            });
+            
+            // Open modal
+            document.getElementById('materialFilesModal').style.display = 'block';
+            
+            // Preview the first file by default
+            if (files.length > 0) {
+                previewMaterialFile(materialType, 0);
+            }
+        }
+        
+        // Preview a material file in the modal
+        function previewMaterialFile(materialType, index) {
+            const file = uploadedMaterials[materialType][index];
+            if (!file) return;
+            
+            const previewContent = document.getElementById('previewContent');
+            const fileName = document.getElementById('previewFileName');
+            
+            fileName.textContent = file.name;
+            previewContent.innerHTML = '';
+            
+            if (file.type.startsWith('image/')) {
+                // Image preview
+                const img = document.createElement('img');
+                img.src = URL.createObjectURL(file);
+                img.className = 'image-preview';
+                previewContent.appendChild(img);
+            } else if (file.type === 'application/pdf') {
+                // PDF preview
+                const iframe = document.createElement('iframe');
+                iframe.src = URL.createObjectURL(file);
+                iframe.className = 'file-preview';
+                previewContent.appendChild(iframe);
+            } else {
+                // Generic file message
+                previewContent.innerHTML = '<p>Preview not available for this file type.</p>';
+            }
+        }
+        
+        // Close material files modal
+        function closeMaterialFilesModal() {
+            document.getElementById('materialFilesModal').style.display = 'none';
+        }
+        
+        // Extract text from material files
+        function extractMaterialText() {
+            alert('Text extraction functionality will be implemented in a future update.');
+        }
+        
+        // Save materials to the server
+        async function saveMaterials() {
+            const materialTypes = ['Questions', 'Solution', 'Marking'];
+            const hasFiles = materialTypes.some(type => uploadedMaterials[type].length > 0);
+            
+            if (!hasFiles) {
+                alert('No materials to save.');
+                return;
+            }
+            
+            console.log('Starting material upload process...');
+            
+            // Show loading state
+            const saveBtn = document.querySelector('.save-materials-btn');
+            const originalText = saveBtn.innerHTML;
+            saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+            saveBtn.disabled = true;
+            
+            try {
+                // For each material type, upload files if any
+                for (const materialType of materialTypes) {
+                    const files = uploadedMaterials[materialType];
+                    if (files.length === 0) continue;
+                    
+                    console.log(`Uploading ${materialType} files:`, files);
+                    
+                    // Create FormData
+                    const formData = new FormData();
+                    formData.append('assignment_id', assignmentId);
+                    formData.append('material_type', materialType.toLowerCase());
+                    
+                    // Add all files for this material type
+                    files.forEach(file => {
+                        formData.append('files', file);
+                        console.log(`Added file: ${file.name} (${file.size} bytes)`);
+                    });
+                    
+                    console.log(`Sending request to /assignments/materials for ${materialType}`);
+                    
+                    // Make API call to save materials
+                    const response = await fetch('/assignments/materials', {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            // Don't set Content-Type for FormData; browser will set it with correct boundary
+                            'Authorization': localStorage.getItem('auth_token')
+                        }
+                    });
+                    
+                    console.log(`Response status for ${materialType}:`, response.status);
+                    
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        console.error(`Error data for ${materialType}:`, errorData);
+                        throw new Error(errorData.detail || `Failed to save ${materialType} materials`);
+                    }
+                    
+                    const responseData = await response.json();
+                    console.log(`Success response for ${materialType}:`, responseData);
+                }
+                
+                // Show success message
+                showSuccessToast('Materials saved successfully!');
+                
+                // Reset button state
+                saveBtn.innerHTML = originalText;
+                saveBtn.disabled = false;
+            } catch (error) {
+                console.error('Error saving materials:', error);
+                alert(`Error saving materials: ${error.message}`);
+                
+                // Reset button state
+                saveBtn.innerHTML = originalText;
+                saveBtn.disabled = false;
+            }
+        }
+
+        // Mark a submission for no grading
+        async function markNoGrading(submissionId) {
+            try {
+                const submission = submissions.find(sub => sub.id === submissionId);
+                if (!submission) {
+                    alert("Submission not found");
+                    return;
+                }
+                
+                if (!confirm(`Are you sure you want to mark ${submission.student_name}'s submission as "No Grading"?`)) {
+                    return;
+                }
+                
+                // For now, we just update the UI without making backend changes
+                // In a real implementation, we would send an API request here
+                
+                const submissionItem = document.querySelector(`.submission-item[data-id="${submissionId}"]`);
+                const statusPill = submissionItem.querySelector('.status-pill');
+                
+                // Update the status pill
+                statusPill.textContent = "No Grading";
+                statusPill.className = "status-pill status-no-grade";
+                
+                // Show success toast
+                showSuccessToast(`Marked ${submission.student_name}'s submission as "No Grading"`);
+                
+                // Reload submissions (this is just a placeholder - in a real implementation we'd update the backend)
+                // loadSubmissions();
+            } catch (error) {
+                console.error("Error marking submission for no grading:", error);
+                alert("Error updating submission status. Please try again.");
+            }
+        }
+        
+        // Show success toast notification
+        function showSuccessToast(message) {
+            const toast = document.createElement('div');
+            toast.className = 'success-toast';
+            toast.innerHTML = `<i class="fas fa-check-circle"></i> ${message}`;
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.classList.add('show');
+                setTimeout(() => {
+                    toast.classList.remove('show');
+                    setTimeout(() => {
+                        document.body.removeChild(toast);
+                    }, 300);
+                }, 3000);
+            }, 10);
+        }
+        
+        // Grade all submissions
+        async function gradeAllSubmissions() {
+            if (!confirm("Are you sure you want to start automatic grading for all submissions?")) {
+                return;
+            }
+            
+            const gradeAllBtn = document.getElementById("gradeAllBtn");
+            const originalText = gradeAllBtn.innerHTML;
+            
+            try {
+                // Show loading state
+                gradeAllBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Grading...';
+                gradeAllBtn.disabled = true;
+                
+                // Simulate grading process with a delay (this would normally be a backend API call)
+                await new Promise(resolve => setTimeout(resolve, 2000));
+                
+                // Show success message
+                showSuccessToast("Automatic grading has been started for all submissions");
+            } catch (error) {
+                console.error("Error starting automatic grading:", error);
+                alert("Error starting automatic grading. Please try again.");
+            } finally {
+                // Reset button state
+                gradeAllBtn.innerHTML = originalText;
+                gradeAllBtn.disabled = false;
+            }
+        }
+
+        // View files only - opens the files modal
+        function viewFiles(submissionId) {
+            // Find submission by ID
+            const submission = submissions.find(sub => sub.id === submissionId);
+            if (!submission) {
+                alert("Submission not found");
+                return;
+            }
+
+            // Get files modal elements
+            const filesModal = document.getElementById("filesModal");
+            const filesModalList = document.getElementById("filesModalList");
+            
+            // Show loading indicator
+            filesModalList.innerHTML = '<div class="loading-indicator"><div class="loading-spinner"></div> Loading files...</div>';
+            
+            // Display the modal with animation
+            filesModal.style.display = "block";
+            setTimeout(() => {
+                filesModal.classList.add("show");
+            }, 10);
+            
+            setTimeout(() => {
+                // Prepare files HTML
+                let filesHTML = "";
+                
+                if (submission.has_files && submission.file_paths && submission.file_paths.length > 0) {
+                    submission.file_paths.forEach((filePath, index) => {
+                        const fileName = filePath.split("/").pop();
+                        const fileExtension = fileName.split('.').pop().toLowerCase();
+                        let fileIcon = "fas fa-file";
+                        
+                        if (['jpg', 'jpeg', 'png', 'gif'].includes(fileExtension)) {
+                            fileIcon = "fas fa-file-image";
+                        } else if (['pdf'].includes(fileExtension)) {
+                            fileIcon = "fas fa-file-pdf";
+                        } else if (['doc', 'docx'].includes(fileExtension)) {
+                            fileIcon = "fas fa-file-word";
+                        } else if (['xls', 'xlsx'].includes(fileExtension)) {
+                            fileIcon = "fas fa-file-excel";
+                        }
+                        
+                        const fileUrl = filePath.startsWith("/") ? filePath : `/${filePath}`;
+                        
+                        filesHTML += `
+                        <div class="file-item">
+                            <i class="${fileIcon} file-icon"></i>
+                            <div class="file-name">${fileName}</div>
+                            <div class="file-actions">
+                                <button onclick="toggleFilePreview('${fileUrl}', '${fileName}', '${fileExtension}', 'files-preview-${index}')" class="file-action-btn">
+                                    <i class="fas fa-eye"></i> View
+                                </button>
+                                <a href="${fileUrl}" download class="file-action-btn">
+                                    <i class="fas fa-download"></i> Download
+                                </a>
+                            </div>
+                        </div>
+                        <div id="files-preview-${index}" class="file-preview-container" style="display: none;">
+                            <div class="preview-header">
+                                <div class="preview-title">${fileName}</div>
+                                <div class="preview-close" onclick="closeFilePreview('files-preview-${index}')">
+                                    <i class="fas fa-times"></i>
+                                </div>
+                            </div>
+                            <div class="preview-content"></div>
+                        </div>
+                        `;
+                    });
+                } else if (submission.file_path) {
+                    const fileName = submission.file_path.split("/").pop();
+                    const fileExtension = fileName.split('.').pop().toLowerCase();
+                    const fileUrl = submission.file_path.startsWith("/") ? submission.file_path : `/${submission.file_path}`;
+                    
+                    filesHTML = `
+                    <div class="file-item">
+                        <i class="fas fa-file-alt file-icon"></i>
+                        <div class="file-name">${fileName}</div>
+                        <div class="file-actions">
+                            <button onclick="toggleFilePreview('${fileUrl}', '${fileName}', '${fileExtension}', 'files-preview-single')" class="file-action-btn">
+                                <i class="fas fa-eye"></i> View
+                            </button>
+                            <a href="${fileUrl}" download class="file-action-btn">
+                                <i class="fas fa-download"></i> Download
+                            </a>
+                        </div>
+                    </div>
+                    <div id="files-preview-single" class="file-preview-container" style="display: none;">
+                        <div class="preview-header">
+                            <div class="preview-title">${fileName}</div>
+                            <div class="preview-close" onclick="closeFilePreview('files-preview-single')">
+                                <i class="fas fa-times"></i>
+                            </div>
+                        </div>
+                        <div class="preview-content"></div>
+                    </div>
+                    `;
+                } else {
+                    filesHTML = `<p>No files submitted</p>`;
+                }
+                
+                filesModalList.innerHTML = filesHTML;
+            }, 300);
+        }
+
+        // Grade submission - opens the grading modal
+        function gradeSubmission(submissionId) {
             // Find submission by ID
             const submission = submissions.find(sub => sub.id === submissionId);
             if (!submission) {
@@ -1021,6 +2989,18 @@
             
             // Display files if available
             const filesList = document.getElementById("submissionFilesList");
+            
+            // Show loading indicator while preparing files
+            filesList.innerHTML = '<div class="loading-indicator"><div class="loading-spinner"></div> Loading files...</div>';
+            
+            // Display the modal with animation
+            const submissionModal = document.getElementById("submissionModal");
+            submissionModal.style.display = "block";
+            setTimeout(() => {
+                submissionModal.classList.add("show");
+            }, 10);
+            
+            setTimeout(() => {
             if (submission.has_files && submission.file_paths && submission.file_paths.length > 0) {
                 let filesHTML = "";
                 submission.file_paths.forEach((filePath, index) => {
@@ -1047,11 +3027,15 @@
                         <i class="${fileIcon} file-icon"></i>
                         <div class="file-name">${fileName}</div>
                         <div class="file-actions">
-                            <button onclick="toggleFilePreview('${fileUrl}', '${fileName}', '${fileExtension}', 'teacher-preview-${index}')" class="file-action-btn">View</button>
-                            <a href="${fileUrl}" download class="file-action-btn">Download</a>
+                                <button onclick="toggleFilePreview('${fileUrl}', '${fileName}', '${fileExtension}', 'teacher-preview-${index}')" class="file-action-btn">
+                                    <i class="fas fa-eye"></i> View
+                                </button>
+                                <a href="${fileUrl}" download class="file-action-btn">
+                                    <i class="fas fa-download"></i> Download
+                                </a>
                         </div>
                     </div>
-                    <div id="teacher-preview-${index}" class="file-preview-container">
+                        <div id="teacher-preview-${index}" class="file-preview-container" style="display: none;">
                         <div class="preview-header">
                             <div class="preview-title">${fileName}</div>
                             <div class="preview-close" onclick="closeFilePreview('teacher-preview-${index}')">
@@ -1076,11 +3060,15 @@
                     <i class="fas fa-file-alt file-icon"></i>
                     <div class="file-name">${fileName}</div>
                     <div class="file-actions">
-                        <button onclick="toggleFilePreview('${fileUrl}', '${fileName}', '${fileExtension}', 'teacher-preview-single')" class="file-action-btn">View</button>
-                        <a href="${fileUrl}" download class="file-action-btn">Download</a>
+                            <button onclick="toggleFilePreview('${fileUrl}', '${fileName}', '${fileExtension}', 'teacher-preview-single')" class="file-action-btn">
+                                <i class="fas fa-eye"></i> View
+                            </button>
+                            <a href="${fileUrl}" download class="file-action-btn">
+                                <i class="fas fa-download"></i> Download
+                            </a>
                     </div>
                 </div>
-                <div id="teacher-preview-single" class="file-preview-container">
+                    <div id="teacher-preview-single" class="file-preview-container" style="display: none;">
                     <div class="preview-header">
                         <div class="preview-title">${fileName}</div>
                         <div class="preview-close" onclick="closeFilePreview('teacher-preview-single')">
@@ -1097,70 +3085,46 @@
             // Set grade and feedback if already graded
             const gradeInput = document.getElementById("gradeInput");
             const feedbackInput = document.getElementById("feedbackInput");
+            const noGradingCheckbox = document.getElementById("noGradingCheckbox");
             
+            // Reset the form
+            gradeInput.disabled = false;
+            feedbackInput.disabled = false;
+            noGradingCheckbox.checked = false;
+            
+            // Set values if available
             if (submission.grade !== null) {
                 gradeInput.value = submission.grade;
                 feedbackInput.value = submission.feedback || "";
+            } else if (submission.no_grade === true) {
+                noGradingCheckbox.checked = true;
+                gradeInput.disabled = true;
+                feedbackInput.disabled = true;
+                gradeInput.value = "";
+                feedbackInput.value = "";
             } else {
                 gradeInput.value = "";
                 feedbackInput.value = "";
             }
-            
-            // Show the modal
-            document.getElementById("submissionModal").style.display = "block";
+            }, 300); // Small timeout to show loading indicator
         }
 
         // Close the submission modal
         function closeSubmissionModal() {
-            document.getElementById("submissionModal").style.display = "none";
+            const submissionModal = document.getElementById("submissionModal");
+            submissionModal.classList.remove("show");
+            setTimeout(() => {
+                submissionModal.style.display = "none";
+            }, 300);
         }
 
-        // Save grade for a submission
-        async function saveGrade() {
-            if (!currentSubmission) {
-                alert("No submission selected");
-                return;
-            }
-            
-            const gradeInput = document.getElementById("gradeInput");
-            const feedbackInput = document.getElementById("feedbackInput");
-            
-            const grade = parseInt(gradeInput.value);
-            if (isNaN(grade) || grade < 0 || grade > assignment.points_possible) {
-                alert(`Please enter a valid grade between 0 and ${assignment.points_possible}`);
-                return;
-            }
-            
-            const gradeData = {
-                grade: grade,
-                feedback: feedbackInput.value
-            };
-            
-            try {
-                console.log("Submitting grade:", gradeData);
-                const response = await authFetch(`/submissions/${currentSubmission.id}/grade`, {
-                    method: "POST",
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(gradeData)
-                });
-                
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(errorData.detail || "Failed to save grade");
-                }
-                
-                // Close modal and reload submissions
-                closeSubmissionModal();
-                loadSubmissions();
-                
-                // Show success message
-                alert("Grade saved successfully!");
-            } catch (error) {
-                console.error("Error saving grade:", error);
-                alert("Error saving grade: " + (error.message || "Please try again."));
-            }
+        // Close the files modal
+        function closeFilesModal() {
+            const filesModal = document.getElementById("filesModal");
+            filesModal.classList.remove("show");
+            setTimeout(() => {
+                filesModal.style.display = "none";
+            }, 300);
         }
 
         // Handle file input change
@@ -1360,9 +3324,17 @@
                 });
 
                 if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(errorData.detail || "Failed to submit assignment");
-                        }
+                    const errorText = await response.text();
+                    console.error(`Server responded with ${response.status}: ${response.statusText}`, errorText);
+                    let errorMessage;
+                    try {
+                        const errorData = JSON.parse(errorText);
+                        errorMessage = errorData.detail || `Failed to submit assignment (${response.status})`;
+                    } catch(e) {
+                        errorMessage = `Failed to submit assignment: ${response.status} ${response.statusText}`;
+                    }
+                    throw new Error(errorMessage);
+                }
                     }
                 }
 
@@ -1446,6 +3418,9 @@
 
         // Load comments
         async function loadComments() {
+            const commentsList = document.getElementById("comments-list");
+            commentsList.innerHTML = '<div class="loading-indicator"><div class="loading-spinner"></div> Loading comments...</div>';
+            
             try {
                 const response = await authFetch(`/assignments/${assignmentId}/comments`, {
                     headers: { "Content-Type": "application/json" }
@@ -1458,13 +3433,12 @@
                 const data = await response.json();
                 const comments = data.comments || [];
 
-                const commentsList = document.getElementById("comments-list");
                 if (comments.length === 0) {
-                    commentsList.innerHTML = "<p>No comments yet</p>";
+                    commentsList.innerHTML = '<div class="no-comments">No comments yet</div>';
                     return;
                 }
 
-                // Render comments
+                // Render comments with updated structure
                 let commentsHTML = "";
                 comments.forEach(comment => {
                     const dateString = new Date(comment.created_at).toLocaleString("en-US", {
@@ -1474,13 +3448,45 @@
                         minute: "numeric"
                     });
 
+                    const isAuthor = currentUser && comment.author_id === currentUser.id;
+                    const authorInitial = comment.author_name.charAt(0).toUpperCase();
+
                     commentsHTML += `
-                    <div class="comment">
+                    <div class="comment" id="comment-${comment.id}">
+                        <div class="comment-avatar">
+                            <span>${authorInitial}</span>
+                        </div>
+                        <div class="comment-main">
                         <div class="comment-header">
+                                <div class="comment-author-info">
                             <div class="comment-author">${comment.author_name}</div>
                             <div class="comment-date">${dateString}</div>
                         </div>
-                        <div class="comment-content">${comment.content}</div>
+                            </div>
+                            <div class="comment-content" id="comment-content-${comment.id}">${comment.content}</div>
+                            <div class="comment-edit-form" id="comment-edit-form-${comment.id}" style="display: none;">
+                                <input type="text" class="comment-edit-input" id="comment-edit-input-${comment.id}" value="${comment.content}">
+                                <div class="comment-edit-actions">
+                                    <button class="comment-save-btn" onclick="saveCommentEdit(${comment.id})">Save</button>
+                                    <button class="comment-cancel-btn" onclick="cancelCommentEdit(${comment.id})">Cancel</button>
+                                </div>
+                            </div>
+                            ${isAuthor ? `
+                            <div class="comment-actions">
+                                <button class="comment-options-btn" onclick="toggleCommentOptions(${comment.id})">
+                                    <i class="fas fa-ellipsis-v"></i>
+                                </button>
+                                <div class="comment-options-menu" id="comment-options-${comment.id}">
+                                    <div class="comment-option" onclick="editComment(${comment.id})">
+                                        <i class="fas fa-edit"></i> Edit
+                                    </div>
+                                    <div class="comment-option" onclick="deleteComment(${comment.id})">
+                                        <i class="fas fa-trash"></i> Delete
+                                    </div>
+                                </div>
+                            </div>
+                            ` : ''}
+                        </div>
                     </div>
                     `;
                 });
@@ -1488,7 +3494,170 @@
                 commentsList.innerHTML = commentsHTML;
             } catch (error) {
                 console.error("Error loading comments:", error);
-                document.getElementById("comments-list").innerHTML = "<p>Error loading comments</p>";
+                commentsList.innerHTML = '<div class="no-comments">Error loading comments</div>';
+            }
+        }
+
+        // Toggle comment options menu
+        function toggleCommentOptions(commentId) {
+            const optionsMenu = document.getElementById(`comment-options-${commentId}`);
+            
+            // Close all other open menus first
+            document.querySelectorAll('.comment-options-menu.active').forEach(menu => {
+                if (menu.id !== `comment-options-${commentId}`) {
+                    menu.classList.remove('active');
+                }
+            });
+            
+            optionsMenu.classList.toggle('active');
+            
+            // Add click outside listener to close menu
+            setTimeout(() => {
+                if (optionsMenu.classList.contains('active')) {
+                    document.addEventListener('click', function closeMenu(e) {
+                        if (!e.target.closest(`#comment-options-${commentId}`) && 
+                            !e.target.closest(`.comment-options-btn`)) {
+                            optionsMenu.classList.remove('active');
+                            document.removeEventListener('click', closeMenu);
+                        }
+                    });
+                }
+            }, 10);
+        }
+
+        // Edit comment
+        function editComment(commentId) {
+            // Hide the options menu
+            document.getElementById(`comment-options-${commentId}`).classList.remove('active');
+            
+            // Hide content, show edit form
+            document.getElementById(`comment-content-${commentId}`).style.display = 'none';
+            document.getElementById(`comment-edit-form-${commentId}`).style.display = 'block';
+            
+            // Focus the input
+            const input = document.getElementById(`comment-edit-input-${commentId}`);
+            input.focus();
+            input.selectionStart = input.value.length;
+        }
+
+        // Cancel comment edit
+        function cancelCommentEdit(commentId) {
+            // Show content, hide edit form
+            document.getElementById(`comment-content-${commentId}`).style.display = 'block';
+            document.getElementById(`comment-edit-form-${commentId}`).style.display = 'none';
+        }
+
+        // Save comment edit
+        async function saveCommentEdit(commentId) {
+            const editInput = document.getElementById(`comment-edit-input-${commentId}`);
+            const newContent = editInput.value.trim();
+            
+            if (!newContent) return;
+            
+            try {
+                // Show loading state
+                const editForm = document.getElementById(`comment-edit-form-${commentId}`);
+                const commentContent = document.getElementById(`comment-content-${commentId}`);
+                const originalFormHTML = editForm.innerHTML;
+                editForm.innerHTML = '<div class="loading-indicator"><div class="loading-spinner"></div> Saving...</div>';
+                
+                // Since we don't have a direct PUT endpoint for comments,
+                // we'll delete the existing comment and create a new one
+                
+                // First delete the existing comment
+                const deleteResponse = await authFetch(`/assignments/${assignmentId}/comments/${commentId}`, {
+                    method: 'DELETE'
+                });
+                
+                if (!deleteResponse.ok) {
+                    throw new Error('Failed to update comment: delete operation failed');
+                }
+                
+                // Then create a new comment with the updated content
+                const commentData = {
+                    title: "Comment",
+                    content: newContent,
+                    related_assignment_id: assignmentId
+                };
+                
+                const createResponse = await authFetch(`/classes/${classId}/queries`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(commentData)
+                });
+                
+                if (!createResponse.ok) {
+                    throw new Error('Failed to update comment: create operation failed');
+                }
+                
+                const responseData = await createResponse.json();
+                
+                // Update UI
+                commentContent.textContent = newContent;
+                commentContent.style.display = 'block';
+                editForm.style.display = 'none';
+                
+                // Reload comments to show the updated comment (with new ID)
+                loadComments();
+                
+            } catch (error) {
+                console.error('Error updating comment:', error);
+                alert('Failed to update comment. Please try again.');
+                // Restore edit form
+                editForm.innerHTML = originalFormHTML;
+            }
+        }
+
+        // Delete comment
+        async function deleteComment(commentId) {
+            if (!confirm('Are you sure you want to delete this comment?')) return;
+            
+            try {
+                // Find the comment element
+                const commentElement = document.getElementById(`comment-${commentId}`);
+                
+                // Show loading state
+                commentElement.style.opacity = '0.5';
+                commentElement.style.pointerEvents = 'none';
+                
+                // Call the endpoint to delete the comment
+                const response = await authFetch(`/assignments/${assignmentId}/comments/${commentId}`, {
+                    method: 'DELETE'
+                });
+                
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.detail || 'Failed to delete comment');
+                }
+                
+                // Remove from UI with animation
+                commentElement.style.opacity = '0';
+                commentElement.style.transform = 'translateX(-20px)';
+                
+                setTimeout(() => {
+                    commentElement.remove();
+                    
+                    // If no comments left, show "No comments" message
+                    const commentsList = document.getElementById('comments-list');
+                    if (commentsList.querySelectorAll('.comment').length === 0) {
+                        commentsList.innerHTML = '<div class="no-comments">No comments yet</div>';
+                    }
+                }, 300);
+                
+            } catch (error) {
+                console.error('Error deleting comment:', error);
+                
+                // Reset the comment style if there was an error
+                const commentElement = document.getElementById(`comment-${commentId}`);
+                if (commentElement) {
+                    commentElement.style.opacity = '1';
+                    commentElement.style.pointerEvents = 'auto';
+                    commentElement.style.transform = 'none';
+                }
+                
+                alert('Failed to delete comment: ' + error.message);
             }
         }
 
@@ -1500,8 +3669,8 @@
             if (!commentText) return;
 
             try {
-                const queryData = {
-                    title: "Comment",
+                const commentData = {
+                    title: "Comment", // Title is required by the API
                     content: commentText,
                     related_assignment_id: assignmentId
                 };
@@ -1511,7 +3680,7 @@
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify(queryData)
+                    body: JSON.stringify(commentData)
                 });
 
                 if (!response.ok) {
@@ -1532,6 +3701,9 @@
             // Set up drag and drop
             setupDragAndDrop();
             
+            // Initialize material uploads
+            initMaterialUploads();
+            
             // Submit button
             const submitBtn = document.getElementById("submitBtn");
             if (submitBtn) {
@@ -1546,25 +3718,40 @@
 
             // Post comment button
             const postCommentBtn = document.getElementById("post-comment-btn");
-            if (postCommentBtn) {
-                postCommentBtn.addEventListener("click", postComment);
-            }
-
-            // Comment input enter key
             const commentInput = document.getElementById("comment-input");
-            if (commentInput) {
+            
+            if (postCommentBtn && commentInput) {
+                // Enable/disable post button based on input
+                commentInput.addEventListener("input", function() {
+                    postCommentBtn.disabled = !this.value.trim();
+                });
+                
+                postCommentBtn.addEventListener("click", postComment);
+                postCommentBtn.disabled = true; // Initially disabled
+
                 commentInput.addEventListener("keydown", function (event) {
-                    if (event.key === "Enter") {
+                    if (event.key === "Enter" && this.value.trim()) {
                         event.preventDefault();
                         postComment();
                     }
                 });
             }
             
-            // Modal close button
+            // Modal close buttons
             const closeModalBtn = document.getElementById("closeModalBtn");
+            const closeModalBtn2 = document.getElementById("closeModalBtn2");
+            const closeFilesModalBtn = document.getElementById("closeFilesModalBtn");
+            
             if (closeModalBtn) {
                 closeModalBtn.addEventListener("click", closeSubmissionModal);
+            }
+            
+            if (closeModalBtn2) {
+                closeModalBtn2.addEventListener("click", closeSubmissionModal);
+            }
+            
+            if (closeFilesModalBtn) {
+                closeFilesModalBtn.addEventListener("click", closeFilesModal);
             }
             
             // Save grade button
@@ -1573,22 +3760,73 @@
                 saveGradeBtn.addEventListener("click", saveGrade);
             }
             
-            // Close modal when clicking outside
-            const modal = document.getElementById("submissionModal");
-            if (modal) {
-                window.addEventListener("click", function(event) {
-                    if (event.target === modal) {
-                        closeSubmissionModal();
+            // Grade all button
+            const gradeAllBtn = document.getElementById("gradeAllBtn");
+            if (gradeAllBtn) {
+                gradeAllBtn.addEventListener("click", gradeAllSubmissions);
+            }
+            
+            // No grading checkbox in the grading modal
+            const noGradingCheckbox = document.getElementById("noGradingCheckbox");
+            const gradeInput = document.getElementById("gradeInput");
+            const feedbackInput = document.getElementById("feedbackInput");
+            
+            if (noGradingCheckbox && gradeInput && feedbackInput) {
+                noGradingCheckbox.addEventListener("change", function() {
+                    const isChecked = this.checked;
+                    gradeInput.disabled = isChecked;
+                    feedbackInput.disabled = isChecked;
+                    
+                    if (isChecked) {
+                        gradeInput.value = "";
+                        feedbackInput.value = "";
                     }
                 });
             }
+            
+            // Close modals when clicking outside
+                window.addEventListener("click", function(event) {
+                const submissionModal = document.getElementById("submissionModal");
+                const filesModal = document.getElementById("filesModal");
+                
+                if (event.target === submissionModal) {
+                        closeSubmissionModal();
+                    }
+                
+                if (event.target === filesModal) {
+                    closeFilesModal();
+                    }
+                });
         }
 
         // Initialize on page load
         document.addEventListener("DOMContentLoaded", function () {
             loadAssignment();
+            loadComments();
             initEventListeners();
+            initRoleBasedViews();
         });
+
+        // Initialize role-based views
+        function initRoleBasedViews() {
+            const studentSection = document.getElementById("studentSubmissionSection");
+            const teacherSection = document.getElementById("teacherGradingSection");
+            
+            // Show appropriate view based on user role
+            if (currentUser && (currentUser.role === "student")) {
+                // Student can only see student view
+                studentSection.style.display = "block";
+                teacherSection.style.display = "none";
+            } else if (currentUser && (currentUser.role === "teacher" || currentUser.role === "professor" || currentUser.is_professor)) {
+                // Teacher can only see teacher view
+                studentSection.style.display = "none";
+                teacherSection.style.display = "block";
+            } else {
+                // Default to student view if role is unknown
+                studentSection.style.display = "block";
+                teacherSection.style.display = "none";
+            }
+        }
 
         // Function to toggle file preview
         function toggleFilePreview(fileUrl, fileName, fileExtension, containerId) {
@@ -1654,6 +3892,97 @@
             const container = document.getElementById(containerId);
             if (container) {
                 container.style.display = 'none';
+            }
+        }
+
+        // Save grade for a submission
+        async function saveGrade() {
+            if (!currentSubmission) {
+                alert("No submission selected");
+                return;
+            }
+            
+            const gradeInput = document.getElementById("gradeInput");
+            const feedbackInput = document.getElementById("feedbackInput");
+            const noGradingCheckbox = document.getElementById("noGradingCheckbox");
+            const saveGradeBtn = document.getElementById("saveGradeBtn");
+            
+            // Handle "No Grading" option
+            if (noGradingCheckbox.checked) {
+                // In a real implementation, we would actually call the backend with this option
+                try {
+                    // Show loading state
+                    const originalBtnText = saveGradeBtn.innerHTML;
+                    saveGradeBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+                    saveGradeBtn.disabled = true;
+                    
+                    // Simulate API call
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                    
+                    // Close modal
+                    closeSubmissionModal();
+                    
+                    // Update UI to show "No Grading" status
+                    const submissionItem = document.querySelector(`.submission-item[data-id="${currentSubmission.id}"]`);
+                    const statusPill = submissionItem.querySelector('.status-pill');
+                    statusPill.textContent = "No Grading";
+                    statusPill.className = "status-pill status-no-grade";
+                    
+                    // Show success message
+                    showSuccessToast(`Marked ${currentSubmission.student_name}'s submission as "No Grading"`);
+                    
+                    return;
+                } catch (error) {
+                    console.error("Error marking as no grading:", error);
+                    alert("Error updating submission status. Please try again.");
+                    return;
+                }
+            }
+            
+            const grade = parseInt(gradeInput.value);
+            if (isNaN(grade) || grade < 0 || grade > assignment.points_possible) {
+                alert(`Please enter a valid grade between 0 and ${assignment.points_possible}`);
+                return;
+            }
+            
+            // Show loading state
+            const originalBtnText = saveGradeBtn.innerHTML;
+            saveGradeBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+            saveGradeBtn.disabled = true;
+            
+            const gradeData = {
+                grade: grade,
+                feedback: feedbackInput.value
+            };
+            
+            try {
+                const response = await authFetch(`/submissions/${currentSubmission.id}/grade`, {
+                    method: "POST",
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(gradeData)
+                });
+                
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.detail || "Failed to save grade");
+                }
+                
+                // Close modal and reload submissions
+                closeSubmissionModal();
+                loadSubmissions();
+                
+                // Show success message
+                showSuccessToast("Grade saved successfully!");
+                
+            } catch (error) {
+                console.error("Error saving grade:", error);
+                alert("Error saving grade: " + (error.message || "Please try again."));
+                
+                // Reset button state
+                saveGradeBtn.innerHTML = originalBtnText;
+                saveGradeBtn.disabled = false;
             }
         }
     </script>

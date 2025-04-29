@@ -351,7 +351,7 @@ async def get_exam_questions(
     return JSONResponse(q_list)
 
 
-@router.get("/exams/{exam_id}/document/Answer-Script")
+@router.get("/exams/{exam_id}/document/answer_script")
 async def get_answer_scripts(
     exam_id: int,
     db: Session = Depends(get_db),

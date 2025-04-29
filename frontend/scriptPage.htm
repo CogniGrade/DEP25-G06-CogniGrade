@@ -189,6 +189,20 @@
       const params = new URLSearchParams(window.location.search);
       return params.get(param);
     }
+    
+    fetch(`/process-response-text-image/${getQueryParameter('exam_id')}`, {
+      method: 'POST',
+      headers: { "Content-Type": "application/json" }
+    })
+      .then(res => res.json())
+      .then(processData => {
+        console.log("Processing complete:", processData);
+        alert("Responses processed successfully!");
+      })
+      .catch(error => {
+        console.error("One or more operations failed:", error);
+        alert("Processing failed for one or more responses.");
+      });
 
     // Load available document types from backend and populate the dropdown
     function loadAvailableDocuments() {
@@ -208,8 +222,8 @@
             opt.text = option.replace(/-/g, " ");
             select.appendChild(opt);
           }
-          if (data["Answer-Script"]) {
-            select.value = "Answer-Script";
+          if (data["answer_script"]) {
+            select.value = "answer_script";
           } else {
             select.selectedIndex = 0;
           }

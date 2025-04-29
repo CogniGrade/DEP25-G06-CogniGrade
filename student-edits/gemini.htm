@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF Region Extractor (All Pages)</title>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+    <style>
+        /* --- CSS Styles --- */
+        body {
+            font-family: sans-serif;
+            line-height: 1.6;
+            margin: 20px;
+            background-color: #f4f4f4;
+        }
+
+        h1, h2 {
+            text-align: center;
+            color: #333;
+        }
+
+        .container {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap; /* Allow wrapping on smaller screens */
+        }
+
+        .pdf-section, .extracted-section {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            flex: 1; /* Allow flexible sizing */
+            min-width: 400px; /* Minimum width before wrapping */
+            display: flex; /* Use flexbox for internal alignment */
+            flex-direction: column; /* Stack children vertically */
+            /* Define a max height for sections if needed, or let content define it */
+             max-height: 85vh; /* Example max height */
+        }
+
+         .pdf-section {
+             /* Allow pdf section to potentially take more space if needed */
+             min-width: 500px;
+         }
+
+
+        .pdf-section h2, .extracted-section h2 {
+            margin-top: 0;
+            flex-shrink: 0; /* Prevent headers from shrinking */
+        }
+
+        #pdf-upload {
+            margin-bottom: 15px;
+            display: block;
+            flex-shrink: 0;
+        }
+
+        /* ----- PDF Viewer & Cropping ----- */
+        #pdf-viewer {
+            position: relative; /* Needed for absolute positioning of overlay */
+            border: 1px solid #ccc;
+            max-width: 100%;
+            overflow: auto; /* CRITICAL: Make viewer scrollable */
+            background-color: #e9e9e9; /* BG while loading */
+            min-height: 300px;
+            margin-bottom: 10px;
+            flex-grow: 1; /* Allow viewer to grow */
+            /* Removed flex centering as pages stack now */
+        }
+
+        #pdf-pages-container {
+             /* Container for individual page canvases */
+             display: flex;
+             flex-direction: column;
+             align-items: center; /* Center pages horizontally */
+             padding: 10px 0; /* Add some padding top/bottom */
+        }
+
+        .page-canvas { /* Style for individual page canvases */
+            display: block; /* Remove extra space below canvas */
+            max-width: 100%; /* Make canvas responsive */
+            height: auto; /* Maintain aspect ratio */
+            box-shadow: 0 0 5px rgba(0,0,0,0.2); /* Slight shadow for distinction */
+            margin-bottom: 15px; /* Space between pages */
+            cursor: crosshair; /* Indicate selection possibility */
+        }
+        .page-canvas:last-child {
+            margin-bottom: 0; /* No margin for the last page */
+        }
+
+
+        #crop-overlay {
+            position: absolute; /* Position relative to pdf-viewer */
+            border: 2px dashed red;
+            background-color: rgba(255, 0, 0, 0.1); /* Slight red tint */
+            display: none; /* Hidden initially */
+            pointer-events: none; /* Don't interfere with canvas mouse events */
+            box-sizing: border-box; /* Border included in width/height */
+            z-index: 10; /* Ensure overlay is on top */
+        }
+
+        #pdf-message {
+            color: #666;
+            text-align: center;
+            margin-top: 5px;
+             flex-shrink: 0;
+             min-height: 1.6em; /* Prevent layout shifts */
+        }
+
+        /* ----- Extracted Images ----- */
+        .extracted-section {
+            display: flex;
+            flex-direction: column;
+        }
+
+        #extracted-images {
+            border: 1px dashed #ccc;
+            min-height: 200px;
+            padding: 10px;
+            margin-bottom: 15px;
+            background-color: #f9f9f9;
+            overflow-y: auto;
+            /* max-height: 500px; Let flexbox handle height relative to parent */
+            display: flex;
+            flex-direction: column; /* Stack images vertically */
+            gap: 10px; /* Space between images */
+            flex-grow: 1; /* Allow this section to grow */
+        }
+
+        .extracted-item {
+            border: 1px solid #ddd;
+            padding: 5px;
+            background-color: #fff;
+            cursor: grab;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            flex-shrink: 0; /* Prevent items from shrinking */
+        }
+        .extracted-item img {
+            max-width: 150px; /* Limit thumbnail preview size */
+            max-height: 100px;
+            display: block;
+        }
+        .extracted-item span { /* Optional: show index */
+            font-size: 0.8em;
+            color: #555;
+            white-space: nowrap; /* Prevent ID from wrapping */
+        }
+
+        /* Drag-and-Drop Styling */
+        .extracted-item.dragging {
+            opacity: 0.5;
+            background-color: #e0f7fa;
+        }
+        .drag-over {
+            /* Optional: style the container when dragging over */
+            background-color: #e8f5e9 !important; /* Use !important to override default */
+            border-style: solid;
+        }
+
+
+        /* ----- Concatenation & Final Image ----- */
+        #concatenate-button {
+            padding: 10px 15px;
+            cursor: pointer;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            transition: background-color 0.3s ease;
+            align-self: flex-start; /* Align button to the start */
+            flex-shrink: 0; /* Prevent button shrinking */
+        }
+
+        #concatenate-button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+
+        #concatenate-button:not(:disabled):hover {
+            background-color: #0056b3;
+        }
+
+        .final-section {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            margin-top: 20px;
+            width: 100%; /* Take full width */
+            box-sizing: border-box;
+        }
+        .final-section h2 {
+            margin-top: 0;
+        }
+
+        #final-image-container {
+            margin-top: 15px;
+            border: 1px solid #eee;
+            min-height: 50px;
+            max-width: 100%;
+            overflow: auto;
+            background-color: #f8f8f8; /* Light bg for image area */
+            text-align: center; /* Center placeholder text */
+        }
+         #final-image-container p {
+             color: #666;
+             padding: 20px;
+         }
+        #final-image-container img {
+            max-width: 100%;
+            display: block; /* Prevents bottom space */
+            margin: 0 auto; /* Center if narrower than container */
+        }
+
+        #download-link {
+            display: none; /* Hidden initially */
+            margin-top: 15px;
+            padding: 8px 12px;
+            background-color: #28a745;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            transition: background-color 0.3s ease;
+        }
+        #download-link:hover {
+            background-color: #218838;
+        }
+         /* --- End CSS Styles --- */
+    </style>
+</head>
+<body>
+    <h1>PDF Region Extractor (All Pages)</h1>
+
+    <div class="container">
+        <div class="pdf-section">
+            <h2>1. Upload & View PDF</h2>
+            <input type="file" id="pdf-upload" accept=".pdf">
+            <div id="pdf-viewer">
+                 <div id="pdf-pages-container"></div>
+                <div id="crop-overlay"></div>
+            </div>
+             <p id="pdf-message">Upload a PDF to start.</p>
+        </div>
+
+        <div class="extracted-section">
+             <h2>2. Extracted Regions (Drag to Reorder)</h2>
+            <div id="extracted-images" class="sortable-list">
+                </div>
+            <button id="concatenate-button" disabled>3. Concatenate Ordered Images</button>
+        </div>
+    </div>
+
+    <div class="final-section">
+        <h2>Final Concatenated Image</h2>
+        <div id="final-image-container">
+            <p>Concatenated image will appear here.</p>
+        </div>
+        <a id="download-link">Download Final Image</a>
+    </div>
+
+    <script>
+
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+        // --- JavaScript Logic ---
+        const pdfUpload = document.getElementById('pdf-upload');
+        const pdfViewer = document.getElementById('pdf-viewer');
+        const pdfPagesContainer = document.getElementById('pdf-pages-container'); // New container
+        const pdfMessage = document.getElementById('pdf-message');
+        const cropOverlay = document.getElementById('crop-overlay');
+        const extractedImagesContainer = document.getElementById('extracted-images');
+        const concatenateButton = document.getElementById('concatenate-button');
+        const finalImageContainer = document.getElementById('final-image-container');
+        const downloadLink = document.getElementById('download-link');
+
+        let pdfDoc = null;
+        let currentScale = 1.5; // Initial rendering scale, adjust as needed
+        let isDrawing = false;
+        let startX, startY; // Relative to the active canvas
+        let activeCanvas = null; // Track the canvas where drawing started
+
+        // Store extracted image data (as data URLs) and their original dimensions
+        let extractedImagesData = []; // Array of { id: number, dataUrl: string, width: number, height: number }
+        let nextImageId = 0;
+
+        // --- PDF Loading and Rendering ---
+
+        pdfUpload.addEventListener('change', handlePdfUpload);
+
+        async function handlePdfUpload(event) {
+            const file = event.target.files[0];
+            if (!file || file.type !== 'application/pdf') {
+                pdfMessage.textContent = 'Please select a valid PDF file.';
+                resetState();
+                return;
+            }
+
+            pdfMessage.textContent = 'Loading PDF...';
+            resetState(); // Clear previous state
+
+            const reader = new FileReader();
+            reader.onload = async (e) => {
+                const typedarray = new Uint8Array(e.target.result);
+                try {
+                    // Set worker source (ensure pdfjsLib is defined - place inside deferred script if needed)
+                     if (typeof pdfjsLib !== 'undefined') {
+                         pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+                     } else {
+                         throw new Error("pdfjsLib is not defined. Ensure PDF.js library is loaded before this script.");
+                     }
+
+                    pdfDoc = await pdfjsLib.getDocument({ data: typedarray }).promise;
+                    pdfMessage.textContent = `PDF loaded (${pdfDoc.numPages} pages). Rendering all pages...`;
+
+                    // --- Render ALL pages ---
+                    const renderPromises = [];
+                    for (let pageNum = 1; pageNum <= pdfDoc.numPages; pageNum++) {
+                        // Render pages sequentially using await within the loop
+                        // This ensures canvases are added in order, though rendering happens async
+                         pdfMessage.textContent = `Rendering page ${pageNum} of ${pdfDoc.numPages}...`;
+                         try {
+                            await renderPage(pageNum);
+                         } catch (renderError) {
+                             console.error(`Failed to render page ${pageNum}:`, renderError);
+                             // Optionally display an error placeholder for the failed page
+                             const errorDiv = document.createElement('div');
+                             errorDiv.textContent = `Error rendering page ${pageNum}`;
+                             errorDiv.style.cssText = 'color: red; border: 1px solid red; padding: 20px; margin-bottom: 15px; text-align: center;';
+                             pdfPagesContainer.appendChild(errorDiv);
+                         }
+                    }
+
+                     // Alternative: Render in parallel (might be faster but can consume more resources)
+                     /*
+                     for (let pageNum = 1; pageNum <= pdfDoc.numPages; pageNum++) {
+                         renderPromises.push(renderPage(pageNum).catch(err => { // Catch errors per page
+                             console.error(`Failed to render page ${pageNum}:`, err);
+                              // Handle error display if needed
+                              return null; // Allow Promise.all to complete
+                         }));
+                     }
+                     await Promise.all(renderPromises);
+                     */
+
+
+                    pdfMessage.textContent = `All ${pdfDoc.numPages} pages rendered. Click and drag on a page to select a region.`;
+
+                } catch (error) {
+                    console.error('Error loading or processing PDF:', error);
+                    pdfMessage.textContent = `Error loading PDF: ${error.message || error}`;
+                    resetState();
+                }
+            };
+            reader.onerror = (e) => {
+                 console.error('File reading error:', e);
+                 pdfMessage.textContent = 'Error reading the PDF file.';
+                 resetState();
+            }
+            reader.readAsArrayBuffer(file);
+        }
+
+        async function renderPage(pageNum) {
+            if (!pdfDoc) return; // Should not happen if called correctly
+
+            const page = await pdfDoc.getPage(pageNum);
+            const viewport = page.getViewport({ scale: currentScale });
+
+            // Create a canvas for this specific page
+            const canvas = document.createElement('canvas');
+            canvas.id = `page-canvas-${pageNum}`;
+            canvas.classList.add('page-canvas');
+            canvas.dataset.pageNumber = pageNum; // Store page number
+
+            const context = canvas.getContext('2d');
+            canvas.height = viewport.height;
+            canvas.width = viewport.width;
+
+             // Append canvas to the container
+             pdfPagesContainer.appendChild(canvas);
+
+
+            // Render PDF page into this specific canvas context
+            const renderContext = {
+                canvasContext: context,
+                viewport: viewport
+            };
+            await page.render(renderContext).promise;
+
+             // --- Add event listeners directly TO THIS CANVAS ---
+             canvas.addEventListener('mousedown', startDrawing);
+             canvas.addEventListener('mousemove', drawRectangle);
+             canvas.addEventListener('mouseup', endDrawing);
+             canvas.addEventListener('mouseleave', cancelDrawing); // Important for multi-page cancels
+
+            // console.log(`Page ${pageNum} rendered onto canvas #${canvas.id}`);
+        }
+
+        function resetState() {
+            pdfDoc = null;
+             // Clear the container holding page canvases
+             pdfPagesContainer.innerHTML = '';
+
+            // Reset other states as before
+            activeCanvas = null;
+            extractedImagesContainer.innerHTML = '';
+            extractedImagesData = [];
+            nextImageId = 0;
+            finalImageContainer.innerHTML = '<p>Concatenated image will appear here.</p>';
+            downloadLink.style.display = 'none';
+            downloadLink.href = '#';
+            concatenateButton.disabled = true;
+            hideCropOverlay();
+            pdfUpload.value = '';
+            pdfMessage.textContent = 'Upload a PDF to start.';
+        }
+
+
+        // --- Cropping Logic (Now attached to individual canvases) ---
+
+        function startDrawing(e) {
+            // Check if PDF is loaded and click is directly on a page-canvas
+            if (!pdfDoc || !e.target.classList.contains('page-canvas')) return;
+
+            isDrawing = true;
+            activeCanvas = e.target; // The canvas where mousedown occurred
+
+            // --- Calculate start coordinates RELATIVE TO THE ACTIVE CANVAS ---
+            const canvasRect = activeCanvas.getBoundingClientRect(); // Position relative to viewport
+            startX = e.clientX - canvasRect.left;
+            startY = e.clientY - canvasRect.top;
+
+            // --- Position the SINGLE overlay absolutely within the SCROLLING pdf-viewer ---
+            // Overlay's top/left needs to account for:
+            // 1. Viewer's scroll position
+            // 2. Active canvas's position *relative to the viewer's top-left*
+
+            // Position of canvas relative to document: canvasRect.top, canvasRect.left
+            // Position of viewer relative to document: pdfViewer.getBoundingClientRect().top/left
+            // Scroll offset of viewer: pdfViewer.scrollTop, pdfViewer.scrollLeft
+
+            const overlayX = canvasRect.left - pdfViewer.getBoundingClientRect().left + pdfViewer.scrollLeft + startX;
+            const overlayY = canvasRect.top - pdfViewer.getBoundingClientRect().top + pdfViewer.scrollTop + startY;
+
+            cropOverlay.style.left = `${overlayX}px`;
+            cropOverlay.style.top = `${overlayY}px`;
+            cropOverlay.style.width = '0px';
+            cropOverlay.style.height = '0px';
+            cropOverlay.style.display = 'block'; // Show overlay
+        }
+
+        function drawRectangle(e) {
+             // This listener is on the canvas, but drawing might drag outside it slightly
+             // We only care if drawing STARTED on a canvas (isDrawing is true)
+            if (!isDrawing || !activeCanvas) return;
+
+            // --- Calculate current coordinates RELATIVE TO THE ACTIVE CANVAS ---
+            const canvasRect = activeCanvas.getBoundingClientRect();
+            const currentX = e.clientX - canvasRect.left;
+            const currentY = e.clientY - canvasRect.top;
+
+            // Calculate rectangle dimensions relative to the active canvas
+            const width = Math.abs(currentX - startX);
+            const height = Math.abs(currentY - startY);
+            const rectLeftCanvas = Math.min(startX, currentX); // Relative to canvas
+            const rectTopCanvas = Math.min(startY, currentY);   // Relative to canvas
+
+            // --- Update the SINGLE overlay's position within the SCROLLING pdf-viewer ---
+            const overlayX = canvasRect.left - pdfViewer.getBoundingClientRect().left + pdfViewer.scrollLeft + rectLeftCanvas;
+            const overlayY = canvasRect.top - pdfViewer.getBoundingClientRect().top + pdfViewer.scrollTop + rectTopCanvas;
+
+
+            cropOverlay.style.left = `${overlayX}px`;
+            cropOverlay.style.top = `${overlayY}px`;
+            cropOverlay.style.width = `${width}px`;
+            cropOverlay.style.height = `${height}px`;
+        }
+
+        function endDrawing(e) {
+            // This listener is on the canvas where drawing started.
+             if (!isDrawing || !activeCanvas) return;
+
+             // Check if the mouseup event target is still within *some* canvas or the viewer
+             // This prevents accidental tiny crops if mouseup happens way outside
+             const relatedTargetIsValid = e.target.classList.contains('page-canvas') || e.target === pdfViewer;
+
+            isDrawing = false;
+            hideCropOverlay();
+
+             if (!relatedTargetIsValid) {
+                 console.log("Drawing ended outside valid area, cancelled.");
+                 activeCanvas = null;
+                 return;
+             }
+
+
+            // --- Final crop coordinates RELATIVE TO THE ACTIVE CANVAS ---
+            const canvasRect = activeCanvas.getBoundingClientRect();
+            const endX = e.clientX - canvasRect.left;
+            const endY = e.clientY - canvasRect.top;
+
+            let cropX = Math.min(startX, endX);
+            let cropY = Math.min(startY, endY);
+            let cropW = Math.abs(endX - startX);
+            let cropH = Math.abs(endY - startY);
+
+            // Clamp coordinates/dimensions to be within the ACTIVE canvas bounds
+            cropX = Math.max(0, cropX);
+            cropY = Math.max(0, cropY);
+            cropW = Math.min(activeCanvas.width - cropX, cropW); // Use active canvas dimensions
+            cropH = Math.min(activeCanvas.height - cropY, cropH);
+
+            // Ensure a minimum size
+            if (cropW < 5 || cropH < 5) {
+                console.log("Crop area too small or invalid.");
+                activeCanvas = null; // Clear active canvas state
+                return;
+            }
+
+            // --- Extract from the SPECIFIC active canvas ---
+            extractRegion(activeCanvas, cropX, cropY, cropW, cropH);
+            activeCanvas = null; // Clear active canvas state
+        }
+
+        function cancelDrawing(e) {
+             // This listener is on the canvas, 'mouseleave' fires when pointer leaves its bounds
+             if (isDrawing && activeCanvas === e.target) { // Only cancel if drawing was active on THIS canvas
+                console.log("Drawing cancelled (mouse left active canvas).");
+                isDrawing = false;
+                hideCropOverlay();
+                activeCanvas = null; // Clear active canvas state
+            }
+        }
+
+        function hideCropOverlay() {
+            cropOverlay.style.display = 'none';
+        }
+
+
+        // --- Modified extractRegion to take source canvas ---
+        function extractRegion(sourceCanvas, x, y, width, height) {
+             if (!sourceCanvas) {
+                 console.error("Source canvas is missing for extraction.");
+                 return;
+             }
+             const pageNum = sourceCanvas.dataset.pageNumber || '?'; // Get page number if available
+
+            const tempCanvas = document.createElement('canvas');
+            tempCanvas.width = width;
+            tempCanvas.height = height;
+            const tempCtx = tempCanvas.getContext('2d');
+
+            try {
+                tempCtx.drawImage(
+                    sourceCanvas,        // Draw from the specific page's canvas
+                    x, y, width, height, // Source rectangle (from sourceCanvas)
+                    0, 0, width, height  // Destination rectangle (on temp canvas)
+                );
+
+                const dataUrl = tempCanvas.toDataURL('image/png');
+                const newImage = {
+                    id: nextImageId++,
+                    dataUrl: dataUrl,
+                    width: width,
+                    height: height,
+                    sourcePage: pageNum // Store source page number
+                };
+                extractedImagesData.push(newImage);
+                displayExtractedImage(newImage); // Update display function if needed to show page #
+                if (extractedImagesData.length > 0) {
+                     concatenateButton.disabled = false;
+                }
+
+            } catch (error) {
+                console.error(`Error extracting region from page ${pageNum}:`, error);
+                alert(`Could not extract the selected region from page ${pageNum}. It might be too large or invalid.`);
+            }
+        }
+
+        // --- Updated displayExtractedImage to show source page ---
+        function displayExtractedImage(imageData) {
+            const itemDiv = document.createElement('div');
+            itemDiv.classList.add('extracted-item');
+            itemDiv.setAttribute('draggable', 'true');
+            itemDiv.dataset.id = imageData.id; // Store unique ID
+
+            const img = document.createElement('img');
+            img.src = imageData.dataUrl;
+            img.alt = `Region ${imageData.id} (Page ${imageData.sourcePage})`;
+            img.title = `Region ${imageData.id} (Page ${imageData.sourcePage})`; // Tooltip
+            img.addEventListener('dragstart', (e) => e.preventDefault());
+
+            const infoSpan = document.createElement('span');
+            infoSpan.textContent = `#${imageData.id} (Pg ${imageData.sourcePage})`; // Show ID and Page
+
+            itemDiv.appendChild(img);
+            itemDiv.appendChild(infoSpan);
+            extractedImagesContainer.appendChild(itemDiv);
+
+            addDragListeners(itemDiv);
+        }
+
+
+        // --- Reordering Logic (Drag and Drop - NO CHANGES NEEDED HERE) ---
+        // Add listeners to the container
+        extractedImagesContainer.addEventListener('dragover', handleDragOverContainer);
+        extractedImagesContainer.addEventListener('dragleave', handleDragLeaveContainer);
+        extractedImagesContainer.addEventListener('drop', handleDropContainer);
+
+        let draggedItem = null;
+        let dragOverItem = null; // Track the item we are dragging over
+
+        function addDragListeners(item) { // Added to each item in displayExtractedImage
+            item.addEventListener('dragstart', handleDragStart);
+            item.addEventListener('dragend', handleDragEnd);
+        }
+
+        function handleDragStart(e) { /* ... unchanged ... */
+             draggedItem = this;
+            e.dataTransfer.effectAllowed = 'move';
+            try {
+                 e.dataTransfer.setData('text/plain', this.dataset.id);
+            } catch (err) {
+                 e.dataTransfer.setData('Text', this.dataset.id);
+            }
+            setTimeout(() => this.classList.add('dragging'), 0);
+        }
+
+        function handleDragOverContainer(e) { /* ... unchanged ... */
+            e.preventDefault();
+             e.dataTransfer.dropEffect = 'move';
+             this.classList.add('drag-over');
+             const target = e.target.closest('.extracted-item');
+             if (target && target !== draggedItem) {
+                 dragOverItem = target;
+             } else {
+                 dragOverItem = null;
+             }
+        }
+
+         function handleDragLeaveContainer(e) { /* ... unchanged ... */
+             if (!this.contains(e.relatedTarget)) {
+                this.classList.remove('drag-over');
+                dragOverItem = null;
+             }
+         }
+
+        function handleDropContainer(e) { /* ... unchanged ... */
+             e.preventDefault();
+            e.stopPropagation();
+            this.classList.remove('drag-over');
+            if (!draggedItem) return;
+            const draggedId = parseInt(draggedItem.dataset.id, 10);
+            let targetId = null;
+            const dropTargetElement = e.target.closest('.extracted-item');
+             if (dropTargetElement && dropTargetElement !== draggedItem) {
+                 targetId = parseInt(dropTargetElement.dataset.id, 10);
+             }
+            const draggedIndex = extractedImagesData.findIndex(item => item.id === draggedId);
+             if (draggedIndex === -1) { handleDragEndCleanup(); return; }
+            const [movedItem] = extractedImagesData.splice(draggedIndex, 1);
+             if (targetId !== null) {
+                const targetIndex = extractedImagesData.findIndex(item => item.id === targetId);
+                 if (targetIndex !== -1) {
+                     extractedImagesData.splice(targetIndex, 0, movedItem);
+                 } else {
+                     extractedImagesData.push(movedItem); // Fallback append
+                 }
+             } else {
+                 extractedImagesData.push(movedItem); // Append if no specific target
+             }
+            renderOrderedImages();
+            handleDragEndCleanup();
+        }
+
+         function handleDragEnd(e) { /* ... unchanged ... */
+            handleDragEndCleanup();
+        }
+
+        function handleDragEndCleanup() { /* ... unchanged ... */
+             if (draggedItem) { draggedItem.classList.remove('dragging'); }
+             extractedImagesContainer.classList.remove('drag-over');
+             draggedItem = null;
+             dragOverItem = null;
+         }
+
+        function renderOrderedImages() { /* ... unchanged ... */
+            extractedImagesContainer.innerHTML = '';
+            extractedImagesData.forEach(imageData => {
+                displayExtractedImage(imageData);
+            });
+        }
+
+
+        // --- Concatenation Logic (NO CHANGES NEEDED HERE) ---
+        concatenateButton.addEventListener('click', concatenateImages);
+
+        async function concatenateImages() { /* ... unchanged ... */
+            if (extractedImagesData.length === 0) { alert("No images extracted..."); return; }
+            concatenateButton.disabled = true;
+            finalImageContainer.innerHTML = '<p>Processing... Please wait.</p>';
+            downloadLink.style.display = 'none';
+            try {
+                const finalCanvas = document.createElement('canvas');
+                const finalCtx = finalCanvas.getContext('2d');
+                const imageLoadPromises = extractedImagesData.map(imgData => {
+                    return new Promise((resolve, reject) => {
+                        const img = new Image();
+                        img.onload = () => resolve(img);
+                        img.onerror = (err) => reject(`Failed to load image #${imgData.id}: ${err}`);
+                        img.src = imgData.dataUrl;
+                    });
+                });
+                const loadedImages = await Promise.all(imageLoadPromises);
+                let totalHeight = 0;
+                let maxWidth = 0;
+                loadedImages.forEach(img => {
+                    totalHeight += img.height;
+                    if (img.width > maxWidth) { maxWidth = img.width; }
+                });
+                 const MAX_CANVAS_AREA = 16777216 * 2; const MAX_CANVAS_DIM = 16384;
+                 if (maxWidth * totalHeight > MAX_CANVAS_AREA || maxWidth > MAX_CANVAS_DIM || totalHeight > MAX_CANVAS_DIM) {
+                     throw new Error(`Final image dimensions (${maxWidth}x${totalHeight}) may be too large...`);
+                 }
+                finalCanvas.width = maxWidth; finalCanvas.height = totalHeight;
+                finalCtx.fillStyle = '#FFFFFF'; finalCtx.fillRect(0, 0, finalCanvas.width, finalCanvas.height);
+                let currentY = 0;
+                loadedImages.forEach(img => {
+                    const drawX = (maxWidth - img.width) / 2;
+                    finalCtx.drawImage(img, drawX, currentY, img.width, img.height);
+                    currentY += img.height;
+                });
+                const finalDataUrl = finalCanvas.toDataURL('image/png');
+                if (!finalDataUrl || finalDataUrl === 'data:,') {
+                     throw new Error("Failed to generate final image data URL...");
+                }
+                const finalImage = document.createElement('img');
+                finalImage.onload = () => { concatenateButton.disabled = false; }
+                finalImage.onerror = () => {
+                     finalImageContainer.innerHTML = `<p style="color: red;">Error displaying generated image.</p>`;
+                     concatenateButton.disabled = false;
+                 }
+                finalImage.src = finalDataUrl;
+                finalImage.alt = "Concatenated Image";
+                finalImageContainer.innerHTML = ''; finalImageContainer.appendChild(finalImage);
+                downloadLink.href = finalDataUrl;
+                downloadLink.download = 'concatenated_regions.png';
+                downloadLink.style.display = 'inline-block';
+            } catch (error) {
+                console.error("Error concatenating images:", error);
+                finalImageContainer.innerHTML = `<p style="color: red;">Error creating final image: ${error.message || error}</p>`;
+                concatenateButton.disabled = false;
+            }
+         }
+        // --- End JavaScript Logic ---
+    </script>
+
+</body>
+</html>

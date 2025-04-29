@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Request, Form, UploadFile, File
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
-from typing import Optional
+from typing import Optional, List
 from datetime import datetime, timezone, timedelta
 from pydantic import BaseModel
 import os
@@ -74,14 +74,21 @@ async def dashboard(db: Session = Depends(get_db), current_user: User = Depends(
     ).all()
     teaching_courses = [enrollment.classroom for enrollment in ta_enrollments] + teaching_courses_prof   
     def course_to_dict(course):
+        student_enrollements = db.query(Enrollment).filter(
+            Enrollment.classroom == course,
+            Enrollment.status == "accepted",
+            Enrollment.role == "student"
+        )
         return {
             "id": course.id,
             "name": course.name,
             "subject": course.subject,
             "description": course.description,
             "class_code": course.class_code,
+            "number_of_students": student_enrollements.count(),
             "owner_name": getattr(course.owner, "full_name", "Unknown") if hasattr(course, "owner") else "Unknown",
-            "owner_email": getattr(course.owner, "email", "Unknown") if hasattr(course, "owner") else "Unknown"
+            "owner_email": getattr(course.owner, "email", "Unknown") if hasattr(course, "owner") else "Unknown",
+            "owner_photo": getattr(course.owner, "profile_picture", "Unknown") if hasattr(course, "owner") else "Unknown"
         }
     return JSONResponse({
         "user": {
@@ -475,6 +482,55 @@ async def get_assignment_comments(
     except Exception as e:
         logger.error(f"Error fetching comments: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail="An error occurred while fetching comments")
+
+@router.delete("/assignments/{assignment_id}/comments/{comment_id}")
+async def delete_assignment_comment(
+    assignment_id: int,
+    comment_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user_required)
+):
+    """Delete a comment/query for an assignment"""
+    try:
+        # Fetch the assignment
+        assignment = db.query(Assignment).filter(Assignment.id == assignment_id).first()
+        if not assignment:
+            raise HTTPException(status_code=404, detail="Assignment not found")
+
+        # Find the comment
+        comment = db.query(Query).filter(
+            Query.id == comment_id,
+            Query.related_assignment_id == assignment_id
+        ).first()
+        
+        if not comment:
+            raise HTTPException(status_code=404, detail="Comment not found")
+        
+        # Check if user is the comment author or a teacher/TA
+        is_author = comment.student_id == current_user.id
+        is_owner = assignment.classroom.owner_id == current_user.id
+        
+        enrollment = db.query(Enrollment).filter(
+            Enrollment.classroom_id == assignment.classroom_id,
+            Enrollment.student_id == current_user.id,
+            Enrollment.status == "accepted"
+        ).first()
+        
+        is_ta = enrollment and enrollment.role == "ta"
+        
+        if not (is_author or is_owner or is_ta):
+            raise HTTPException(status_code=403, detail="You can only delete your own comments")
+        
+        # Delete the comment
+        db.delete(comment)
+        db.commit()
+        
+        return {"success": True, "message": "Comment deleted successfully"}
+    except HTTPException as e:
+        raise e
+    except Exception as e:
+        logger.error(f"Error deleting comment: {str(e)}", exc_info=True)
+        raise HTTPException(status_code=500, detail="An error occurred while deleting the comment")
 
 @router.post("/assignments/{assignment_id}/submit")
 async def submit_assignment_file(
@@ -870,7 +926,8 @@ async def view_class(class_id: int, db: Session = Depends(get_db), current_user:
                 "author_name": author_name,
                 "can_edit": can_edit,
                 "exam_id": related_exam_id,
-                "assignment_id": related_assignment_id
+                "assignment_id": related_assignment_id,
+                "owner_photo": getattr(ann.author, "profile_picture", "Unknown") if hasattr(ann, "author") else "Unknown"
             }
         def assignment_to_dict(asmt):
             return {"id": asmt.id, "title": asmt.title, "description": asmt.description, "created_at": asmt.created_at.isoformat() if asmt.created_at else None}
@@ -1270,7 +1327,7 @@ async def get_class_classwork(
                         "id": user_result_obj.id,
                         "score": user_result_obj.marks_obtained,
                         "feedback": user_result_obj.feedback,
-                        "submitted_at": user_result_obj.submitted_at.isoformat() if user_result_obj.submitted_at else None
+                        "graded_at": user_result_obj.graded_at.isoformat() if user_result_obj.graded_at else None
                     }
             
             # Format exam
@@ -1315,3 +1372,54 @@ async def get_class_classwork(
     except Exception as e:
         logger.error(f"Error retrieving classwork: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"An error occurred while retrieving classwork: {str(e)}")
+
+@router.post("/assignments/materials")
+async def upload_assignment_materials(
+    assignment_id: int = Form(...),
+    material_type: str = Form(...),  # Possible values: questions, solution, marking
+    files: List[UploadFile] = File(...),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user_required)
+):
+    """Upload materials for an assignment (question paper, answer key, marking scheme)"""
+    try:
+        # Check if assignment exists
+        assignment = db.query(Assignment).filter(Assignment.id == assignment_id).first()
+        if not assignment:
+            raise HTTPException(status_code=404, detail="Assignment not found")
+
+        # Check if user is authorized (owner, professor or TA)
+        is_owner = assignment.classroom.owner_id == current_user.id
+        
+        if not is_owner and not current_user.is_professor:
+            enrollment = db.query(Enrollment).filter(
+                Enrollment.classroom_id == assignment.classroom_id,
+                Enrollment.student_id == current_user.id,
+                Enrollment.status == "accepted",
+                Enrollment.role == "ta"
+            ).first()
+            
+            if not enrollment:
+                raise HTTPException(status_code=403, detail="Only professors and TAs can upload materials")
+
+        # Create directory if not exists
+        material_dir = f"uploads/assignments/{assignment_id}/materials/{material_type.lower()}"
+        os.makedirs(material_dir, exist_ok=True)
+        
+        # Save files
+        saved_files = []
+        for file in files:
+            file_path = f"{material_dir}/{file.filename}"
+            with open(file_path, "wb") as f:
+                content = await file.read()
+                f.write(content)
+            saved_files.append(file_path)
+        
+        return {
+            "success": True,
+            "message": f"{material_type} materials uploaded successfully",
+            "files": saved_files
+        }
+    except Exception as e:
+        logger.error(f"Error uploading assignment materials: {str(e)}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"An error occurred while uploading materials: {str(e)}")

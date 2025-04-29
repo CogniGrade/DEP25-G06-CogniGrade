@@ -1,0 +1,1662 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Assignment | AutoGrade</title>
+    <link rel="stylesheet" href="professor-styles.css">
+    <link rel="stylesheet" href="student-styles.css">
+    <link rel="stylesheet" href="announcement-styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .assignment-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 24px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+            transition: box-shadow 0.3s ease;
+        }
+
+        .assignment-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .assignment-title {
+            font-size: 24px;
+            color: #1a73e8;
+            margin-bottom: 8px;
+            font-weight: 500;
+            letter-spacing: -0.02em;
+        }
+
+        .assignment-meta {
+            color: #5f6368;
+            font-size: 14px;
+            margin-bottom: 4px;
+            line-height: 1.5;
+        }
+
+        .assignment-points {
+            font-weight: 500;
+        }
+
+        .assignment-due {
+            font-weight: 500;
+            color: #c62828;
+        }
+
+        .status-pill {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 16px;
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 16px;
+            letter-spacing: 0.01em;
+            transition: transform 0.2s ease;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+        }
+
+        .status-missing {
+            background-color: #fce8e6;
+            color: #d93025;
+        }
+
+        .status-turned-in {
+            background-color: #e8f0fe;
+            color: #1a73e8;
+        }
+
+        .status-graded {
+            background-color: #e6f4ea;
+            color: #137333;
+        }
+
+        .right-panel {
+            text-align: right;
+        }
+
+        .assignment-description {
+            margin-bottom: 24px;
+            line-height: 1.5;
+        }
+
+        .submission-section {
+            margin-top: 24px;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1) inset;
+        }
+
+        .submission-title {
+            font-size: 18px;
+            font-weight: 500;
+            margin-bottom: 16px;
+            color: #202124;
+        }
+
+        .submission-form {
+            margin-top: 16px;
+        }
+
+        .file-upload {
+            border: 2px dashed #dadce0;
+            border-radius: 8px;
+            padding: 32px;
+            text-align: center;
+            margin-bottom: 16px;
+            background-color: #fff;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .file-upload:hover {
+            border-color: #1a73e8;
+            background-color: #f8f9fa;
+            transform: translateY(-2px);
+        }
+
+        .file-upload-icon {
+            font-size: 36px;
+            color: #5f6368;
+            margin-bottom: 12px;
+        }
+
+        .file-upload-text {
+            font-size: 14px;
+            color: #5f6368;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .submit-btn {
+            background-color: #1a73e8;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 10px 24px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+        }
+
+        .submit-btn:disabled {
+            background-color: #9ec1f0;
+            cursor: not-allowed;
+        }
+
+        .submit-btn:hover:not(:disabled) {
+            background-color: #1557b0;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            transform: translateY(-1px);
+        }
+
+        .feedback-section {
+            margin-top: 32px;
+            padding-top: 16px;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .grade-display {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background-color: #e6f4ea;
+            padding: 16px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+        }
+
+        .grade-title {
+            font-weight: 500;
+            color: #137333;
+        }
+
+        .grade-value {
+            font-size: 24px;
+            font-weight: 600;
+            color: #137333;
+        }
+
+        .teacher-feedback {
+            background-color: #f8f9fa;
+            padding: 16px;
+            border-radius: 8px;
+            margin-bottom: 24px;
+        }
+
+        .feedback-header {
+            font-weight: 500;
+            margin-bottom: 8px;
+        }
+
+        .submitted-file {
+            display: flex;
+            align-items: center;
+            background-color: #f1f3f4;
+            padding: 12px;
+            border-radius: 4px;
+            margin-bottom: 16px;
+        }
+
+        .file-icon {
+            font-size: 20px;
+            margin-right: 12px;
+            color: #5f6368;
+        }
+
+        .file-name {
+            flex-grow: 1;
+            font-size: 14px;
+        }
+
+        .file-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .file-action-btn {
+            background-color: #f1f3f4;
+            border: none;
+            border-radius: 4px;
+            color: #202124;
+            cursor: pointer;
+            font-size: 13px;
+            padding: 4px 8px;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .file-action-btn:hover {
+            background-color: #e8eaed;
+        }
+
+        /* New styles for file list */
+        .selected-files {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 12px;
+        }
+
+        .selected-files h3 {
+            font-size: 16px;
+            margin-bottom: 8px;
+        }
+
+        .file-item {
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            background-color: white;
+            border-radius: 6px;
+            margin-bottom: 8px;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+            transition: all 0.2s ease;
+        }
+        
+        .file-item:hover {
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+            transform: translateY(-2px);
+        }
+
+        .file-item .file-icon {
+            color: #4285f4;
+            margin-right: 12px;
+            font-size: 18px;
+        }
+
+        .file-item .file-name {
+            flex-grow: 1;
+            font-size: 14px;
+        }
+
+        .file-item .file-size {
+            color: #5f6368;
+            font-size: 12px;
+            margin-right: 8px;
+        }
+
+        .file-item .remove-file {
+            color: #d93025;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        /* Modal styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            overflow-y: auto;
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 5% auto;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            width: 80%;
+            max-width: 900px;
+        }
+        
+        .grading-form {
+            margin-top: 20px;
+        }
+        
+        .grading-form .form-group {
+            margin-top: 10px;
+        }
+        
+        .button-row {
+            margin-top: 20px;
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        
+        .grade-btn {
+            background-color: #4caf50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 10px 18px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+        }
+        
+        .grade-btn:hover {
+            background-color: #43a047;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            transform: translateY(-1px);
+        }
+        
+        .cancel-btn {
+            background-color: #9e9e9e;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 10px 18px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+        
+        .cancel-btn:hover {
+            background-color: #757575;
+            transform: translateY(-1px);
+        }
+        
+        /* Drag and drop highlight */
+        .file-upload.drag-over {
+            border-color: #4285f4;
+            background-color: #e8f0fe;
+        }
+        
+        /* Submitted files section */
+        .submitted-files {
+            margin-bottom: 16px;
+        }
+        
+        .submitted-file {
+            display: flex;
+            align-items: center;
+            padding: 8px 12px;
+            margin-bottom: 8px;
+            background-color: white;
+            border-radius: 4px;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+        }
+        
+        .submitted-file .file-icon {
+            font-size: 20px;
+            color: #4285f4;
+            margin-right: 10px;
+        }
+        
+        .submitted-file .file-name {
+            flex: 1;
+            font-size: 14px;
+        }
+        
+        .submitted-file .file-actions {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .file-action-btn {
+            background-color: #f1f3f4;
+            border: none;
+            border-radius: 4px;
+            color: #202124;
+            cursor: pointer;
+            font-size: 13px;
+            padding: 4px 8px;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .file-action-btn:hover {
+            background-color: #e8eaed;
+        }
+        
+        /* PDF viewer */
+        .pdf-container {
+            width: 100%;
+            height: 500px;
+            margin: 15px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            overflow: hidden;
+            display: none;
+        }
+        
+        .pdf-viewer {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+        
+        /* File preview container */
+        .file-preview-container {
+            width: 100%;
+            margin: 10px 0;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+            overflow: hidden;
+            display: none;
+        }
+        
+        .file-preview {
+            width: 100%;
+            height: 500px;
+            border: none;
+        }
+        
+        .image-preview {
+            max-width: 100%;
+            max-height: 500px;
+            display: block;
+            margin: 0 auto;
+        }
+        
+        .preview-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #f5f5f5;
+            padding: 8px 12px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        .preview-title {
+            font-weight: 500;
+            font-size: 14px;
+            color: #202124;
+        }
+        
+        .preview-close {
+            cursor: pointer;
+            color: #5f6368;
+            font-size: 18px;
+        }
+        
+        .preview-close:hover {
+            color: #d93025;
+        }
+
+        /* Comments section enhancements */
+        .announcement-comments {
+            margin-top: 32px;
+            border-top: 1px solid #e0e0e0;
+            padding-top: 24px;
+        }
+        
+        .announcement-comments h3 {
+            font-size: 18px;
+            font-weight: 500;
+            color: #202124;
+            margin-bottom: 16px;
+        }
+        
+        .comment {
+            padding: 16px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            transition: all 0.2s ease;
+        }
+        
+        .comment:hover {
+            background-color: #f1f3f4;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+        
+        .comment-input {
+            border: 1px solid #dadce0;
+            border-radius: 4px;
+            padding: 10px 12px;
+            font-size: 14px;
+            flex-grow: 1;
+            margin-right: 8px;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+        
+        .comment-input:focus {
+            border-color: #1a73e8;
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(26, 115, 232, 0.2);
+        }
+        
+        .post-comment-btn {
+            background-color: #1a73e8;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 8px 16px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .post-comment-btn:hover {
+            background-color: #1557b0;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Placeholder for Topbar -->
+    <div id="topbar-container"></div>
+
+    <div class="dashboard-container">
+        <!-- Placeholder for Sidebar -->
+        <div id="sidebar-container"></div>
+
+        <!-- Main Content -->
+        <main class="content">
+            <div class="assignment-container">
+                <div class="assignment-header">
+                    <div class="left-panel">
+                        <h1 class="assignment-title" id="assignmentTitle">Loading assignment...</h1>
+                        <div class="assignment-meta">
+                            <span id="assignmentAuthor">Loading...</span> •
+                            <span id="assignmentDate">Loading...</span>
+                        </div>
+                        <div class="assignment-meta">
+                            <span class="assignment-points" id="assignmentPoints">Loading...</span> •
+                            <span class="assignment-due" id="assignmentDue">Loading...</span>
+                        </div>
+                    </div>
+                    <div class="right-panel">
+                        <div class="status-pill" id="statusPill">Loading...</div>
+                        <div id="assignmentClass">Loading...</div>
+                    </div>
+                </div>
+
+                <div class="assignment-description" id="assignmentDescription">
+                    Loading assignment description...
+                </div>
+
+                <!-- Student View - Submission Section -->
+                <div class="submission-section" id="studentSubmissionSection" style="display: none;">
+                    <h2 class="submission-title">Your work</h2>
+
+                    <!-- No Submission Yet View -->
+                    <div id="noSubmissionView">
+                        <!-- Selected Files Preview -->
+                        <div id="selectedFilesPreview" class="selected-files" style="display: none; margin-bottom: 15px;">
+                            <h3>Selected Files</h3>
+                            <div id="selectedFilesList"></div>
+                        </div>
+                        
+                        <div class="submission-form">
+                            <div class="file-upload" id="dropZone">
+                                <div class="file-upload-icon">
+                                    <i class="fas fa-cloud-upload-alt"></i>
+                                </div>
+                                <div class="file-upload-text">
+                                    <p>Drag and drop files here or click to upload</p>
+                                </div>
+                                <input type="file" id="fileInput" class="file-input" multiple />
+                            </div>
+                            <button class="submit-btn" id="submitBtn" disabled>Turn in</button>
+                        </div>
+                    </div>
+
+                    <!-- Submission Already Made View -->
+                    <div id="submissionMadeView" style="display: none;">
+                        <div id="submittedFiles" class="submitted-files">
+                            <!-- Files will be loaded here -->
+                        </div>
+                        <div id="submissionDate" class="assignment-meta">Submitted Apr 10, 2023</div>
+                        <button class="file-action-btn" id="unsubmitBtn" style="margin-top: 10px;">Unsubmit</button>
+                    </div>
+
+                    <!-- Graded View -->
+                    <div id="gradedView" style="display: none;">
+                        <div class="grade-display">
+                            <div class="grade-title">Grade</div>
+                            <div class="grade-value" id="gradeValue">85/100</div>
+                        </div>
+                        <div class="teacher-feedback" id="teacherFeedbackContainer">
+                            <div class="feedback-header">Teacher Feedback</div>
+                            <div id="teacherFeedback">Great job on this assignment!</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Teacher View - Grading Section -->
+                <div class="submission-section" id="teacherGradingSection" style="display: none;">
+                    <h2 class="submission-title">Student Submissions</h2>
+                    <div id="submissionsList">
+                        Loading submissions...
+                    </div>
+                    
+                    <!-- Student Submission Detail Modal -->
+                    <div id="submissionModal" class="modal">
+                        <div class="modal-content">
+                            <h2>Student Submission</h2>
+                            <div id="submissionFiles" class="submission-files">
+                                <h3>Submitted Files</h3>
+                                <div id="submissionFilesList"></div>
+                            </div>
+                            <div class="grading-form">
+                                <h3>Grading</h3>
+                                <div class="form-group">
+                                    <label for="gradeInput">Grade:</label>
+                                    <input type="number" id="gradeInput" min="0" max="100" class="form-control">
+                                    <span>/ <span id="maxPoints">100</span></span>
+                                </div>
+                                <div class="form-group">
+                                    <label for="feedbackInput">Feedback:</label>
+                                    <textarea id="feedbackInput" class="form-control" rows="4"></textarea>
+                                </div>
+                                <div class="button-row">
+                                    <button id="saveGradeBtn" class="grade-btn">Save Grade</button>
+                                    <button id="closeModalBtn" class="cancel-btn">Close</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Comments Section -->
+                <div class="announcement-comments" id="comments-section">
+                    <h3>Class comments</h3>
+                    <div class="comments-list" id="comments-list">
+                        <!-- Comments will be loaded here -->
+                    </div>
+                    <div class="add-comment">
+                        <div class="comment-avatar">
+                            <span>U</span>
+                        </div>
+                        <div class="comment-input-container">
+                            <input type="text" class="comment-input" id="comment-input"
+                                placeholder="Add class comment...">
+                            <button class="post-comment-btn" id="post-comment-btn">Post</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="load-components.js"></script>
+    <script src="authorize.js"></script>
+    <script>
+        let assignment = null;
+        let classId = null;
+        let assignmentId = null;
+        let currentUser = null;
+        let submissions = [];
+        let userSubmission = null;
+        let selectedFiles = [];
+        let currentSubmission = null;
+
+        // Helper to get query parameter
+        function getQueryParam(param) {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get(param);
+        }
+
+        // Format date
+        function formatDate(dateString) {
+            if (!dateString) return "No due date";
+            const date = new Date(dateString);
+            return date.toLocaleDateString("en-US", {
+                month: "short",
+                day: "numeric",
+                year: "numeric"
+            });
+        }
+
+        // Format relative time
+        function formatRelativeTime(dateString) {
+            if (!dateString) return "No due date";
+
+            const date = new Date(dateString);
+            const now = new Date();
+            const diffTime = date - now;
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+            if (diffDays < 0) {
+                return "Past due";
+            } else if (diffDays === 0) {
+                return "Due today";
+            } else if (diffDays === 1) {
+                return "Due tomorrow";
+            } else {
+                return `Due in ${diffDays} days`;
+            }
+        }
+
+        // Load assignment details
+        async function loadAssignment() {
+            assignmentId = getQueryParam("assignment_id");
+            if (!assignmentId) {
+                alert("Assignment ID not provided");
+                return;
+            }
+
+            try {
+                // Fetch assignment data
+                const response = await authFetch(`/assignments/${assignmentId}`, {
+                    headers: { "Content-Type": "application/json" }
+                });
+
+                if (!response.ok) {
+                    throw new Error("Failed to fetch assignment data");
+                }
+
+                const data = await response.json();
+                assignment = data.assignment;
+                classId = assignment.classroom_id;
+                currentUser = data.user;
+
+                // Update UI with assignment details
+                document.getElementById("assignmentTitle").textContent = assignment.title;
+                document.getElementById("assignmentAuthor").textContent = assignment.author_name || "Unknown";
+                document.getElementById("assignmentDate").textContent = formatDate(assignment.created_at);
+                document.getElementById("assignmentPoints").textContent = `${assignment.points_possible} points`;
+                document.getElementById("assignmentDue").textContent = formatRelativeTime(assignment.due_date);
+                document.getElementById("assignmentDescription").innerHTML = assignment.description || "No description provided.";
+                document.getElementById("assignmentClass").textContent = data.classroom ? data.classroom.name : "Unknown Class";
+
+                // Display appropriate view based on user role
+                if (currentUser.is_professor || data.user_role === "ta") {
+                    // Show teacher view
+                    document.getElementById("teacherGradingSection").style.display = "block";
+                    document.getElementById("studentSubmissionSection").style.display = "none";
+                    loadSubmissions();
+                } else {
+                    // Show student view
+                    document.getElementById("teacherGradingSection").style.display = "none";
+                    document.getElementById("studentSubmissionSection").style.display = "block";
+                    loadUserSubmission();
+                }
+
+                // Load comments
+                loadComments();
+            } catch (error) {
+                console.error("Error loading assignment:", error);
+                document.getElementById("assignmentTitle").textContent = "Error loading assignment";
+            }
+        }
+
+        // Load user's submission for this assignment
+        async function loadUserSubmission() {
+            try {
+                const response = await authFetch(`/assignments/${assignmentId}/my-submission`, {
+                    headers: { "Content-Type": "application/json" }
+                });
+
+                if (!response.ok) {
+                    // No need to throw here, we'll just assume no submission
+                    updateSubmissionStatus("missing");
+                    return;
+                }
+
+                const data = await response.json();
+
+                // If no submission yet
+                if (!data.submission) {
+                    updateSubmissionStatus("missing");
+                    return;
+                }
+
+                userSubmission = data.submission;
+
+                // Update UI based on submission status
+                if (userSubmission.grade !== null) {
+                    // Submission has been graded
+                    updateSubmissionStatus("graded");
+                    document.getElementById("gradeValue").textContent = `${userSubmission.grade}/${assignment.points_possible}`;
+                    document.getElementById("teacherFeedback").textContent = userSubmission.feedback || "No feedback provided.";
+
+                    // Show graded view, hide other views
+                    document.getElementById("gradedView").style.display = "block";
+                    document.getElementById("submissionMadeView").style.display = "block";
+                    document.getElementById("noSubmissionView").style.display = "none";
+                } else {
+                    // Submission made but not graded
+                    updateSubmissionStatus("turned-in");
+                    document.getElementById("submissionDate").textContent = `Submitted ${formatDate(userSubmission.submitted_at)}`;
+
+                    // Show submission view, hide other views
+                    document.getElementById("submissionMadeView").style.display = "block";
+                    document.getElementById("noSubmissionView").style.display = "none";
+                    document.getElementById("gradedView").style.display = "none";
+                }
+
+                // Update files display if available
+                const submittedFilesContainer = document.getElementById("submittedFiles");
+                if (userSubmission.has_files && userSubmission.file_paths && userSubmission.file_paths.length > 0) {
+                    let filesHTML = "";
+                    userSubmission.file_paths.forEach((filePath, index) => {
+                        const fileName = filePath.split("/").pop();
+                        const fileExtension = fileName.split('.').pop().toLowerCase();
+                        let fileIcon = "fas fa-file";
+                        
+                        // Set appropriate icon based on file type
+                        if (['jpg', 'jpeg', 'png', 'gif'].includes(fileExtension)) {
+                            fileIcon = "fas fa-file-image";
+                        } else if (['pdf'].includes(fileExtension)) {
+                            fileIcon = "fas fa-file-pdf";
+                        } else if (['doc', 'docx'].includes(fileExtension)) {
+                            fileIcon = "fas fa-file-word";
+                        } else if (['xls', 'xlsx'].includes(fileExtension)) {
+                            fileIcon = "fas fa-file-excel";
+                        }
+                        
+                        // Properly format file URL with leading slash
+                        const fileUrl = filePath.startsWith("/") ? filePath : `/${filePath}`;
+                        
+                        filesHTML += `
+                        <div class="file-item">
+                            <i class="${fileIcon} file-icon"></i>
+                            <div class="file-name">${fileName}</div>
+                            <div class="file-actions">
+                                <button onclick="toggleFilePreview('${fileUrl}', '${fileName}', '${fileExtension}', 'student-preview-${index}')" class="file-action-btn">View</button>
+                                <a href="${fileUrl}" download class="file-action-btn">Download</a>
+                            </div>
+                        </div>
+                        <div id="student-preview-${index}" class="file-preview-container">
+                            <div class="preview-header">
+                                <div class="preview-title">${fileName}</div>
+                                <div class="preview-close" onclick="closeFilePreview('student-preview-${index}')">
+                                    <i class="fas fa-times"></i>
+                                </div>
+                            </div>
+                            <div class="preview-content"></div>
+                        </div>
+                        `;
+                    });
+                    
+                    submittedFilesContainer.innerHTML = filesHTML;
+                } else if (userSubmission.file_path) {
+                    // Backward compatibility for single file
+                    const fileName = userSubmission.file_path.split("/").pop();
+                    const fileExtension = fileName.split('.').pop().toLowerCase();
+                    // Properly format file URL with leading slash
+                    const fileUrl = userSubmission.file_path.startsWith("/") ? userSubmission.file_path : `/${userSubmission.file_path}`;
+                    
+                    let filesHTML = `
+                    <div class="file-item">
+                        <i class="fas fa-file-alt file-icon"></i>
+                        <div class="file-name">${fileName}</div>
+                        <div class="file-actions">
+                            <button onclick="toggleFilePreview('${fileUrl}', '${fileName}', '${fileExtension}', 'student-preview-single')" class="file-action-btn">View</button>
+                            <a href="${fileUrl}" download class="file-action-btn">Download</a>
+                        </div>
+                    </div>
+                    <div id="student-preview-single" class="file-preview-container">
+                        <div class="preview-header">
+                            <div class="preview-title">${fileName}</div>
+                            <div class="preview-close" onclick="closeFilePreview('student-preview-single')">
+                                <i class="fas fa-times"></i>
+                            </div>
+                        </div>
+                        <div class="preview-content"></div>
+                    </div>
+                    `;
+                    
+                    submittedFilesContainer.innerHTML = filesHTML;
+                } else {
+                    submittedFilesContainer.innerHTML = `<p>No files submitted</p>`;
+                }
+            } catch (error) {
+                console.error("Error loading user submission:", error);
+                // Just show the submission form
+                updateSubmissionStatus("missing");
+            }
+        }
+
+        // Update the status pill
+        function updateSubmissionStatus(status) {
+            const statusPill = document.getElementById("statusPill");
+            statusPill.textContent = status.charAt(0).toUpperCase() + status.slice(1);
+
+            // Remove all status classes
+            statusPill.classList.remove("status-missing", "status-turned-in", "status-graded");
+
+            // Add appropriate class
+            statusPill.classList.add(`status-${status}`);
+        }
+
+        // Load all submissions (for teachers)
+        async function loadSubmissions() {
+            try {
+                const response = await authFetch(`/assignments/${assignmentId}/submissions`, {
+                    headers: { "Content-Type": "application/json" }
+                });
+
+                if (!response.ok) {
+                    throw new Error("Failed to fetch submissions");
+                }
+
+                const data = await response.json();
+                submissions = data.submissions || [];
+
+                const submissionsList = document.getElementById("submissionsList");
+                if (submissions.length === 0) {
+                    submissionsList.innerHTML = "<p>No submissions yet</p>";
+                    return;
+                }
+
+                let submissionsHTML = "";
+                submissions.forEach(submission => {
+                    const status = submission.grade !== null ? "Graded" : "Submitted";
+                    const statusClass = submission.grade !== null ? "status-graded" : "status-turned-in";
+                    
+                    // Check if submission has multiple files or a single file
+                    const hasFiles = (submission.has_files && submission.file_paths && submission.file_paths.length > 0) || submission.file_path;
+                    const fileIcon = hasFiles ? 
+                        `<i class="fas fa-file-alt" style="margin-right: 8px; color: #4285f4;"></i>` : '';
+                    
+                    // Determine file count for display
+                    let fileCountText = "";
+                    if (submission.has_files && submission.file_paths) {
+                        fileCountText = submission.file_paths.length > 1 ? 
+                            `(${submission.file_paths.length} files)` : 
+                            "(1 file)";
+                    } else if (submission.file_path) {
+                        fileCountText = "(1 file)";
+                    }
+
+                    submissionsHTML += `
+                    <div class="submission-item">
+                        <div class="submission-header">
+                            <div class="student-name">${submission.student_name} ${fileIcon} ${fileCountText}</div>
+                            <div class="status-pill ${statusClass}">${status}</div>
+                        </div>
+                        <div class="submission-content">
+                            <div class="submission-date">Submitted on ${formatDate(submission.submitted_at)}</div>
+                            <div class="submission-actions">
+                                ${hasFiles ? 
+                                    `<button class="view-btn" onclick="viewSubmission(${submission.id})">View Files</button>` : 
+                                    `<span class="no-file">No files</span>`
+                                }
+                            ${submission.grade !== null ?
+                            `<div class="submission-grade">Grade: ${submission.grade}/${assignment.points_possible}</div>` :
+                                    `<button class="grade-btn" onclick="viewSubmission(${submission.id})">Grade</button>`
+                        }
+                            </div>
+                        </div>
+                    </div>
+                    `;
+                });
+
+                submissionsList.innerHTML = submissionsHTML;
+            } catch (error) {
+                console.error("Error loading submissions:", error);
+                document.getElementById("submissionsList").innerHTML = "<p>Error loading submissions</p>";
+            }
+        }
+
+        // View submission details - opens the modal
+        function viewSubmission(submissionId) {
+            // Find submission by ID
+            const submission = submissions.find(sub => sub.id === submissionId);
+            if (!submission) {
+                alert("Submission not found");
+                return;
+            }
+
+            // Set current submission for grading
+            currentSubmission = submission;
+
+            // Update modal content
+            document.getElementById("maxPoints").textContent = assignment.points_possible;
+            
+            // Display files if available
+            const filesList = document.getElementById("submissionFilesList");
+            if (submission.has_files && submission.file_paths && submission.file_paths.length > 0) {
+                let filesHTML = "";
+                submission.file_paths.forEach((filePath, index) => {
+                    const fileName = filePath.split("/").pop();
+                    const fileExtension = fileName.split('.').pop().toLowerCase();
+                    let fileIcon = "fas fa-file";
+                    
+                    // Set appropriate icon based on file type
+                    if (['jpg', 'jpeg', 'png', 'gif'].includes(fileExtension)) {
+                        fileIcon = "fas fa-file-image";
+                    } else if (['pdf'].includes(fileExtension)) {
+                        fileIcon = "fas fa-file-pdf";
+                    } else if (['doc', 'docx'].includes(fileExtension)) {
+                        fileIcon = "fas fa-file-word";
+                    } else if (['xls', 'xlsx'].includes(fileExtension)) {
+                        fileIcon = "fas fa-file-excel";
+                    }
+                    
+                    // Properly format file URL with leading slash
+                    const fileUrl = filePath.startsWith("/") ? filePath : `/${filePath}`;
+                    
+                    filesHTML += `
+                    <div class="file-item">
+                        <i class="${fileIcon} file-icon"></i>
+                        <div class="file-name">${fileName}</div>
+                        <div class="file-actions">
+                            <button onclick="toggleFilePreview('${fileUrl}', '${fileName}', '${fileExtension}', 'teacher-preview-${index}')" class="file-action-btn">View</button>
+                            <a href="${fileUrl}" download class="file-action-btn">Download</a>
+                        </div>
+                    </div>
+                    <div id="teacher-preview-${index}" class="file-preview-container">
+                        <div class="preview-header">
+                            <div class="preview-title">${fileName}</div>
+                            <div class="preview-close" onclick="closeFilePreview('teacher-preview-${index}')">
+                                <i class="fas fa-times"></i>
+                            </div>
+                        </div>
+                        <div class="preview-content"></div>
+                    </div>
+                    `;
+                });
+                
+                filesList.innerHTML = filesHTML;
+            } else if (submission.file_path) {
+                // Backward compatibility for single file
+                const fileName = submission.file_path.split("/").pop();
+                const fileExtension = fileName.split('.').pop().toLowerCase();
+                // Properly format file URL with leading slash
+                const fileUrl = submission.file_path.startsWith("/") ? submission.file_path : `/${submission.file_path}`;
+                
+                filesList.innerHTML = `
+                <div class="file-item">
+                    <i class="fas fa-file-alt file-icon"></i>
+                    <div class="file-name">${fileName}</div>
+                    <div class="file-actions">
+                        <button onclick="toggleFilePreview('${fileUrl}', '${fileName}', '${fileExtension}', 'teacher-preview-single')" class="file-action-btn">View</button>
+                        <a href="${fileUrl}" download class="file-action-btn">Download</a>
+                    </div>
+                </div>
+                <div id="teacher-preview-single" class="file-preview-container">
+                    <div class="preview-header">
+                        <div class="preview-title">${fileName}</div>
+                        <div class="preview-close" onclick="closeFilePreview('teacher-preview-single')">
+                            <i class="fas fa-times"></i>
+                        </div>
+                    </div>
+                    <div class="preview-content"></div>
+                </div>
+                `;
+            } else {
+                filesList.innerHTML = `<p>No files submitted</p>`;
+            }
+            
+            // Set grade and feedback if already graded
+            const gradeInput = document.getElementById("gradeInput");
+            const feedbackInput = document.getElementById("feedbackInput");
+            
+            if (submission.grade !== null) {
+                gradeInput.value = submission.grade;
+                feedbackInput.value = submission.feedback || "";
+            } else {
+                gradeInput.value = "";
+                feedbackInput.value = "";
+            }
+            
+            // Show the modal
+            document.getElementById("submissionModal").style.display = "block";
+        }
+
+        // Close the submission modal
+        function closeSubmissionModal() {
+            document.getElementById("submissionModal").style.display = "none";
+        }
+
+        // Save grade for a submission
+        async function saveGrade() {
+            if (!currentSubmission) {
+                alert("No submission selected");
+                return;
+            }
+            
+            const gradeInput = document.getElementById("gradeInput");
+            const feedbackInput = document.getElementById("feedbackInput");
+            
+            const grade = parseInt(gradeInput.value);
+            if (isNaN(grade) || grade < 0 || grade > assignment.points_possible) {
+                alert(`Please enter a valid grade between 0 and ${assignment.points_possible}`);
+                return;
+            }
+            
+            const gradeData = {
+                grade: grade,
+                feedback: feedbackInput.value
+            };
+            
+            try {
+                console.log("Submitting grade:", gradeData);
+                const response = await authFetch(`/submissions/${currentSubmission.id}/grade`, {
+                    method: "POST",
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(gradeData)
+                });
+                
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.detail || "Failed to save grade");
+                }
+                
+                // Close modal and reload submissions
+                closeSubmissionModal();
+                loadSubmissions();
+                
+                // Show success message
+                alert("Grade saved successfully!");
+            } catch (error) {
+                console.error("Error saving grade:", error);
+                alert("Error saving grade: " + (error.message || "Please try again."));
+            }
+        }
+
+        // Handle file input change
+        function handleFileInputChange(event) {
+            const files = event.target.files;
+            addFilesToList(files);
+        }
+
+        // Add files to the selected files list
+        function addFilesToList(files) {
+            for (let i = 0; i < files.length; i++) {
+                // Skip if file already exists in the list
+                if (selectedFiles.find(f => f.name === files[i].name && f.size === files[i].size)) {
+                    continue;
+                }
+                selectedFiles.push(files[i]);
+            }
+            
+            updateSelectedFilesPreview();
+        }
+
+        // Remove a file from the selected files list
+        function removeFile(index) {
+            selectedFiles.splice(index, 1);
+            updateSelectedFilesPreview();
+        }
+
+        // Update the preview of selected files
+        function updateSelectedFilesPreview() {
+            const filesList = document.getElementById("selectedFilesList");
+            const filesPreview = document.getElementById("selectedFilesPreview");
+            const submitBtn = document.getElementById("submitBtn");
+            
+            if (selectedFiles.length === 0) {
+                filesPreview.style.display = "none";
+                submitBtn.disabled = true;
+                return;
+            }
+            
+            filesPreview.style.display = "block";
+            submitBtn.disabled = false;
+            
+            let filesHTML = "";
+            selectedFiles.forEach((file, index) => {
+                let fileSize = "";
+                if (file.size !== undefined && file.size !== 0) {
+                    fileSize = formatFileSize(file.size);
+                }
+                
+                const fileExtension = file.name.split('.').pop().toLowerCase();
+                let fileIcon = "fas fa-file";
+                
+                // Set appropriate icon based on file type
+                if (['jpg', 'jpeg', 'png', 'gif'].includes(fileExtension)) {
+                    fileIcon = "fas fa-file-image";
+                } else if (['pdf'].includes(fileExtension)) {
+                    fileIcon = "fas fa-file-pdf";
+                } else if (['doc', 'docx'].includes(fileExtension)) {
+                    fileIcon = "fas fa-file-word";
+                } else if (['xls', 'xlsx'].includes(fileExtension)) {
+                    fileIcon = "fas fa-file-excel";
+                }
+                
+                filesHTML += `
+                <div class="file-item">
+                    <i class="${fileIcon} file-icon"></i>
+                    <div class="file-name">${file.name}</div>
+                    ${fileSize ? `<div class="file-size">${fileSize}</div>` : ''}
+                    <i class="fas fa-times remove-file" onclick="removeFile(${index})"></i>
+                </div>
+                `;
+            });
+            
+            filesList.innerHTML = filesHTML;
+        }
+
+        // Format file size for display
+        function formatFileSize(bytes) {
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            if (bytes === 0) return '0 Bytes';
+            const i = parseInt(Math.floor(Math.log(bytes) / Math.log(1024)));
+            return Math.round(bytes / Math.pow(1024, i), 2) + ' ' + sizes[i];
+        }
+
+        // Setup drag and drop functionality
+        function setupDragAndDrop() {
+            const dropZone = document.getElementById("dropZone");
+            const fileInput = document.getElementById("fileInput");
+            
+            // Handle click on drop zone
+            dropZone.addEventListener("click", () => {
+                fileInput.click();
+            });
+            
+            // Handle file selection
+            fileInput.addEventListener("change", handleFileInputChange);
+            
+            // Prevent default drag behaviors
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                dropZone.addEventListener(eventName, preventDefaults, false);
+            });
+            
+            // Highlight drop zone when dragging over it
+            ['dragenter', 'dragover'].forEach(eventName => {
+                dropZone.addEventListener(eventName, highlight, false);
+            });
+            
+            ['dragleave', 'drop'].forEach(eventName => {
+                dropZone.addEventListener(eventName, unhighlight, false);
+            });
+            
+            // Handle dropped files
+            dropZone.addEventListener('drop', handleDrop, false);
+            
+            function preventDefaults(e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+            
+            function highlight() {
+                dropZone.classList.add('drag-over');
+            }
+            
+            function unhighlight() {
+                dropZone.classList.remove('drag-over');
+            }
+            
+            function handleDrop(e) {
+                const dt = e.dataTransfer;
+                const files = dt.files;
+                addFilesToList(files);
+            }
+        }
+
+        // Submit assignment with multiple files
+        async function submitAssignment() {
+            if (selectedFiles.length === 0) {
+                alert("Please select at least one file to upload");
+                return;
+            }
+
+            // Show loading indicator
+            const submitBtn = document.getElementById("submitBtn");
+            const originalText = submitBtn.textContent;
+            submitBtn.textContent = "Uploading...";
+            submitBtn.disabled = true;
+
+            try {
+                // Submit each file sequentially
+                for (let i = 0; i < selectedFiles.length; i++) {
+                    const file = selectedFiles[i];
+                    
+                    // If this is a file from a previous unsubmission with a path
+                    if (file.path) {
+                        // We need to fetch the file from the server and re-upload it
+                        console.log(`Re-submitting file from path: ${file.path}`);
+                        
+                        try {
+                            // Fetch the file content
+                            const fileResponse = await fetch(file.path.startsWith("/") ? file.path : `/${file.path}`);
+                            if (!fileResponse.ok) {
+                                throw new Error(`Failed to fetch file: ${file.name}`);
+                            }
+                            
+                            // Convert to blob
+                            const blob = await fileResponse.blob();
+                            
+                            // Create a File object
+                            const fileObj = new File([blob], file.name, { type: blob.type });
+                            
+                            // Submit the file
+                            const formData = new FormData();
+                            formData.append("file", fileObj);
+                            
+                            const response = await authFetch(`/assignments/${assignmentId}/submit`, {
+                                method: "POST",
+                                body: formData
+                            });
+                            
+                            if (!response.ok) {
+                                const errorData = await response.json();
+                                throw new Error(errorData.detail || "Failed to submit assignment");
+                            }
+                        } catch (error) {
+                            console.error(`Error re-submitting file ${file.name}:`, error);
+                            throw new Error(`Failed to re-submit file ${file.name}: ${error.message}`);
+                        }
+                    } else {
+                        // Regular file upload for new files
+            const formData = new FormData();
+            formData.append("file", file);
+
+                        console.log(`Submitting file ${i+1}/${selectedFiles.length}: ${file.name}`);
+                const response = await authFetch(`/assignments/${assignmentId}/submit`, {
+                    method: "POST",
+                    body: formData
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.detail || "Failed to submit assignment");
+                        }
+                    }
+                }
+
+                // Clear selected files
+                selectedFiles = [];
+                updateSelectedFilesPreview();
+
+                // Reload submission data
+                loadUserSubmission();
+
+                // Show success message
+                alert("Assignment submitted successfully!");
+            } catch (error) {
+                console.error("Error submitting assignment:", error);
+                alert("Error submitting assignment: " + (error.message || "Please try again."));
+            } finally {
+                // Reset button
+                submitBtn.textContent = originalText;
+                submitBtn.disabled = (selectedFiles.length === 0);
+            }
+        }
+
+        // Unsubmit assignment
+        async function unsubmitAssignment() {
+            if (!confirm("Are you sure you want to unsubmit this assignment? You will need to resubmit before the due date.")) {
+                return;
+            }
+
+            try {
+                const response = await authFetch(`/assignments/${assignmentId}/unsubmit`, {
+                    method: "POST"
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.detail || "Failed to unsubmit assignment");
+                }
+                
+                const data = await response.json();
+                
+                // Update status to missing
+                updateSubmissionStatus("missing");
+                
+                // Show the submission form instead of the submitted view
+                document.getElementById("submissionMadeView").style.display = "none";
+                document.getElementById("noSubmissionView").style.display = "block";
+                document.getElementById("gradedView").style.display = "none";
+                
+                // If there are files returned, add them to the selected files list
+                if (data.files && data.files.length > 0) {
+                    // We need to create File objects from the returned file paths
+                    selectedFiles = [];
+                    
+                    // For each file path, extract filename and add to selected files
+                    data.files.forEach(filePath => {
+                        const fileName = filePath.split("/").pop();
+                        
+                        // Create a placeholder File object
+                        // Note: we can't create actual File objects from just paths
+                        // but we can fake it for the UI
+                        const fakeFile = {
+                            name: fileName,
+                            size: 0, // We don't know the size
+                            path: filePath
+                        };
+                        
+                        selectedFiles.push(fakeFile);
+                    });
+                    
+                    // Update the files preview
+                    updateSelectedFilesPreview();
+                }
+
+                // Show success message
+                alert("Assignment unsubmitted successfully. Don't forget to resubmit before the due date!");
+            } catch (error) {
+                console.error("Error unsubmitting assignment:", error);
+                alert("Error unsubmitting assignment: " + (error.message || "Please try again."));
+            }
+        }
+
+        // Load comments
+        async function loadComments() {
+            try {
+                const response = await authFetch(`/assignments/${assignmentId}/comments`, {
+                    headers: { "Content-Type": "application/json" }
+                });
+
+                if (!response.ok) {
+                    throw new Error("Failed to fetch comments");
+                }
+
+                const data = await response.json();
+                const comments = data.comments || [];
+
+                const commentsList = document.getElementById("comments-list");
+                if (comments.length === 0) {
+                    commentsList.innerHTML = "<p>No comments yet</p>";
+                    return;
+                }
+
+                // Render comments
+                let commentsHTML = "";
+                comments.forEach(comment => {
+                    const dateString = new Date(comment.created_at).toLocaleString("en-US", {
+                        month: "short",
+                        day: "numeric",
+                        hour: "numeric",
+                        minute: "numeric"
+                    });
+
+                    commentsHTML += `
+                    <div class="comment">
+                        <div class="comment-header">
+                            <div class="comment-author">${comment.author_name}</div>
+                            <div class="comment-date">${dateString}</div>
+                        </div>
+                        <div class="comment-content">${comment.content}</div>
+                    </div>
+                    `;
+                });
+
+                commentsList.innerHTML = commentsHTML;
+            } catch (error) {
+                console.error("Error loading comments:", error);
+                document.getElementById("comments-list").innerHTML = "<p>Error loading comments</p>";
+            }
+        }
+
+        // Post comment
+        async function postComment() {
+            const commentInput = document.getElementById("comment-input");
+            const commentText = commentInput.value.trim();
+
+            if (!commentText) return;
+
+            try {
+                const queryData = {
+                    title: "Comment",
+                    content: commentText,
+                    related_assignment_id: assignmentId
+                };
+
+                const response = await authFetch(`/classes/${classId}/queries`, {
+                    method: "POST",
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(queryData)
+                });
+
+                if (!response.ok) {
+                    throw new Error("Failed to post comment");
+                }
+
+                // Clear input and reload comments
+                commentInput.value = "";
+                loadComments();
+            } catch (error) {
+                console.error("Error posting comment:", error);
+                alert("Error posting comment. Please try again.");
+            }
+        }
+
+        // Initialize event listeners
+        function initEventListeners() {
+            // Set up drag and drop
+            setupDragAndDrop();
+            
+            // Submit button
+            const submitBtn = document.getElementById("submitBtn");
+            if (submitBtn) {
+                submitBtn.addEventListener("click", submitAssignment);
+            }
+
+            // Unsubmit button
+            const unsubmitBtn = document.getElementById("unsubmitBtn");
+            if (unsubmitBtn) {
+                unsubmitBtn.addEventListener("click", unsubmitAssignment);
+            }
+
+            // Post comment button
+            const postCommentBtn = document.getElementById("post-comment-btn");
+            if (postCommentBtn) {
+                postCommentBtn.addEventListener("click", postComment);
+            }
+
+            // Comment input enter key
+            const commentInput = document.getElementById("comment-input");
+            if (commentInput) {
+                commentInput.addEventListener("keydown", function (event) {
+                    if (event.key === "Enter") {
+                        event.preventDefault();
+                        postComment();
+                    }
+                });
+            }
+            
+            // Modal close button
+            const closeModalBtn = document.getElementById("closeModalBtn");
+            if (closeModalBtn) {
+                closeModalBtn.addEventListener("click", closeSubmissionModal);
+            }
+            
+            // Save grade button
+            const saveGradeBtn = document.getElementById("saveGradeBtn");
+            if (saveGradeBtn) {
+                saveGradeBtn.addEventListener("click", saveGrade);
+            }
+            
+            // Close modal when clicking outside
+            const modal = document.getElementById("submissionModal");
+            if (modal) {
+                window.addEventListener("click", function(event) {
+                    if (event.target === modal) {
+                        closeSubmissionModal();
+                    }
+                });
+            }
+        }
+
+        // Initialize on page load
+        document.addEventListener("DOMContentLoaded", function () {
+            loadAssignment();
+            initEventListeners();
+        });
+
+        // Function to toggle file preview
+        function toggleFilePreview(fileUrl, fileName, fileExtension, containerId) {
+            const container = document.getElementById(containerId);
+            const previewContent = container.querySelector('.preview-content');
+            
+            // If container is already visible, hide it
+            if (container.style.display === 'block') {
+                container.style.display = 'none';
+                return;
+            }
+            
+            // Clear previous content
+            previewContent.innerHTML = '';
+            
+            // Generate preview based on file type
+            if (['jpg', 'jpeg', 'png', 'gif'].includes(fileExtension.toLowerCase())) {
+                // Image preview
+                previewContent.innerHTML = `<img src="${fileUrl}" class="image-preview" alt="${fileName}">`;
+            } else if (fileExtension.toLowerCase() === 'pdf') {
+                // PDF preview
+                previewContent.innerHTML = `<iframe class="file-preview" src="${fileUrl}" type="application/pdf"></iframe>`;
+            } else if (['mp4', 'webm', 'ogg'].includes(fileExtension.toLowerCase())) {
+                // Video preview
+                previewContent.innerHTML = `
+                <video class="file-preview" controls>
+                    <source src="${fileUrl}" type="video/${fileExtension.toLowerCase() === 'mp4' ? 'mp4' : 
+                                                           fileExtension.toLowerCase() === 'webm' ? 'webm' : 'ogg'}">
+                    Your browser does not support the video tag.
+                </video>`;
+            } else if (['mp3', 'wav'].includes(fileExtension.toLowerCase())) {
+                // Audio preview
+                previewContent.innerHTML = `
+                <audio class="file-preview" controls style="width: 100%; margin: 20px 0;">
+                    <source src="${fileUrl}" type="audio/${fileExtension.toLowerCase()}">
+                    Your browser does not support the audio tag.
+                </audio>`;
+            } else {
+                // Default to iframe for all other files
+                previewContent.innerHTML = `
+                <div style="padding: 20px; text-align: center;">
+                    <p>This file type (${fileExtension.toUpperCase()}) cannot be previewed directly.</p>
+                    <a href="${fileUrl}" target="_blank" class="file-action-btn" style="margin-top: 10px;">
+                        Open in New Window
+                    </a>
+                </div>`;
+            }
+            
+            // Show the container
+            container.style.display = 'block';
+            
+            // Close any other open previews
+            const allPreviews = document.querySelectorAll('.file-preview-container');
+            allPreviews.forEach(preview => {
+                if (preview.id !== containerId && preview.style.display === 'block') {
+                    preview.style.display = 'none';
+                }
+            });
+        }
+        
+        // Function to close file preview
+        function closeFilePreview(containerId) {
+            const container = document.getElementById(containerId);
+            if (container) {
+                container.style.display = 'none';
+            }
+        }
+    </script>
+</body>
+
+</html>

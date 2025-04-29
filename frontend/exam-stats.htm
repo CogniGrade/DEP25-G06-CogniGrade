@@ -1,0 +1,1302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Exam Statistics</title>
+  
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="professor-styles.css">
+  <!-- Chart.js for graphs -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    
+    /* General Layout */
+    
+    h1 {
+      font-size: 2em;
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 30px;
+      text-align: left; /* Adopted from Code UI 2 for h1 */
+    }
+    .card {
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+    .card2 {
+      background: #fff;
+      border-radius: 8px;
+      /* box-shadow: 0 2px 8px rgba(0,0,0,0.1); */
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+    .card h2 {
+      font-size: 1.5em;
+      font-weight: 500;
+      color: #333;
+      margin-bottom: 15px;
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+    
+    /* Status Bar */
+    .status-bar p {
+      margin-bottom: 10px;
+      font-weight: 500;
+    }
+    .progress {
+      background: #e0e0e0;
+      border-radius: 10px;
+      height: 20px;
+      overflow: hidden;
+    }
+    .progress-bar {
+      height: 100%;
+      background: linear-gradient(to right, #4caf50, #2196f3);
+      transition: width 0.5s ease;
+    }
+    /* Search and Filter */
+    .search-filter {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+    }
+    .search-container {
+      position: relative;
+      flex: 1;
+      min-width: 200px;
+    }
+    .search-container i {
+      position: absolute;
+      left: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #aaa;
+    }
+    .search-container input,
+    .search-filter select,
+    .search-filter input[type="number"] {
+      padding: 10px;
+      padding-left: 35px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 1em;
+      width: 100%;
+    }
+    .search-filter select,
+    .search-filter input[type="number"] {
+      padding-left: 10px;
+      width: auto;
+    }
+    /* Tables */
+    .table-container {
+      margin-bottom: 30px;
+      overflow-x: auto;
+      border-radius: 12px;
+    }
+    .table-container table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      background-color: white;
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    .table-container th, td {
+      padding: 16px;
+      text-align: left;
+      border-bottom: 1px solid #f1f1f1;
+    }
+    .table-container th {
+      background: #f8fafc;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 15px;
+      color: #647180;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      white-space: nowrap;
+      position: relative;
+    }
+    .table-container th:hover {
+      background: #f0f2f5;
+    }
+    .table-container th::after {
+      content: '⇅';
+      margin-left: 8px;
+      opacity: 0.2;
+    }
+    .table-container th:hover::after {
+      opacity: 0.7;
+    }
+    .table-container tr:hover {
+      background: #f8fafc;
+    }
+    .table-container tr {
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .table-container td {
+      font-size: 15px;
+      color: #394258;
+    }
+    .table-container tbody tr:last-child td {
+      border-bottom: none;
+    }
+    .table-container td:nth-child(3), td:nth-child(4) {
+      font-weight: 500;
+    }
+    .table-container td:nth-child(4) {
+      color: #5e72e4;
+    }
+    /* Charts */
+    .chart-container {
+      width: 100%;
+      max-width: 600px;
+      margin: 20px auto;
+    }
+    /* Question-Wise Metrics Container (Modified from Code UI 2) */
+    .question-selector select {
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      width: 100%;
+      max-width: 300px;
+    }
+    /* ---------- Button Stylings from Code UI 2 ---------- */
+    .content button,
+    .btn, .btn-primary, .btn-danger, .btn-success, .btn-warning {
+      padding: 10px 16px;
+      border: none;
+      border-radius: 8px;
+      background-color: #5e72e4;
+      color: #fff;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-weight: 500;
+      font-family: 'Poppins', sans-serif;
+    }
+    .content button:hover,
+    .btn:hover, .btn-primary:hover, .btn-danger:hover, .btn-success:hover, .btn-warning:hover {
+      background-color: #4a5bbe;
+      transform: translateY(-1px);
+    }
+    .content button:active,
+    .btn:active, .btn-primary:active, .btn-danger:active, .btn-success:active, .btn-warning:active {
+      background-color: #3a4a9e;
+      transform: translateY(0);
+    }
+    /* Specific Button Overrides (from Code UI 2) */
+    .content button[onclick="dropQuestion()"] {
+      background-color: #f5365c;
+    }
+    .content button[onclick="dropQuestion()"]:hover {
+      background-color: #d92550;
+    }
+    .content button[onclick="awardFullMarks()"] {
+      background-color: #2dce89;
+    }
+    .content button[onclick="awardFullMarks()"]:hover {
+      background-color: #26ab74;
+    }
+    .content button[onclick^="reevaluateAnswer("] {
+      background-color: #f5365c;
+    }
+    .content button[onclick^="reevaluateAnswer("]:hover {
+      background-color: #d92550;
+    }
+    .content button[onclick^="reevaluateAll("] {
+      background-color: #fb6340;
+    }
+    .content button[onclick^="reevaluateAll("]:hover {
+      background-color: #fa3a0e;
+    }
+    /* ---------- Modal Styling Remains from Code UI 1 (for layout) ---------- */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.6);
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+    .modal-content {
+      background: #fff;
+      padding: 30px;
+      border-radius: 8px;
+      max-width: 900px;
+      width: 90%;
+      max-height: 80%;
+      /* overflow-y: auto; */
+      position: relative;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    }
+    .close-modal {
+      position: absolute;
+      top: 15px;
+      right: 20px;
+      font-size: 24px;
+      cursor: pointer;
+      color: #333;
+    }
+    .close-modal:hover {
+      color: #e74c3c;
+    }
+    #answerText:not([readonly]) {
+      border-color: #007bff;
+    }
+
+    .question-performance-container {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+    /* Responsive Design (from Code UI 1) */
+    @media (max-width: 768px) {
+      .content {
+        padding: 15px;
+      }
+      .search-filter {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      .question-performance-container,
+      .question-selector, 
+      .question-details {
+        grid-template-columns: 1fr;
+      }
+    }
+    /* ---------- Additional Styles from Code UI 2 for Question Metrics ---------- */
+    /* Question Info Row */
+    .info-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      margin-bottom: 20px;
+    }
+    .info-item {
+      background: #f8fafc;
+      padding: 16px;
+      border-radius: 8px;
+      flex: 1;
+      min-width: 200px;
+    }
+    .info-item strong {
+      display: block;
+      font-size: 14px;
+      color: #8898aa;
+      margin-bottom: 8px;
+    }
+    .info-item span {
+      font-size: 24px;
+      font-weight: 600;
+      color: #5e72e4;
+    }
+    /* Question Content Cards */
+    .question-details {
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+      margin-bottom: 24px;
+    }
+    .metric-card {
+      background: white;
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+      flex: 1;
+      min-width: 280px;
+    }
+    .question-details textarea {
+      width: 100%;
+      padding: 16px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      resize: vertical;
+      font-family: 'Poppins', sans-serif;
+      font-size: 14px;
+      min-height: 120px;
+      margin-top: 12px;
+    }
+    .toggle-container {
+      margin-top: 12px;
+    }
+
+
+    /* Flex layout for left and right panels */
+    .student-modal-layout {
+      display: flex;
+    }
+
+    .student-modal-layout .left-panel,
+    .student-modal-layout .right-panel {
+      max-height: 500px; /* Adjust as needed */
+      overflow-y: auto; /* Enables SEPERATE scrolling for long content in left and right panels */
+    }
+    /* Left panel with scrollable table */
+    .left-panel {
+      width: 250px;
+      /* max-height: 400px; Limits height, adjust as needed */
+      border-right: 1px solid #ccc; /* Vertical line separator */
+    }
+
+    /* Table styling (no rounded corners) */
+    .question-table {
+      width: 100%;
+      border-collapse: collapse; /* Ensures borders don't double up */
+    }
+
+    /* Hover effect for table rows */
+    .question-table tr:hover {
+      background-color: #f5f5f5; /* Light gray on hover */
+    }
+
+    /* Table cells */
+    .question-table td {
+      padding: 8px;
+      justify-content: center;
+    }
+
+    .question-table td:first-child {
+      border-right: 1px solid #ddd; /* Central dividing line */
+    }
+    /* Question number column */
+    .question-table .question-number {
+      text-align: left;
+    }
+
+    /* Marks column */
+    .question-table .marks-cell {
+      text-align: center;
+    }
+
+    /* Marks text (clickable to edit) */
+    .marks-text {
+      cursor: pointer;
+    }
+
+    /* Marks input field (hidden by default) */
+    .marks-input {
+      display: none;
+      width: 50px; /* Compact size for editing marks */
+    }
+
+    /* Highlight for selected row */
+    .selected {
+      background-color: #eee; /* Gray background for selected row */
+    }
+
+    /* Right panel */
+    .right-panel {
+      flex: 1; /* Takes remaining space */
+      padding-left: 20px; /* Space from the vertical line */
+      ;
+    }
+
+    /* Right panel headers */
+    .right-panel h3 {
+      margin-top: 20px;
+      margin-bottom: 10px;
+    }
+
+    /* Textareas in the right panel */
+    .right-panel textarea {
+      width: 100%;
+      height: 100px; /* Fixed height, adjust as needed */
+      margin-bottom: 10px;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 4px; /* Rounded corners for textareas, not the table */
+    }
+
+    /* Button styling */
+    .btn {
+      padding: 10px 20px;
+      background-color: #007bff; /* Blue button */
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    /* Button hover effect */
+    .btn:hover {
+      background-color: #0056b3; /* Darker blue on hover */
+    }
+  </style>
+</head>
+<body>
+  <!-- Topbar and Sidebar placeholders (retained from Code UI 1) -->
+  <div id="topbar-container"></div>
+  <div class="dashboard-container">
+    <div id="sidebar-container"></div>
+    <main class="content">
+      <h1>Exam Statistics</h1>
+
+      <!-- Grading Progress Card (from Code UI 1) -->
+      <div class="card">
+        <h2>Grading Progress</h2>
+        <div class="status-bar">
+          <p>Progress: <span id="gradingPercentage">0%</span></p>
+          <div class="progress">
+            <div id="gradingProgressBar" class="progress-bar"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Student Performance Card (from Code UI 1) -->
+      <div class="card">
+        <h2>Student Performance</h2>
+        <div class="search-filter">
+          <div class="search-container">
+            <i class="fas fa-search"></i>
+            <input type="text" id="searchInput" placeholder="Search by name, roll, or email">
+          </div>
+          <select id="scoreFilter">
+            <option value="">Filter by Score</option>
+            <option value="above">Above</option>
+            <option value="below">Below</option>
+          </select>
+          <input type="number" id="scoreThreshold" placeholder="Score Threshold">
+        </div>
+        <div class="export-buttons" style="display: flex; justify-content: flex-end; gap: 10px; flex-wrap: wrap;">
+          <button class="btn btn-primary" onclick="exportCSV()"><i class="fas fa-file-csv"></i> Export CSV</button>
+          <button class="btn btn-primary" onclick="exportExcel()"><i class="fas fa-file-excel"></i> Export Excel</button>
+          <button class="btn btn-primary" onclick="exportPDF()"><i class="fas fa-file-pdf"></i> Export PDF</button>
+        </div>
+        <div class="table-container">
+          <table id="performanceTable">
+            <thead>
+              <tr>
+                <th onclick="sortTable(0)">Name</th>
+                <th onclick="sortTable(1)">Roll/Email</th>
+                <th onclick="sortTable(2)">Total Marks</th>
+                <th onclick="sortTable(3)">Percentage</th>
+              </tr>
+            </thead>
+            <tbody><!-- Data populated dynamically --></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Class Performance Graph (from Code UI 1) -->
+      <div class="card">
+        <h2>Class Performance</h2>
+        <div class="chart-container">
+          <canvas id="performanceChart"></canvas>
+        </div>
+      </div>
+
+      <!-- Question-Wise Metrics Container (Modified per Code UI 2) -->
+      <div class="card">
+        <h2>Question-Wise Metrics</h2>
+        <div class="question-selector">
+          <select id="questionSelect" onchange="loadQuestionMetrics()">
+            <option value="">-- Select a Question --</option>
+          </select>
+        </div>
+        <div id="questionMetricsContainer" style="display: none; margin-top: 20px;">
+          <!-- Question Info Row -->
+          <div class="info-row">
+            <div class="info-item">
+              <strong>Total Marks</strong>
+              <span id="questionTotalMarks">0</span>
+            </div>
+            <div class="info-item">
+              <strong>Average Score</strong>
+              <span id="averageScore">0</span>
+            </div>
+            <div class="info-item">
+              <strong>Question Difficulty</strong>
+              <span id="questionDifficulty">Medium</span>
+            </div>
+          </div>
+          <!-- Question Content Card -->
+          <div class="card2">
+            <div class="card-header">
+              <h3 class="card-title">Question Details</h3>
+            </div>
+            <div class="question-details">
+              <div class="metric-card">
+                <strong>Question Text:</strong>
+                <button id="viewQuestionBtn" onclick="toggleQuestionText()" class="view-btn">View Question</button>
+                <div id="questionTextContainer" style="display: none; margin-top: 12px;">
+                  <textarea id="questionText" rows="5" cols="50" readonly></textarea>
+                  <div class="toggle-container">
+                    <button id="editQuestionBtn" onclick="editQuestionText()" style="display: none;">Edit</button>
+                    <button id="saveQuestionBtn" onclick="saveQuestionText()" style="display: none;">Save Changes</button>
+                  </div>
+                </div>
+              </div>
+              <div class="metric-card">
+                <strong>Correct Solution:</strong>
+                <button id="viewSolutionBtn" onclick="toggleSolutionText()" class="view-btn">View Solution</button>
+                <div id="solutionTextContainer" style="display: none; margin-top: 12px;">
+                  <textarea id="solutionText" rows="5" cols="50" readonly></textarea>
+                  <div class="toggle-container">
+                    <button id="editSolutionBtn" onclick="editSolutionText()" style="display: none;">Edit</button>
+                    <button id="saveSolutionBtn" onclick="saveSolutionText()" style="display: none;">Save Changes</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="question-actions">
+              <button onclick="dropQuestion()"><i class="fas fa-trash-alt"></i> Drop Question</button>
+              <button onclick="awardFullMarks()"><i class="fas fa-award"></i> Give Full Marks</button>
+            </div>
+          </div>
+          <!-- Student Responses Card -->
+          <div class="card2" style="margin-top: 24px;">
+            <div class="card-header">
+              <h3 class="card-title">Student Responses</h3>
+              <button onclick="reevaluateAll()"><i class="fas fa-sync-alt"></i> Re-evaluate All Responses</button>
+            </div>
+
+            
+            <!-- <div class="table-container">
+              <table id="questionPerformanceTable">
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>Roll/Email</th>
+                    <th>Marks</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div> -->
+            <div class="question-performance-container">
+              <div class="table-container">
+                <table id="questionPerformanceTable">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Marks</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody></tbody>
+                </table>
+              </div>
+              <div class="chart-container">
+                <canvas id="questionMarksChart"></canvas>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Marks Distribution Chart
+          <div class="chart-container" style="margin-top: 24px;">
+            <h3 class="chart-heading">Question Marks Distribution</h3>
+            <canvas id="questionMarksChart"></canvas>
+          </div> -->
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- ---------- Modals ---------- -->
+  <!-- Student Modal (retained from Code UI 1) -->
+  <div id="studentModal" class="modal">
+    <div class="modal-content">
+      <span class="close-modal" onclick="closeModal('studentModal')">&times;</span>
+      <h2 id="studentModalTitle" style = "margin-bottom: 20px;">Student Details</h2>
+      <div style="border-top:1px solid #ddd;" id="studentDetailContent"></div>
+    </div>
+  </div>
+
+  <!-- Answer Modal (Adopted from Code UI 2) -->
+  <div id="answerModal" class="modal">
+    <div class="modal-content">
+      <span class="close-modal" onclick="closeModal('answerModal')">&times;</span>
+      <h2 id="answerModalTitle">Student Answer</h2>
+      <textarea id="answerText" rows="10" cols="50" readonly></textarea>
+      <div>
+        <button id="editAnswerBtn" onclick="editAnswer()" style="display: none;">Edit</button>
+        <button id="saveAnswerBtn" onclick="saveAnswer()" style="display: none;">Save Changes</button>
+      </div>
+    </div>
+  </div>
+  
+  <script src="load-components.js"></script>
+  <!-- Marked Library -->
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script src="authorize.js"></script>
+  <script>
+    // Global variables
+    let examId = new URLSearchParams(window.location.search).get('exam_id');
+    let studentData = [];
+    let performanceChart;
+    let questionData = [];
+    let questionChart;
+    let currentStudentId = null;
+    let currentQuestionId = null;
+
+    // Poll for exam stats every 5 seconds
+    function fetchExamStats() {
+      fetch(`/exams/${examId}/stats`)
+        .then(res => res.json())
+        .then(data => {
+          studentData = data.students;
+          updateTable(studentData);
+          updateStatusBar(data.grading_progress);
+          updateChart(data.marks_distribution, studentData.length);
+        })
+        .catch(err => console.error("Error fetching exam stats:", err));
+    }
+
+    // Update grading progress status bar
+    function updateStatusBar(progress) {
+      let percentage = Math.round(progress * 100);
+      document.getElementById('gradingPercentage').innerText = percentage + '%';
+      document.getElementById('gradingProgressBar').style.width = percentage + '%';
+    }
+
+    // Update student performance table
+    function updateTable(data) {
+      const tbody = document.querySelector('#performanceTable tbody');
+      tbody.innerHTML = '';
+      data.forEach(student => {
+        let tr = document.createElement('tr');
+        tr.onclick = () => openStudentDetail(student);
+        tr.innerHTML = `<td>${student.name}</td>
+                        <td>${student.roll || student.email}</td>
+                        <td>${student.total_marks}</td>
+                        <td>${student.percentage}%</td>
+                        <td>
+                          <button class="btn" onclick="event.stopPropagation(); reevaluateStudent(${student.id});">
+                            Re-Evaluate Student
+                          </button>
+                        </td>`;
+
+        tbody.appendChild(tr);
+      });
+    }
+
+    // Table sorting
+    function sortTable(colIndex) {
+      studentData.sort((a, b) => {
+        let valA, valB;
+        switch(colIndex) {
+          case 0: valA = a.name.toLowerCase(); valB = b.name.toLowerCase(); break;
+          case 1: valA = a.roll || a.email; valB = b.roll || b.email; break;
+          case 2: valA = a.total_marks; valB = b.total_marks; break;
+          case 3: valA = a.percentage; valB = b.percentage; break;
+        }
+        if(valA < valB) return -1;
+        if(valA > valB) return 1;
+        return 0;
+      });
+      updateTable(studentData);
+    }
+
+    // Filtering by search term
+    document.getElementById('searchInput').addEventListener('input', function() {
+      let term = this.value.toLowerCase();
+      let filtered = studentData.filter(s =>
+        s.name.toLowerCase().includes(term) ||
+        (s.roll && s.roll.toLowerCase().includes(term)) ||
+        s.email.toString().includes(term)
+      );
+      updateTable(filtered);
+    });
+    // Filtering by score threshold
+    document.getElementById('scoreFilter').addEventListener('change', applyFilter);
+    document.getElementById('scoreThreshold').addEventListener('input', applyFilter);
+    function applyFilter() {
+      let filterType = document.getElementById('scoreFilter').value;
+      let threshold = parseFloat(document.getElementById('scoreThreshold').value);
+      let filtered = studentData;
+      if(filterType && !isNaN(threshold)) {
+        if(filterType === 'above') {
+          filtered = studentData.filter(s => s.total_marks > threshold);
+        } else {
+          filtered = studentData.filter(s => s.total_marks < threshold);
+        }
+      }
+      updateTable(filtered);
+    }
+
+    // Update performance chart
+    function updateChart(distribution, totalStudents) {
+      const ctx = document.getElementById('performanceChart').getContext('2d');
+
+      if (performanceChart) {
+        // Just update the data and labels
+        performanceChart.data.labels = distribution.labels;
+        performanceChart.data.datasets[0].data = distribution.data;
+        performanceChart.update(); // Re-render the chart with new data
+      } else {
+        // Create the chart only once
+        performanceChart = new Chart(ctx, {
+          type: 'line',
+          data: {
+            labels: distribution.labels,
+            datasets: [{
+              label: 'Marks Distribution',
+              data: distribution.data,
+              borderColor: '#488aec',
+              fill: false
+            }]
+          },
+          options: {
+            responsive: true,
+            scales: {
+              x: { title: { display: true, text: 'Mark Secured' } },
+              y: { title: { display: true, text: 'Number of Students' }, max: totalStudents,  ticks: { stepSize: 1 } }
+            }
+          }
+        });
+      }
+    }
+
+    // Global variable to store evaluation data
+    let evaluationData = [];
+
+    // Function to open the student detail modal
+    function openStudentDetail(student) {
+      fetch(`/exam/${examId}/student-evaluation/${student.id}`)
+        .then(res => res.json())
+        .then(data => {
+          evaluationData = data; // Store data globally for easy access
+          document.getElementById('studentModalTitle').innerText = `${student.name} - Detailed Performance`;
+
+          // Build the modal content with left and right panels
+          let content = `
+            <div class="student-modal-layout">
+              <!-- Left Panel: Scrollable Table -->
+              <div class="left-panel">
+                <table class="question-table">
+                  <tbody>
+          `;
+          data.sort((a, b) => a.question_number - b.question_number);
+          
+          // Populate the table with question data (no headers)
+          data.forEach(q => {
+            content += `
+              <tr data-qid="${q.question_id}">
+                <td class="question-number">Question ${q.question_number}</td>
+                <td class="marks-cell">
+                  <span class="marks-text">${q.marks_obtained !== null ? q.marks_obtained : 'N/A'}</span>
+                  <input type="number" class="marks-input" value="${q.marks_obtained !== null ? q.marks_obtained : ''}" style="display: none;">
+                </td>
+              </tr>
+            `;
+          });
+
+          content += `
+                  </tbody>
+                </table>
+              </div>
+              <!-- Right Panel: Question Details -->
+              <div class="right-panel">
+                <h3>Question Details</h3>
+                <textarea id="questionText-StudentModal" readonly></textarea>
+                <h3>Student Response</h3>
+                <textarea id="responseText-StudentModal" readonly></textarea>
+                <h3>Reasoning</h3>
+                <textarea id="reasoningText-StudentModal" readonly></textarea>
+                <h3>Correct Solution</h3>
+                <textarea id="idealAnswer-StudentModal" readonly></textarea>
+                <h3>Marking Scheme</h3>
+                <textarea id="markingScheme-StudentModal" readonly></textarea>
+                <button id="reevaluateBtn" class="btn">Re-evaluate</button>
+              </div>
+            </div>
+          `;
+
+          // Inject the content into the modal
+          document.getElementById('studentDetailContent').innerHTML = content;
+
+          // Add event listeners for interactivity
+          const rows = document.querySelectorAll('.question-table tbody tr');
+          rows.forEach(row => {
+            const qId = row.dataset.qid;
+            const marksText = row.querySelector('.marks-text');
+            const marksInput = row.querySelector('.marks-input');
+
+            // Handle question selection
+            row.addEventListener('click', () => {
+              document.querySelectorAll('.question-table tr').forEach(r => r.classList.remove('selected'));
+              row.classList.add('selected');
+              updateRightPanel(qId, student.id);
+            });
+
+            // Handle marks editing
+            marksText.addEventListener('click', (e) => {
+              e.stopPropagation(); // Prevent triggering row selection
+              marksText.style.display = 'none';
+              marksInput.style.display = 'inline';
+              marksInput.focus();
+            });
+
+            marksInput.addEventListener('blur', () => {
+              const newValue = marksInput.value;
+              const oldValue = evaluationData.find(q => q.question_id == qId).marks_obtained;
+              if (newValue !== oldValue?.toString()) {
+                updateMarks(student.id, qId, newValue);
+                evaluationData.find(q => q.question_id == qId).marks_obtained = newValue;
+              }
+              marksText.innerText = newValue || 'N/A';
+              marksInput.style.display = 'none';
+              marksText.style.display = 'inline';
+            });
+
+            marksInput.addEventListener('keydown', (e) => {
+              if (e.key === 'Enter') marksInput.blur(); // Save on Enter
+            });
+          });
+
+          // Select the first question by default
+          if (rows.length > 0) {
+            rows[0].classList.add('selected');
+            updateRightPanel(data[0].question_id, student.id);
+          }
+
+          // Show the modal
+          document.getElementById('studentModal').style.display = 'flex';
+        })
+        .catch(err => console.error("Error fetching student details:", err));
+    }
+
+    // Helper function to update the right panel
+    function updateRightPanel(questionId, studentId) {
+      const question = evaluationData.find(q => q.question_id == questionId);
+      if (!question) return;
+
+      document.getElementById('questionText-StudentModal').value = question.full_question_text || 'No question text available.';
+      document.getElementById('responseText-StudentModal').value = question.student_response || 'No response available.';
+      document.getElementById('reasoningText-StudentModal').value = question.reasoning || 'No reasoning provided.';
+      document.getElementById('idealAnswer-StudentModal').value = question.ideal_answer || 'No reasoning provided.';
+      document.getElementById('markingScheme-StudentModal').value = question.marking_scheme || 'No reasoning provided.';
+      document.getElementById('reevaluateBtn').onclick = () => reevaluateAnswer(studentId, questionId);
+    }
+
+    // Helper function to update marks on the server
+    function updateMarks(studentId, questionId, newMarks) {
+      fetch(`/exams/${examId}/student/${studentId}/question/${questionId}/update`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ grade: newMarks })
+      })
+        .then(res => res.json())
+        .then(data => {
+          alert("Marks Updated Successfully!")
+          fetchExamStats(); // Assuming this function exists to refresh stats
+        })
+        .catch(err => {
+          console.error("Error updating marks:", err);
+          alert('Error updating marks');
+        });
+    }
+// viewDetail function displays the detail modal using the passed content.
+  function viewDetail(type, content) {
+    let title;
+    switch (type) {
+      case 'question':
+        title = 'Question Details';
+        break;
+      case 'response':
+        title = 'Student Response';
+        break;
+      case 'reasoning':
+        title = 'Grading Reasoning';
+        break;
+      default:
+        return;
+    }
+    
+    document.getElementById('answerModalTitle').innerText = title;
+    document.getElementById('answerText').value = content || 'No content available.';
+    document.getElementById('answerText').readOnly = true;
+    document.getElementById('editAnswerBtn').style.display = 'block';
+    document.getElementById('saveAnswerBtn').style.display = 'none';
+    document.getElementById('answerModal').style.display = 'flex';
+  }
+
+  
+  function closeModal(id) {
+    const modal = document.getElementById(id);
+    modal.style.display = 'none';
+  }
+
+
+
+  // Edit marks for a specific question
+  function editMarks(studentId, qId) {
+    fetch(`/exams/${examId}/student/${studentId}/question/${qId}/details`)
+      .then(res => res.json())
+      .then(data => {
+        const currentGrade = data.grade || 'N/A';
+        const newGrade = prompt(`Enter new marks for student ${studentId}, question ${qId} (current: ${currentGrade}):`, currentGrade);
+        if (newGrade !== null) {
+          fetch(`/exams/${examId}/student/${studentId}/question/${qId}/update`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ grade: newGrade })
+          })
+            .then(res => res.json())
+            .then(updateData => {
+              alert(updateData.message || 'Marks updated successfully.');
+              fetchExamStats(); // Refresh overall stats
+              openStudentDetail(studentData.find(s => s.id == studentId)); // Refresh modal
+            })
+            .catch(err => console.error("Error updating marks:", err));
+        }
+      })
+      .catch(err => console.error("Error fetching current marks:", err));
+  }
+    // Export functions
+    function exportCSV() {
+      let csvContent = "data:text/csv;charset=utf-8,Name,Roll/Email,Total Marks,Percentage\n";
+      studentData.forEach(s => {
+        csvContent += `${s.name},${s.roll || s.email},${s.total_marks},${s.percentage}\n`;
+      });
+      const encodedUri = encodeURI(csvContent);
+      const link = document.createElement("a");
+      link.setAttribute("href", encodedUri);
+      link.setAttribute("download", "exam_stats.csv");
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+    function exportExcel() {
+      alert('Excel export functionality not implemented.');
+    }
+    function exportPDF() {
+      alert('PDF export functionality not implemented.');
+    }
+
+    // -------------- QUESTION RELATED FUNCTIONS --------------
+
+    // Fetch and populate question dropdown
+    function fetchQuestions() {
+      fetch(`/exam/${examId}/question-metrics`)
+        .then(res => res.json())
+        .then(data => {
+          questionData = data;
+          const select = document.getElementById('questionSelect');
+          select.innerHTML = '<option value="">-- Select a Question --</option>';
+          data.sort((a, b) => a.question_number - b.question_number);
+          data.forEach(q => {
+            const option = document.createElement('option');
+            option.value = q.question_id;
+            option.text = `Question ${q.question_number}`;
+            select.appendChild(option);
+          });
+        })
+        .catch(err => console.error("Error fetching questions:", err));
+    }
+
+    // Load metrics for selected question
+    function loadQuestionMetrics() {
+      const questionId = document.getElementById('questionSelect').value;
+      if (!questionId) {
+        document.getElementById('questionMetricsContainer').style.display = 'none';
+        return;
+      }
+      const question = questionData.find(q => q.question_id == questionId);
+      if (!question) return;
+
+      document.getElementById('questionMetricsContainer').style.display = 'block';
+      document.getElementById('questionTotalMarks').innerText = question.max_marks;
+      document.getElementById('questionText').value = question.text || '';
+      document.getElementById('solutionText').value = question.ideal_answer || '';
+      document.getElementById('questionTextContainer').style.display = 'none';
+      document.getElementById('solutionTextContainer').style.display = 'none';
+      document.getElementById('editQuestionBtn').style.display = 'none';
+      document.getElementById('saveQuestionBtn').style.display = 'none';
+      document.getElementById('editSolutionBtn').style.display = 'none';
+      document.getElementById('saveSolutionBtn').style.display = 'none';
+      document.getElementById('questionText').readOnly = true;
+      document.getElementById('solutionText').readOnly = true;
+
+      updateQuestionTable(questionId);
+      updateQuestionChart(question.marks_distribution, question.max_marks);
+    }
+
+    // Toggle question text visibility
+    function toggleQuestionText() {
+      const container = document.getElementById('questionTextContainer');
+      container.style.display = container.style.display === 'none' ? 'block' : 'none';
+      if (container.style.display === 'block') {
+        document.getElementById('editQuestionBtn').style.display = 'inline';
+      }
+    }
+
+    // Toggle solution text visibility
+    function toggleSolutionText() {
+      const container = document.getElementById('solutionTextContainer');
+      container.style.display = container.style.display === 'none' ? 'block' : 'none';
+      if (container.style.display === 'block') {
+        document.getElementById('editSolutionBtn').style.display = 'inline';
+      }
+    }
+
+    // Edit question text
+    function editQuestionText() {
+      const textarea = document.getElementById('questionText');
+      textarea.readOnly = false;
+      document.getElementById('editQuestionBtn').style.display = 'none';
+      document.getElementById('saveQuestionBtn').style.display = 'inline';
+    }
+
+    // Save question text
+    function saveQuestionText() {
+      const questionId = document.getElementById('questionSelect').value;
+      const text = document.getElementById('questionText').value;
+      fetch(`/exams/${examId}/questions/${questionId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: text })
+      })
+        .then(res => res.json())
+        .then(data => {
+          if (data.success) {
+            alert('Question text updated');
+            const q = questionData.find(q => q.question_id == questionId);
+            q.text = text;
+            document.getElementById('questionText').readOnly = true;
+            document.getElementById('editQuestionBtn').style.display = 'inline';
+            document.getElementById('saveQuestionBtn').style.display = 'none';
+          }
+        })
+        .catch(err => console.error("Error saving question text:", err));
+    }
+
+    // Edit solution text
+    function editSolutionText() {
+      const textarea = document.getElementById('solutionText');
+      textarea.readOnly = false;
+      document.getElementById('editSolutionBtn').style.display = 'none';
+      document.getElementById('saveSolutionBtn').style.display = 'inline';
+    }
+
+    // Save solution text
+    function saveSolutionText() {
+      const questionId = document.getElementById('questionSelect').value;
+      const text = document.getElementById('solutionText').value;
+      fetch(`/exams/${examId}/questions/${questionId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ideal_answer: text })
+      })
+        .then(res => res.json())
+        .then(data => {
+          if (data.success) {
+            alert('Solution text updated');
+            const q = questionData.find(q => q.question_id == questionId);
+            q.ideal_answer = text;
+            document.getElementById('solutionText').readOnly = true;
+            document.getElementById('editSolutionBtn').style.display = 'inline';
+            document.getElementById('saveSolutionBtn').style.display = 'none';
+          }
+        })
+        .catch(err => console.error("Error saving solution text:", err));
+    }
+
+    // Drop question
+    function dropQuestion() {
+      const questionId = document.getElementById('questionSelect').value;
+      if (confirm('Are you sure you want to drop this question?')) {
+        fetch(`/exam/${examId}/question/${questionId}/drop`, { method: 'POST' })
+          .then(res => res.json())
+          .then(data => {
+            alert(data.message);
+            loadQuestionMetrics();
+            fetchExamStats();
+          })
+          .catch(err => console.error("Error dropping question:", err));
+      }
+    }
+
+    // Award full marks
+    function awardFullMarks() {
+      const questionId = document.getElementById('questionSelect').value;
+      if (confirm('Are you sure you want to award full marks to all students?')) {
+        fetch(`/exam/${examId}/question/${questionId}/full-marks`, { method: 'POST' })
+          .then(res => res.json())
+          .then(data => {
+            alert(data.message);
+            loadQuestionMetrics();
+            fetchExamStats();
+          })
+          .catch(err => console.error("Error awarding full marks:", err));
+      }
+    }
+
+    // Update question performance table
+    function updateQuestionTable(questionId) {
+      const tbody = document.querySelector('#questionPerformanceTable tbody');
+      tbody.innerHTML = ''; // Clear the table body
+      studentData.forEach(student => {
+        fetch(`/exams/${examId}/student/${student.id}/question/${questionId}/details`)
+          .then(res => res.json())
+          .then(qResponse => {
+            const responseText = qResponse && qResponse.response ? qResponse.response : '';
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+              <td>${student.name}</td>
+              <!-- <td>${student.roll || student.email}</td> -->
+              <td>${qResponse ? qResponse.grade : 'N/A'}</td>
+              <td>
+                <button class="view-answer-btn" style = "margin-right:10px" data-student-id="${student.id}" data-question-id="${questionId}">View Answer</button>
+                <button onclick="reevaluateAnswer(${student.id}, ${questionId})">Re-evaluate</button>
+              </td>
+            `;
+            tbody.appendChild(tr);
+            const viewButton = tr.querySelector('.view-answer-btn');
+            viewButton.addEventListener('click', () => {
+              viewAnswer(student.id, questionId, responseText);
+            });
+          })
+          .catch(err => console.error(`Error fetching details for student ${student.id}:`, err));
+      });
+    }
+
+    // View student answer
+    function viewAnswer(studentId, questionId, student_response) {
+      document.getElementById('answerModalTitle').innerText = `${studentData.find(s => s.id == studentId).name} - Answer`;
+      document.getElementById('answerText').value = student_response || '';
+      document.getElementById('answerText').readOnly = true;
+      document.getElementById('editAnswerBtn').style.display = 'inline';
+      document.getElementById('saveAnswerBtn').style.display = 'none';
+      document.getElementById('answerModal').style.display = 'flex';
+      currentStudentId = studentId;
+      currentQuestionId = questionId;
+    }
+
+    // Edit student answer
+    function editAnswer() {
+      document.getElementById('answerText').readOnly = false;
+      document.getElementById('editAnswerBtn').style.display = 'none';
+      document.getElementById('saveAnswerBtn').style.display = 'inline';
+    }
+
+    // Save student answer
+    function saveAnswer() {
+      const answer = document.getElementById('answerText').value;
+      fetch(`/exam/${examId}/question/${currentQuestionId}/student/${currentStudentId}/update`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ response: answer })
+      })
+        .then(res => res.json())
+        .then(data => {
+          alert(data.message);
+          document.getElementById('answerText').readOnly = true;
+          document.getElementById('editAnswerBtn').style.display = 'inline';
+          document.getElementById('saveAnswerBtn').style.display = 'none';
+          loadQuestionMetrics();
+          fetchExamStats();
+        })
+        .catch(err => console.error("Error saving answer:", err));
+    }
+    function reevaluateStudent(studentId) {
+      if (confirm('Re-evaluate all responses for this student?')) {
+        // Loop over all questions in the exam (assuming questionData is already loaded)
+        questionData.forEach(question => {
+          fetch(`/exam/${examId}/question/${question.question_id}/student/${studentId}/reevaluate`, { 
+            method: 'POST' 
+          })
+          .then(res => res.json())
+          .then(data => {
+            // Optionally process data.message or log success
+            console.log(`Question ${question.question_id}: `, data.message);
+          })
+          .catch(err => console.error(`Error re-evaluating question ${question.question_id}:`, err));
+        });
+        alert('Re-evaluation initiated for all responses for this student.');
+        setTimeout(() => {
+          // Refresh exam stats so the UI reflects the new evaluations.
+          fetchExamStats();
+        }, 2000);
+      }
+    }
+
+    // Re-evaluate single answer
+    function reevaluateAnswer(studentId, questionId) {
+      if (confirm('Re-evaluate this answer?')) {
+        fetch(`/exam/${examId}/question/${questionId}/student/${studentId}/reevaluate`, { method: 'POST' })
+          .then(res => res.json())
+          .then(data => {
+            alert(data.message);
+            loadQuestionMetrics();
+            fetchExamStats();
+          })
+          .catch(err => console.error("Error re-evaluating answer:", err));
+      }
+    }
+
+    // Re-evaluate all answers for the question
+    function reevaluateAll() {
+      const questionId = document.getElementById('questionSelect').value;
+      if (confirm('Re-evaluate this question for all students?')) {
+        studentData.forEach(student => {
+          fetch(`/exam/${examId}/question/${questionId}/student/${student.id}/reevaluate`, { method: 'POST' })
+            .catch(err => console.error("Error re-evaluating:", err));
+        });
+        alert('Re-evaluation initiated for all students');
+        setTimeout(() => {
+          loadQuestionMetrics();
+          fetchExamStats();
+        }, 2000);
+      }
+    }
+
+    // Update marks distribution chart
+    function updateQuestionChart(marksDistribution, maxMarks) {
+      const ctx = document.getElementById('questionMarksChart').getContext('2d');
+      if (questionChart) questionChart.destroy();
+      const buckets = Array(maxMarks*2 + 1).fill(0);
+      marksDistribution.forEach(mark => {
+        if (mark !== null) {
+          const bucket = Math.min(mark*2, buckets.length - 1);
+          buckets[bucket]++;
+        }
+      });
+      const totalStudents = marksDistribution.length;
+      // const percentages = buckets.map(count => (count / totalStudents) * 100);
+      questionChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: buckets.map((_, i) => `${i/2}`),
+          datasets: [{
+            label: 'Number of Students',
+            data: buckets,
+            borderColor: '#488aec',
+            fill: false
+          }]
+        },
+        options: {
+          responsive: true,
+          scales: {
+            x: { title: { display: true, text: 'Marks Secured' } },
+            y: { title: { display: true, text: 'Number of Students' }, max: totalStudents, ticks: { stepSize: 1 }}
+          }
+        }
+      });
+    }
+
+    // Initialize page
+    fetchQuestions();
+    fetchExamStats();
+    setInterval(fetchExamStats, 5000);
+  </script>
+</body>
+</html>
