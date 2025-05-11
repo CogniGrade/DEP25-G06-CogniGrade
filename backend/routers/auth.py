@@ -74,7 +74,7 @@ async def login(
         expires_delta=access_token_expires
     )
 
-    resp = JSONResponse({"success": True, "message": "Login successful", "redirect": "/static/dashboard.htm"})
+    resp = JSONResponse({"success": True, "message": "Login successful", "redirect": "/dashboard.htm"})
     resp.set_cookie(
         key="access_token",
         value=access_token,
@@ -136,7 +136,7 @@ async def signup(
         data={"sub": str(user.id)},
         expires_delta=timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     )
-    resp = JSONResponse({"success": True, "message": "Signup successful", "redirect": "/static/dashboard.htm"})
+    resp = JSONResponse({"success": True, "message": "Signup successful", "redirect": "/dashboard.htm"})
     resp.set_cookie(
         key="access_token",
         value=access_token,
@@ -162,7 +162,7 @@ async def check_session(request: Request, db: AsyncSession = Depends(get_db)):
 @router.get("/logout")
 async def logout(request: Request):
     logger.info("Processing logout request")
-    response = RedirectResponse(url="/static/login.htm", status_code=303)
+    response = RedirectResponse(url="/login.htm", status_code=303)
     response.delete_cookie(key="access_token", path="/")
     response.set_cookie(
         key="access_token",
@@ -215,7 +215,7 @@ async def auth_via_google(request: Request, db: AsyncSession = Depends(get_db)):
             data={"sub": str(user.id)},
             expires_delta=timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
         )
-        resp = RedirectResponse(url="/static/dashboard.htm", status_code=303)
+        resp = RedirectResponse(url="/dashboard.htm", status_code=303)
         resp.set_cookie(
             key="access_token",
             value=access_token,

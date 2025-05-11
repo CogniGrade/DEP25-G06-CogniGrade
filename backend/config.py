@@ -39,6 +39,6 @@ class Settings:
     GOOGLE_CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET")
 
 
-    FRONTEND_BASE_URL = "http://127.0.0.1:8000/static"
+    FRONTEND_BASE_URL = "http://127.0.0.1:8000"
 
 settings = Settings()
