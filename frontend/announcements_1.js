@@ -48,7 +48,7 @@ async function postAnnouncement() {
     try {
         const formData = new FormData();
         formData.append("content", text);
-        const response = await fetch(`api/classes/${classId}/announcements`, {
+        const response = await authFetch(`/classes/${classId}/announcements`, {
             method: "POST",
             body: formData
         });
@@ -75,7 +75,7 @@ async function fetchAnnouncements() {
         return;
     }
     try {
-        const response = await fetch(`api/classes/${classId}/announcements`);
+        const response = await authFetch(`/classes/${classId}/announcements`);
         const data = await response.json();
         if (!data.success) {
             alert("Failed to load announcements.");

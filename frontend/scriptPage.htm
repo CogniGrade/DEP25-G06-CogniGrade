@@ -190,7 +190,7 @@
       return params.get(param);
     }
     
-    fetch(`api/process-response-text-image/${getQueryParameter('exam_id')}`, {
+    authFetch(`/process-response-text-image/${getQueryParameter('exam_id')}`, {
       method: 'POST',
       headers: { "Content-Type": "application/json" }
     })

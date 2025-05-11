@@ -1524,7 +1524,7 @@
 
     function updateExamResult(studentId) {
       const examId = getQueryParam("exam_id");
-      fetch(`api/exam/${examId}/add-result`, {
+      authFetch(`/exam/${examId}/add-result`, {
         method: "POST",
         headers: { "Content-Type": "application/x-www-form-urlencoded" },
         body: new URLSearchParams({ student_id: studentId })
@@ -1725,7 +1725,7 @@
       extractBtn.innerText = "EXTRACTING...";
       extractBtn.disabled = true;
       try {
-        const response = await fetch("api/extract-text", {
+        const response = await authFetch("/extract-text", {
           method: "POST",
           body: formData
         });
@@ -1949,7 +1949,7 @@
             }
           }        
           try {
-            const response = await fetch("api/extract-text", {
+            const response = await authFetch("/extract-text", {
               method: "POST",
               body: formData
             });
@@ -1996,7 +1996,7 @@
           const file = uploadedFiles[section][i];
           if (file.id) {
             const examId = getQueryParam("exam_id");
-            fetch(`api/exams/${examId}/files/${file.id}`, {
+            authFetch(`/exams/${examId}/files/${file.id}`, {
               method: "DELETE"
             }).then(res => res.json())
               .then(data => {
@@ -2034,7 +2034,7 @@
       }
 
       try {
-        const response = await fetch(`api/exams/${examId}/student_files`, {
+        const response = await authFetch(`/exams/${examId}/student_files`, {
           method: "DELETE"
         });
         if (!response.ok) {
@@ -2072,7 +2072,7 @@
     //   }
     //   if (!confirm("Are you sure you want to reset all files for this exam? This cannot be undone.")) return;
     //   try {
-    //     const response = await fetch(`api/exams/${examId}/files`, {
+    //     const response = await authFetch(`/exams/${examId}/files`, {
     //       method: "DELETE"
     //     });
     //     const data = await response.json();
@@ -2151,7 +2151,7 @@
       };
 
       try {
-        const response = await fetch("api/exam/update-extracted-text", {
+        const response = await authFetch("/exam/update-extracted-text", {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload)
@@ -2395,7 +2395,7 @@
       }
 
       try {
-        const response = await fetch("api/extract-question-labels", {
+        const response = await authFetch("/extract-question-labels", {
           method: "POST",
           body: formData
         });

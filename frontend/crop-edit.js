@@ -165,7 +165,7 @@ function saveEditOrder(){
 
 async function load_pdf_in_cropper(examId) {
   // Load questions and parts
-  fetch(`api/exams/${examId}/questions/parts`)
+  authFetch(`/exams/${examId}/questions/parts`)
     .then(res => res.json())
     .then(data => {
       questions = data.map(q => ({
@@ -182,7 +182,7 @@ async function load_pdf_in_cropper(examId) {
     .catch(err => console.error('Error fetching questions:', err));
   
   // Load PDF answer script
-  fetch("api/get-info", { headers: { "Content-Type": "application/json" } })          // REMOVE THIS LATER AND SWITCH TO MORE EFFICIENT (JWT Maybe)
+  authFetch("/get-info", { headers: { "Content-Type": "application/json" } })          // REMOVE THIS LATER AND SWITCH TO MORE EFFICIENT (JWT Maybe)
     .then(response => response.json())
     .then(user_data => {
         doc_stage = getDocStage(currentStage);
@@ -199,7 +199,7 @@ async function load_pdf_in_cropper(examId) {
             alert("You are not allowed to view this document type.");
             return;
         }
-        fetch(`api/student/exam/${examId}/document/${document_type}`)
+        authFetch(`/student/exam/${examId}/document/${document_type}`)
           .then(res => {
               if (!res.ok) throw new Error(`${document_type} not found.`);
               return res.json();
@@ -886,7 +886,7 @@ async function handleSubmit(examId){
 
   // 2. Submit each processed response
   const submitPromises = processedResponses.map(resp => 
-    fetch(`api/exam/${examId}/question_response/${document_type}`, {
+    authFetch(`/exam/${examId}/question_response/${document_type}`, {
       method: 'POST',
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(resp)

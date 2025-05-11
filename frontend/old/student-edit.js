@@ -11,7 +11,7 @@ function getQueryParam(param) {
 async function fetchQuestions() {
     const examId = getQueryParam("exam_id");
     try {
-        const response = await fetch(`api/exams/${examId}/questions/all`);
+        const response = await authFetch(`/exams/${examId}/questions/all`);
         const questions = await response.json();
         displayQuestions(questions);
     } catch (error) {
@@ -121,7 +121,7 @@ document.getElementById('send-btn').addEventListener('click', () => {
     Object.entries(questionRegions).forEach(([questionId, regions]) => {
         console.log(`Question ${questionId} Regions:`, regions);
         // Placeholder for future POST request
-        // fetch('api/dummy-endpoint', {
+        // authFetch('/dummy-endpoint', {
         //     method: 'POST',
         //     headers: { 'Content-Type': 'application/json' },
         //     body: JSON.stringify({ questionId, regions })

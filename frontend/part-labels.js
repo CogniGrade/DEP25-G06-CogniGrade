@@ -1,7 +1,7 @@
   
   async function loadQuestions(examId) {
     try {
-      const response = await fetch(`api/exams/${examId}/questions/parts`);
+      const response = await authFetch(`/exams/${examId}/questions/parts`);
       
       if (!response.ok) {
         throw new Error(`Failed to load questions (${response.status})`);
@@ -418,7 +418,7 @@ async function saveAllChanges(examId) {
         saveBtn.disabled = true;
 
         // Send updates to backend
-        const response = await fetch(`api/exams/${examId}/questions/parts`, {
+        const response = await authFetch(`/exams/${examId}/questions/parts`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'

@@ -1077,7 +1077,7 @@
         formData.append("subject", subject);
         formData.append("description", description);
 
-        const response = await fetch("api/classes/create", {
+        const response = await authFetch("/classes/create", {
           method: "POST",
           body: formData,
           credentials: "include" // Include cookies for authentication if needed
@@ -1109,7 +1109,7 @@
         const formData = new FormData();
         formData.append("class_code", code);
 
-        const response = await fetch("api/classes/join-class", {
+        const response = await authFetch("/classes/join-class", {
           method: "POST",
           body: formData,
           credentials: "include"
@@ -1251,7 +1251,7 @@
     async function archiveCourse(classId) {
       if (confirm("Are you sure you want to archive this course?")) {
         try {
-          const response = await fetch(`api/classes/archive/${classId}`, {
+          const response = await authFetch(`/classes/archive/${classId}`, {
             method: "POST",
             credentials: "include"
           });
@@ -1267,7 +1267,7 @@
     // Load Dashboard Data and Build Course Cards
     async function loadDashboard() {
       try {
-        const response = await fetch("api/dashboard", {
+        const response = await authFetch("/dashboard", {
           headers: { "Content-Type": "application/json" },
           credentials: "include"
         });

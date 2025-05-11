@@ -42,11 +42,12 @@
       <a href="#">Terms of Use</a> | <a href="#">Privacy Policy</a>
     </footer>
   </section>
+  <script src="authorize.js"></script>
   <script>
     
     document.addEventListener("visibilitychange", function() {
       if (document.visibilityState === "visible") {
-        fetch("api/check-session")
+        authFetch("/check-session")
           .then(response => {
             if (response.ok) {
               // User is logged in, redirect to dashboard
@@ -66,7 +67,7 @@
       const errorMessage = document.getElementById('error-message');
       errorMessage.textContent = '';
       try {
-        const response = await fetch("api/login", {
+        const response = await authFetch("/login", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ email, password, remember })

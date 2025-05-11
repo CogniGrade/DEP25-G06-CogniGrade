@@ -66,10 +66,11 @@
       </div>
     </div>
   </div>
+  <script src="authorize.js"></script>
   <script>
     document.addEventListener("visibilitychange", function() {
       if (document.visibilityState === "visible") {
-        fetch("api/check-session")
+        authFetch("/check-session")
           .then(response => {
             if (response.ok) {
               // User is logged in, redirect to dashboard
@@ -86,7 +87,7 @@
       const password = document.getElementById("password").value;
       const remember = document.getElementById("remember").checked;
       
-      const response = await fetch("api/login", {
+      const response = await authFetch("/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password, remember })

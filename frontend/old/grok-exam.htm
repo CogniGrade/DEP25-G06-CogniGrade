@@ -476,6 +476,7 @@
     </div>
   </div>
 
+  <script src="authorize.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <script>
     // Store extracted texts for each section
@@ -584,7 +585,7 @@
       Array.from(files).forEach(file => formData.append('files', file));
 
       try {
-        const response = await fetch("apihttp://127.0.0.1:8001/upload", {
+        const response = await authFetch("http://127.0.0.1:8001/upload", {
           method: "POST",
           body: formData
         });
@@ -713,7 +714,7 @@
       formData.append('files', file);
 
       try {
-        const response = await fetch("apihttp://127.0.0.1:8001/upload", {
+        const response = await authFetch("http://127.0.0.1:8001/upload", {
           method: "POST",
           body: formData
         });

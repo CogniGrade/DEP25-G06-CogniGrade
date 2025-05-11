@@ -12,7 +12,7 @@ function loadComponent(containerId, componentPath) {
 }
 
 function loadUserInfo() {
-    fetch("api/get-info", { headers: { "Content-Type": "application/json" } })
+    authFetch("/get-info", { headers: { "Content-Type": "application/json" } })
         .then(response => response.json())
         .then(data => {
             if (data.user && data.user.full_name) {
@@ -86,7 +86,7 @@ function uploadGeneratedProfileImage(base64Image) {
     const formData = new FormData();
     formData.append("profile_picture", imageBlob, "avatar.png");
 
-    fetch("api/update-profile", {
+    authFetch("/update-profile", {
         method: "POST",
         body: formData
     })

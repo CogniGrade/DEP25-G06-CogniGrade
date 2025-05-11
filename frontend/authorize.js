@@ -1,5 +1,5 @@
 async function authFetch(url, options = {}) {
-    const response = await fetch(url, options);
+    const response = await fetch("/api" + url, options);
     if (response.status === 401) {
       // Redirect to login or show error message
       window.location.href = "login.htm?error=Not%20Authorized";

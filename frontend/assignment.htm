@@ -2750,7 +2750,7 @@
                     console.log(`Sending request to /assignments/materials for ${materialType}`);
                     
                     // Make API call to save materials
-                    const response = await fetch('api/assignments/materials', {
+                    const response = await authFetch('/assignments/materials', {
                         method: 'POST',
                         body: formData,
                         headers: {

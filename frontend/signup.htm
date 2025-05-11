@@ -41,10 +41,11 @@
       <a href="#">Terms of Use</a> | <a href="#">Privacy Policy</a>
     </footer>
   </section>
+  <script src="authorize.js"></script>
   <script>
     document.addEventListener("visibilitychange", function() {
       if (document.visibilityState === "visible") {
-        fetch("api/check-session")
+        authFetch("/check-session")
           .then(response => {
             if (response.ok) {
               // User is logged in, redirect to dashboard
@@ -71,7 +72,7 @@
         return;
       }
       try {
-        const response = await fetch("api/signup", {
+        const response = await authFetch("/signup", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ 
