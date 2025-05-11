@@ -862,7 +862,7 @@ async def process_answer_text_image(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user_required)
 ):
-    print("\n\n\n\nEXTRACTING answer_text IMAGES\n\n\n\n")
+    # print("\n\n\n\nEXTRACTING answer_text IMAGES\n\n\n\n")
     result = await db.execute(select(Question).where(Question.exam_id == exam_id))
     questions = result.scalars().all()
     question_number_map = {
@@ -876,7 +876,7 @@ async def process_answer_text_image(
     ))
     responses = result.scalars().all()
 
-    print("\n\n\n\nfetch_all_responses: ", responses, end="\n\n\n\n")
+    # print("\n\n\n\nfetch_all_responses: ", responses, end="\n\n\n\n")
     batch_entries = []
     for qr in responses:
         try:
@@ -898,7 +898,7 @@ async def process_answer_text_image(
         for i in range(0, len(lst), n):
             yield lst[i:i+n]
 
-    print("batch_entries: ", batch_entries, end="\n\n\n\n")
+    # print("batch_entries: ", batch_entries, end="\n\n\n\n")
     batches = list(chunks(batch_entries, 5))
 
     extraction_mapping = {}
@@ -920,7 +920,7 @@ async def process_answer_text_image(
         uploads = await asyncio.gather(*(upload(e) for e in batch), return_exceptions=True)
         uploaded = [(e, f) for e, f in uploads if e and f]
 
-        print("Uploaded files: ", uploaded)
+        # print("Uploaded files: ", uploaded)
         if not uploaded:
             return {}
 
@@ -983,7 +983,7 @@ Separate each question with a blank line.
 
         return batch_result
 
-    print("\n\n\n\nProcessing batches: ", batches, end="\n\n\n\n")
+    # print("\n\n\n\nProcessing batches: ", batches, end="\n\n\n\n")
     results = await asyncio.gather(*(process_batch(b) for b in batches), return_exceptions=True)
     print("Results: ", results, end="\n\n\n\n")
     for r in results:

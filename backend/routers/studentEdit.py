@@ -18,13 +18,13 @@ import base64
 import json
 
 # Constants for upload directories. Adjust these paths as needed.
-UPLOAD_DIRECTORY_TEXT_ANS = "Uploads/text_images/ans"
-UPLOAD_DIRECTORY_TABLE_ANS = "Uploads/table_images/ans"
-UPLOAD_DIRECTORY_DIAGRAM_ANS = "Uploads/diagram_images/ans"
+UPLOAD_DIRECTORY_TEXT_ANS = "./uploads/text_images/ans"
+UPLOAD_DIRECTORY_TABLE_ANS = "./uploads/table_images/ans"
+UPLOAD_DIRECTORY_DIAGRAM_ANS = "./uploads/diagram_images/ans"
 
-UPLOAD_DIRECTORY_TEXT_MS = "Uploads/text_images/ms"
-UPLOAD_DIRECTORY_TABLE_MS = "Uploads/table_images/ms"
-UPLOAD_DIRECTORY_DIAGRAM_MS = "Uploads/diagram_images/ms"
+UPLOAD_DIRECTORY_TEXT_MS = "./uploads/text_images/ms"
+UPLOAD_DIRECTORY_TABLE_MS = "./uploads/table_images/ms"
+UPLOAD_DIRECTORY_DIAGRAM_MS = "./uploads/diagram_images/ms"
 
 # Ensure that the directories exist.
 for directory in [UPLOAD_DIRECTORY_TEXT_ANS, UPLOAD_DIRECTORY_TABLE_ANS, UPLOAD_DIRECTORY_DIAGRAM_ANS, UPLOAD_DIRECTORY_TEXT_MS, UPLOAD_DIRECTORY_TABLE_MS, UPLOAD_DIRECTORY_DIAGRAM_MS]:
