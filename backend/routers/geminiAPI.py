@@ -900,6 +900,7 @@ async def process_answer_text_image(
     extraction_mapping = {}
 
     async def process_batch(batch):
+        print("\n\n\n\nProcessing batch", end="\n\n\n\n")
         async def upload(entry):
             try:
                 up = await asyncio.to_thread(
@@ -915,6 +916,7 @@ async def process_answer_text_image(
         uploads = await asyncio.gather(*(upload(e) for e in batch), return_exceptions=True)
         uploaded = [(e, f) for e, f in uploads if e and f]
 
+        print("Uploaded files: ", uploaded)
         if not uploaded:
             return {}
 
@@ -979,6 +981,7 @@ Separate each question with a blank line.
 
     print("\n\n\n\nProcessing batches", end="\n\n\n\n")
     results = await asyncio.gather(*(process_batch(b) for b in batches), return_exceptions=True)
+    print("Results: ", results, end="\n\n\n\n")
     for r in results:
         if isinstance(r, dict):
             for qr_id, answers in r.items():
