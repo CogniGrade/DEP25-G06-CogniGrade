@@ -25,6 +25,8 @@ services:
     env_file: ./.env
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    networks:
+      - internal      
 
   backend:
     build:
