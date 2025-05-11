@@ -943,6 +943,7 @@ Separate each question with a blank line.
                 model.generate_content,
                 [f for (_, f) in uploaded] + [prompt]
             )
+            print("Response: ", response.text)
         except Exception as e:
             logger.error(f"LLM call failed: {e}", exc_info=True)
             return {}
@@ -976,6 +977,7 @@ Separate each question with a blank line.
 
         return batch_result
 
+    print("\n\n\n\nProcessing batches", end="\n\n\n\n")
     results = await asyncio.gather(*(process_batch(b) for b in batches), return_exceptions=True)
     for r in results:
         if isinstance(r, dict):
