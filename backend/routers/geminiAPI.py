@@ -881,9 +881,12 @@ async def process_answer_text_image(
     for qr in responses:
         try:
             image_list = json.loads(qr.ans_text_images)
-        except Exception:
+            print("image_list: ", image_list, end="\n\n\n\n")
+        except Exception as e:
+            logger.error(f"Failed to parse image list for {qr.id}: {e}")
             continue
         for img_idx, img_path in enumerate(image_list or []):
+            print("img_path: ", img_path, end="\n\n")
             if os.path.exists(img_path):
                 batch_entries.append({
                     "qr_id": qr.id,
@@ -895,6 +898,7 @@ async def process_answer_text_image(
         for i in range(0, len(lst), n):
             yield lst[i:i+n]
 
+    print("batch_entries: ", batch_entries, end="\n\n\n\n")
     batches = list(chunks(batch_entries, 5))
 
     extraction_mapping = {}
