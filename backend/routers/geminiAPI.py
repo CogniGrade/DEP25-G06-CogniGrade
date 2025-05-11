@@ -979,7 +979,7 @@ Separate each question with a blank line.
 
         return batch_result
 
-    print("\n\n\n\nProcessing batches", end="\n\n\n\n")
+    print("\n\n\n\nProcessing batches: ", batches, end="\n\n\n\n")
     results = await asyncio.gather(*(process_batch(b) for b in batches), return_exceptions=True)
     print("Results: ", results, end="\n\n\n\n")
     for r in results:
