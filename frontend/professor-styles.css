@@ -337,12 +337,20 @@ h1 {
 }
 
 .content {
+    display: flex;
+    flex-direction: column;
+    padding: 20px 50px 20px 10px; /* Reduced top padding from 20px to 10px */
     flex: 1;
-    margin-left: var(--content-left-margin); /* Ensures content doesn't overlap sidebar */
-    overflow-y: auto; /* Allows scrolling inside content */
-    padding: 20px 50px 20px 10px;
+    margin-left: var(--content-left-margin);
+    overflow-y: auto; /* Keep this as fallback */
     transition: margin-left 0.3s ease-in-out;
 }
+
+.content > section.active {
+    display: block;
+    flex: 1; /* Takes remaining height after other elements like back-button-container */
+}
+
 
 .sidebar.collapsed + .content {
     margin-left: var(--sidebar-collapsed-width);
@@ -466,4 +474,17 @@ h1 {
     cursor: pointer;
     object-fit: cover;
     border: 2px solid var(--light-accent-3);
+}
+
+
+.icon-btn {
+    background: none;
+    border: none;
+    font-size: 1.2rem;
+    cursor: pointer;
+    padding: 0.5rem;
+    color: var(--light-accent-1); /* Matches theme: #6366f1 */
+}
+.icon-btn:hover {
+    color: var(--light-accent-2); /* Hover: #8b5cf6 */
 }

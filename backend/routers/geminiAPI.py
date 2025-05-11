@@ -856,12 +856,13 @@ Part: [part_label] - Answer: [text]
         content={"message": "Text extracted successfully again"}
     )
 
-@router.post("/api/{exam_id}/process-text-images/answer_script")
+@router.post("/{exam_id}/process-text-images/answer_script")
 async def process_answer_text_image(
     exam_id: int,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user_required)
 ):
+    print("\n\n\n\nEXTRACTING answer_text IMAGES\n\n\n\n")
     result = await db.execute(select(Question).where(Question.exam_id == exam_id))
     questions = result.scalars().all()
     question_number_map = {
@@ -1001,7 +1002,7 @@ Separate each question with a blank line.
 
 
 ### DUPLICATION DONE TO SOME EXTENT, IMPROVE LATER ###
-@router.post("/api/{exam_id}/process-text-images/marking_scheme")
+@router.post("/{exam_id}/process-text-images/marking_scheme")
 async def process_marking_scheme_text_image(
     exam_id: int,
     db: AsyncSession = Depends(get_db),

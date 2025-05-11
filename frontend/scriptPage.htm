@@ -190,19 +190,19 @@
       return params.get(param);
     }
     
-    authFetch(`/process-response-text-image/${getQueryParameter('exam_id')}`, {
-      method: 'POST',
-      headers: { "Content-Type": "application/json" }
-    })
-      .then(res => res.json())
-      .then(processData => {
-        console.log("Processing complete:", processData);
-        alert("Responses processed successfully!");
-      })
-      .catch(error => {
-        console.error("One or more operations failed:", error);
-        alert("Processing failed for one or more responses.");
-      });
+    // authFetch(`/process-response-text-image/${getQueryParameter('exam_id')}`, {
+    //   method: 'POST',
+    //   headers: { "Content-Type": "application/json" }
+    // })
+    //   .then(res => res.json())
+    //   .then(processData => {
+    //     console.log("Processing complete:", processData);
+    //     alert("Responses processed successfully!");
+    //   })
+    //   .catch(error => {
+    //     console.error("One or more operations failed:", error);
+    //     alert("Processing failed for one or more responses.");
+    //   });
 
     // Load available document types from backend and populate the dropdown
     function loadAvailableDocuments() {

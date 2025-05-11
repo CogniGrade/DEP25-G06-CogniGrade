@@ -45,12 +45,14 @@ function updateModeUI() {
   const dropdownLabel = document.getElementById('selector-label');
   const partBtn       = document.getElementById('part-btn');
   const submitBtn     = document.getElementById('submit-btn');
-
+  const questionNum = document.getElementById('question-number');
   if (selectMode === 'dropdown') {
+    questionNum.style.display = 'none';
     dropdownLabel.style.display = 'flex';
     partBtn.style.display       = 'inline-flex';   // ← now visible in dropdown
     submitBtn.style.display     = 'inline-flex';
   } else {
+    questionNum.style.display = 'flex';
     dropdownLabel.style.display = 'none';
     partBtn.style.display       = 'inline-flex';
     submitBtn.style.display     = 'none';
@@ -246,7 +248,9 @@ function setCurrentQuestion(questionIndex, partIndex) {
   let label = partIndex === -1 ? 
     `Question ${question.question_number}` : 
     `Part ${question.parts[partIndex]} of Question ${question.question_number}`;
-  document.getElementById('question-number').textContent = label;
+
+  const questionLabel = document.getElementById('question-number');
+  questionLabel.textContent = label;
 
   // Update the combined button text based on the parts status.
   const btn = document.getElementById('part-btn');
@@ -898,8 +902,7 @@ async function handleSubmit(examId){
   // 3. Only run the “process-text-images” endpoint in Sequential mode
   if (document_type == 'answer_script') {
     try{
-      const procRes = await fetch(
-        `/api/${examId}/process-text-images/${document_type}`, {
+      const procRes = await authFetch(`/${examId}/process-text-images/${document_type}`, {
           method: 'POST',
           headers: { "Content-Type": "application/json" }
         }
@@ -908,6 +911,8 @@ async function handleSubmit(examId){
       alert("Responses submitted and processed successfully!");
 
       await postExamStage(7); // Update the exam stage to 7 (Grading Started)
+
+      window.location.href = `scriptPage.htm?exam_id=${examId}`;
     } catch(err) {
       console.error("Processing/Extraction error:", err);
       alert("Processing/Extraction of text from individual question images failed.");

@@ -619,7 +619,7 @@
     <!-- Main Content -->
     <main class="content">
       <div class="back-button-container">
-        <button id="backBtn" style="display: none;">Back</button>
+          <button id="backBtn" style="display: none;" class="icon-btn"><i class="fas fa-arrow-left"></i></button>
       </div>
       <!-- Section 1: Upload Question Paper -->
       <section class="upload-section" id="upload-questions">
@@ -669,7 +669,7 @@
       </div>
 
       <!-- Placeholder for student-edit section -->
-      <section id="crop-edit-section" style="display: none; margin-top: 20px;"></section>
+      <section id="crop-edit-section" style="display: none;"></section>
 
 
       <!-- STEP 4: show marking + solution side-by-side -->
@@ -2201,78 +2201,117 @@
     const uploadStudent = document.getElementById('upload-student');
     const finalBtnRow = document.getElementById('finalBtnRow');
     const backBtn = document.getElementById('backBtn');
+
  
-    async function setStage(stage){
-      const examId = getQueryParam('exam_id');
-      await postExamStage(stage);
-      currentStage = stage;
-      doc_stage = getDocStage(currentStage);
-      console.log("Document Stage: ", doc_stage)
-      // Reset all visibility
-      uploadQuestions.style.display = 'none';
-      qpOverlay.style.display = 'none';
-      partLabelSection.style.display = 'none';
-      questionLabelRow.style.display = 'none';
-      cropEditSection.style.display = 'none';
-      finalUploadSection.style.display = 'none';
-      finalProcessRow.style.display = 'none';
-      uploadStudent.style.display = 'none';
-      finalBtnRow.style.display = 'none';
-      backBtn.style.display = 'none';
+    async function setStage(stage) {
+        const examId = getQueryParam('exam_id');
+        await postExamStage(stage);
+        currentStage = stage;
+        doc_stage = getDocStage(currentStage);
+        console.log("Document Stage: ", doc_stage);
 
-      if (stage === 0) {
-        uploadQuestions.style.display = 'block';
-      } else if (stage === 1) {
-        uploadQuestions.style.display = 'block';
-        qpOverlay.style.display = 'block';
-        partLabelSection.style.display = 'block';
-        questionLabelRow.style.display = 'flex';
-        backBtn.style.display = 'block';
-      } else if (stage === 2) {
-        finalUploadSection.style.display = 'flex';
-        finalProcessRow.style.display = 'flex';
-        backBtn.style.display = 'block';
-      } else if (stage === 3 || stage === 4) {
-        const res = await fetch('crop-edit.htm');
-        const html = await res.text();
-        cropEditSection.innerHTML = html;
-        await initialise_crop_edit(examId);
-        const observer = new MutationObserver(() => {
-          const btn = cropEditSection.querySelector('#submit-btn');
-          if (btn) {
-            btn.addEventListener('click', async () => {
-              await setStage(5);
-            });
-            observer.disconnect();
-          }
+        // Reset all visibility and active class
+        const sections = document.querySelectorAll('.content > section');
+        sections.forEach(sec => {
+            sec.classList.remove('active');
+            sec.style.display = 'none';
         });
-        observer.observe(cropEditSection, { childList: true, subtree: true });
-        cropEditSection.style.display = 'block';
-        backBtn.style.display = 'block';
-      } else if (stage === 5) {
-        uploadStudent.style.display = 'block';
-        finalBtnRow.style.display = 'flex';
-        backBtn.style.display = 'block';
-      } else if (stage === 6) {
-        document.getElementById('upload-student').style.display = "none";
-        document.getElementById('finalBtnRow').style.display = "none";
+        uploadQuestions.style.display = 'none';
+        qpOverlay.style.display = 'none';
+        partLabelSection.style.display = 'none';
+        questionLabelRow.style.display = 'none';
+        cropEditSection.style.display = 'none';
+        finalUploadSection.style.display = 'none';
+        finalProcessRow.style.display = 'none';
+        uploadStudent.style.display = 'none';
+        finalBtnRow.style.display = 'none';
+        backBtn.style.display = 'none';
 
-        // 2) Inject a full-screen, centered message
-        const msg = document.createElement('div');
-        msg.className = 'submission-message';
-        msg.innerHTML = `
-          <h1>Congratulations!</h1>
-          <p>Exam submitted, Automatic Grading will begin once students annotate their answer scripts.</p>
-        `;
-        document.querySelector(".content").appendChild(msg);
-        backBtn.style.display = 'block';                        // REMOVE LATER
-      }else if(stage >= 7){
-        window.location.href = `exam-stats.htm?exam_id=${examId}`;
-      }
+        const originalContainer = document.querySelector('.back-button-container');
+
+
+        if (stage === 0) {
+            uploadQuestions.style.display = 'block';
+            uploadQuestions.classList.add('active');
+        } else if (stage === 1) {
+            uploadQuestions.style.display = 'block';
+            qpOverlay.style.display = 'block';
+            partLabelSection.style.display = 'block';
+            questionLabelRow.style.display = 'flex';
+            backBtn.style.display = 'block';
+            partLabelSection.classList.add('active');
+        } else if (stage === 2) {
+            finalUploadSection.style.display = 'flex';
+            finalProcessRow.style.display = 'flex';
+            backBtn.style.display = 'block';
+            finalUploadSection.classList.add('active');
+        } else if (stage === 3 || stage === 4) {
+            const res = await fetch('crop-edit.htm');
+            const html = await res.text();
+            cropEditSection.innerHTML = html;
+            await initialise_crop_edit(examId);
+            const observer = new MutationObserver(() => {
+              const btn = cropEditSection.querySelector('#submit-btn');
+              if (btn) {
+                btn.addEventListener('click', async () => {
+                  await setStage(5);
+                });
+                observer.disconnect();
+              }
+            });
+            observer.observe(cropEditSection, { childList: true, subtree: true });
+            cropEditSection.style.display = 'block';
+            cropEditSection.classList.add('active');
+            backBtn.style.display = 'block';
+            // Observer code remains unchanged
+        } else if (stage === 5) {
+            uploadStudent.style.display = 'block';
+            finalBtnRow.style.display = 'flex';
+            backBtn.style.display = 'block';
+            uploadStudent.classList.add('active');
+        } else if (stage === 6) {
+            document.getElementById('upload-student').style.display = "none";
+            document.getElementById('finalBtnRow').style.display = "none";
+
+            // 2) Inject a full-screen, centered message
+            const msg = document.createElement('div');
+            msg.className = 'submission-message';
+            msg.innerHTML = `
+              <h1>Congratulations!</h1>
+              <p>Exam submitted, Automatic Grading will begin once students annotate their answer scripts.</p>
+            `;
+            document.querySelector(".content").appendChild(msg);
+            backBtn.style.display = 'block';  
+        } else if (stage >= 7) {
+            window.location.href = `exam-stats.htm?exam_id=${examId}`;
+        }
+
+        // Handle back button positioning
+        if (stage === 3 || stage === 4) {
+            // Only attempt move if crop-edit section exists
+            const topControls = cropEditSection?.querySelector('#top-controls');
+            
+            if (topControls) {
+              const container = topControls.querySelector('.back-btn-container');
+              if (container && !container.contains(backBtn)) {
+                  // Clone maintains event listeners
+                  container.appendChild(backBtn);
+                  originalContainer.style.display = 'none';
+              }
+            }
+        } else {
+            // Restore original button state
+            originalContainer.style.display = 'block';
+            if (!originalContainer.contains(backBtn)) {
+                originalContainer.appendChild(backBtn);
+            }
+        }
+
     }
-
+    
     // Back button functionality
     document.getElementById('backBtn').addEventListener('click', async () => {
+      console.log("Back button clicked");
       if (currentStage > 0) {
         await setStage(currentStage - 1);
       }
