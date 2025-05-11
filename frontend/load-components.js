@@ -31,6 +31,7 @@ function loadUserInfo() {
                 if (data.user && data.user.profile_picture) {
                     
                     let imagePath = "../" + data.user.profile_picture.replace("./", "");
+                    console.log("FRONTEND_FILE_PATH: ", imagePath);
                     profileImg.src = imagePath;
                 } else {
                     // Fallback to avatar with initials if profile picture is not available

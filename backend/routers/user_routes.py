@@ -214,6 +214,7 @@ async def delete_account(
     # Remove profile picture if exists
     file_name = f"{current_user.id}.jpg"
     file_path = os.path.join(PROFILE_PICTURE_DIR, file_name)
+
     if os.path.exists(file_path):
         os.remove(file_path)
     
