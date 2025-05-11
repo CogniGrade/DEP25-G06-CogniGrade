@@ -7,6 +7,7 @@ import asyncio
 import threading
 import json
 import re
+import aiofiles  # Added for async file operations
 
 import google.generativeai as genai
 from fastapi import APIRouter, File, UploadFile, Depends, HTTPException, Form
@@ -146,13 +147,14 @@ async def upload_and_extract(
 
             file_id = str(uuid.uuid4())
             file_location = os.path.join(UPLOAD_DIRECTORY, f"{file_id}_{file.filename}")
-            with open(file_location, "wb") as f:
-                f.write(await file.read())
+            async with aiofiles.open(file_location, "wb") as f:
+                content = await file.read()
+                await f.write(content)
 
             logger.info(f"Uploading {file.filename} to Gemini...")
 
             print(leaf_labels)
-            sample_file = genai.upload_file(path=file_location, display_name=file.filename)
+            sample_file = await asyncio.to_thread(genai.upload_file, path=file_location, display_name=file.filename)
 
             if file_type_enum == FileTypeEnum.question_paper:
                 logger.info("Question Paper detected.")
@@ -210,7 +212,7 @@ Example - "Question Number - 1(a)" if a question is labelled as 1 and has a subp
     - **Concatenate:** Combine the initial part with the student's completion, preserving formatting.
 4. **Differentiate Answers:** Use cues like "Answer :" etc, spatial separation, or box regions to identify answer sections.
 5. **Formatting:** You may rearrange, reformat the response if the question explicitly states so. But do not correct any incorrect content in the answer. Otherwise preserve the structure as present in the student's answer.
-6. **Ignore Struck-Out/Scribbled Content:** Omit any word or line that is strikethrough or scribbled out from the extracted answer.
+6. **Ignore Struck-Out/Scribbled Content:** omit any word or line that is strikethrough or scribbled out from the extracted answer.
 7. **Ignore Irrelevant Text:** Extract only student answers, not instructions, headings, etc.
 8. Recheck the extracted answer to ensure it is the exact same as the student's answer, and that it is not missing any part of the answer. If you find any missing part, add it to the extracted answer.
 9. In case of any objective question, look for ticks or circles marking the selected option, which should be then extracted.
@@ -236,7 +238,7 @@ Example - "Question Number - 1(a)" if a question is labelled as 1 and has a subp
 
 # 5. **Formatting:** Preserve original structure and formatting, including mark placements. Do not correct content.
 
-# 6. **Ignore Struck-Out Content:** Omit any strikethrough or scribbled content, including marks.
+# 6. **Ignore Struck-Out Content:** omit any strikethrough or scribbled content, including marks.
 
 # 7. **Ignore Irrelevant Text:** Extract only solution content and associated marks directly related to questions.
 # """
@@ -273,7 +275,8 @@ If Q has parts, nest them under Q:
 ---
 
 """
-            response = get_model().generate_content((sample_file, prompt))
+            model = get_model()
+            response = await asyncio.to_thread(model.generate_content, (sample_file, prompt))
             extracted_text = response.text if response.text else "No text extracted."
 
             if existing:
@@ -331,10 +334,11 @@ async def extract_question_labels(
     for file in files:
         fid = str(uuid.uuid4())
         file_path = os.path.join(UPLOAD_DIRECTORY, f"{fid}_{file.filename}")
-        with open(file_path, "wb") as f:
-            f.write(await file.read())
+        async with aiofiles.open(file_path, "wb") as f:
+            content = await file.read()
+            await f.write(content)
 
-        ai_file = genai.upload_file(file_path, display_name=file.filename)
+        ai_file = await asyncio.to_thread(genai.upload_file, path=file_path, display_name=file.filename)
 
         prompt = """
 Extract every question label from the paper in the form Question_Number.Part.Subpart (any depth), 
@@ -352,7 +356,8 @@ Example output:
 2.1.a
 2.1.b
 """
-        resp = get_model().generate_content((ai_file, prompt))
+        model = get_model()
+        resp = await asyncio.to_thread(model.generate_content, (ai_file, prompt))
         text = resp.text.strip() or ""
 
         lines = [ln.strip() for ln in text.splitlines() if ln.strip()]
@@ -531,6 +536,8 @@ Ideal Answer: {ideal_answer}
 
 Based on these, grade the following student answer: {student_answer}
 
+If the marking scheme doesn't specify mark distribution, grade proportionally based on the level of correctness—giving higher marks for more accurate and complete answers, and lower marks for partially correct or incomplete ones. Don't be too strict, nor too lenient.
+
 Maximum Marks Possible: {question.max_marks}.
 Output Format:
 Grade: X
@@ -541,6 +548,8 @@ Reason: Some Text"""
 This is the correct marking scheme: {marking_scheme}
 
 Grade the following student answer: {student_answer}
+
+If the marking scheme doesn't specify mark distribution, grade proportionally based on the level of correctness—giving higher marks for more accurate and complete answers, and lower marks for partially correct or incomplete ones. Don't be too strict, nor too lenient.
 
 Maximum Marks Possible: {question.max_marks}.
 Output Format:
@@ -553,12 +562,15 @@ Ideal Answer: {ideal_answer}
 
 Grade the following student answer: {student_answer}
 
+Grade proportionally based on the level of correctness—giving higher marks for more accurate and complete answers, and lower marks for partially correct or incomplete ones. Don't be too strict, nor too lenient.
+
 Maximum Marks Possible: {question.max_marks}.
 Output Format:
 Grade: X/{question.max_marks}, where X is the marks secured.
 Reason: Some Text"""
         
-        response = get_model().generate_content(prompt)
+        model = get_model()
+        response = await asyncio.to_thread(model.generate_content, prompt)
         result_text = response.text
         
         grade = None
@@ -677,6 +689,9 @@ This is the correct marking scheme: {f'{marking_scheme}, with' if marking_scheme
 Ideal Answer: {ideal_answer}
 
 Grade the following student answer: {f'{student_answer}, with' if student_answer else "look at"} {f" the attached {'diagrams and tables' if ans_diagram_present and ans_table_present else 'diagrams' if ans_diagram_present else 'table' if ans_table_present else ''}" if ans_image_present else ""}"""] + [f for (_, f) in uploaded_files] + [f"""
+
+If the marking scheme doesn't specify mark distribution, grade proportionally based on the level of correctness—giving higher marks for more accurate and complete answers, and lower marks for partially correct or incomplete ones. Don't be too strict, nor too lenient.
+
 Maximum Marks Possible: {question.max_marks}.
 Output Format:
 Grade: X
@@ -688,6 +703,8 @@ This is the correct marking scheme: {f'{marking_scheme}, with' if marking_scheme
 
 Grade the following student answer: {f'{student_answer}, with' if student_answer else "look at"} {f" the attached {'diagrams and tables' if ans_diagram_present and ans_table_present else 'diagrams' if ans_diagram_present else 'table' if ans_table_present else ''}" if ans_image_present else ""}"""] + [f for (_, f) in uploaded_files] + [f"""
 
+If the marking scheme doesn't specify mark distribution, grade proportionally based on the level of correctness—giving higher marks for more accurate and complete answers, and lower marks for partially correct or incomplete ones. Don't be too strict, nor too lenient.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      
 Maximum Marks Possible: {question.max_marks}.
 Output Format:
 Grade: X
@@ -699,6 +716,8 @@ Ideal Answer: {ideal_answer}
 
 Grade the following student answer: {f'{student_answer}, with' if student_answer else "look at"} {f" the attached {'diagrams and tables' if ans_diagram_present and ans_table_present else 'diagrams' if ans_diagram_present else 'table' if ans_table_present else ''}" if ans_image_present else ""}"""] + [f for (_, f) in uploaded_files] + [f"""
 
+Give marks proportionally based on the level of correctness—giving higher marks for more accurate and complete answers, and lower marks for partially correct or incomplete ones. Don't be too strict, nor too lenient.
+
 Maximum Marks Possible: {question.max_marks}.
 Output Format:
 Grade: X/{question.max_marks}, where X is the marks secured.
@@ -708,12 +727,15 @@ Reason: Some Text"""]
 
 Grade the following student answer: {f'{student_answer}, with' if student_answer else "look at"} {f" the attached {'diagrams and tables' if ans_diagram_present and ans_table_present else 'diagrams' if ans_diagram_present else 'table' if ans_table_present else ''}" if ans_image_present else ""}"""] + [f for (_, f) in uploaded_files] + [f"""
 
+Give marks proportionally based on the level of correctness—giving higher marks for more accurate and complete answers, and lower marks for partially correct or incomplete ones. Don't be too strict, nor too lenient.
+                                                                                                                                                                                                                                                                                                                                                 
 Maximum Marks Possible: {question.max_marks}.
 Output Format:
 Grade: X/{question.max_marks}, where X is the marks secured.
 Reason: Some Text"""]
 
-        response = get_model().generate_content(prompt_content)
+        model = get_model()
+        response = await asyncio.to_thread(model.generate_content, prompt_content)
         result_text = response.text
         
         print("Question Num: ", question.question_number, "\nAns: ", result_text)
@@ -993,7 +1015,7 @@ async def process_marking_scheme_text_image(
       - Upload all images in the batch concurrently.
       - Construct a composite prompt that includes each image’s unique key.
       - Send all images at once to the Gemini API and extract the marking scheme text.
-      - Parse the API response (expected format: "Key: <unique_key> \n <extracted text>").
+      - Parse the API response (expected format: "Key: <unique_key> \n <extracted text>"). 
       - Map and store each extracted text into the corresponding Question's ideal_marking_scheme field.
     """
     # Retrieve all exam questions.
