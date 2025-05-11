@@ -50,24 +50,26 @@ async function postExamStage(stage) {
     }
 
     if (stage === 7){
-        gradeExam(examId);
+        await gradeExam(examId);
     }
 }
 
-function updateExamResult() {
-    const examId = getQueryParam("exam_id");
-    authFetch(`/exam/${examId}/add-result`, {
+async function updateExamResult() {
+  const examId = getQueryParam("exam_id");
+
+  try {
+    const response = await authFetch(`/exam/${examId}/add-result`, {
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    })
-    .then(response => response.json())
-    .then(data => {
-      console.log("Exam result updated:", data);
-      // Optionally refresh any UI component showing overall exam statistics.
-    })
-    .catch(err => console.error("Error updating exam result:", err));
-  }
+    });
 
+    const data = await response.json();
+    console.log("Exam result updated:", data);
+    // Optionally refresh any UI component showing overall exam statistics.
+  } catch (err) {
+    console.error("Error updating exam result:", err);
+  }
+}
 
 async function gradeExam(examId) {
     try {
@@ -86,7 +88,7 @@ async function gradeExam(examId) {
         console.log(`Q${r.question_number}: ${r.grade} — ${r.reasoning}`);
       });
 
-      updateExamResult();
+      await updateExamResult();
     } catch (e) {
       console.error('Network error:', e);
     }
