@@ -876,6 +876,7 @@ async def process_answer_text_image(
     ))
     responses = result.scalars().all()
 
+    print("\n\n\n\nfetch_all_responses: ", responses, end="\n\n\n\n")
     batch_entries = []
     for qr in responses:
         try:
