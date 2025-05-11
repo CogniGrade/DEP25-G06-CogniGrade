@@ -4,12 +4,12 @@ FROM python:3.11-slim
 WORKDIR /app
 
 # copy dependency list
-COPY ../requirements.txt /app/
+COPY requirements.txt .
 
 RUN pip install --no-cache-dir -r requirements.txt
 
 # copy your FastAPI code
-COPY . /app/
+COPY . .
 
 EXPOSE 8000
 
