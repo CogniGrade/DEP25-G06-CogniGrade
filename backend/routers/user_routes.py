@@ -1,7 +1,9 @@
 from fastapi import Form, APIRouter, HTTPException, Depends, UploadFile, File, Body, status
 from backend.database import get_db
 from backend.models.users import User, UserSettings
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession     # ASYNC
+from sqlalchemy.future import select
+
 from backend.utils.security import get_current_user_required, get_password_hash, verify_password
 from typing import Optional
 import os
@@ -33,7 +35,7 @@ async def update_profile(
     bio: Optional[str] = Form(None),
     profile_picture: UploadFile = File(None),
     current_user: User = Depends(get_current_user_required),
-    db: Session = Depends(get_db)
+    db: AsyncSession = Depends(get_db)
 ):
     """Updates the user's profile information and profile picture."""
     
@@ -52,7 +54,7 @@ async def update_profile(
             # Save with high quality
             img.save(file_location, "JPEG", quality=95)
             current_user.profile_picture = file_location
-            db.commit()
+            await db.commit()
         except Exception as e:
             raise HTTPException(
                 status_code=400,
@@ -66,7 +68,7 @@ async def update_profile(
         current_user.email = email
     if bio:
         current_user.bio = bio
-    db.commit()
+    await db.commit()
     
     return {"message": "Profile updated successfully"}
 
@@ -76,7 +78,7 @@ async def change_password(
     new_password: str = Form(...),
     confirm_password: str = Form(...),
     current_user: User = Depends(get_current_user_required),
-    db: Session = Depends(get_db)
+    db: AsyncSession = Depends(get_db)
 ):
     """Changes the user's password."""
     
@@ -103,19 +105,20 @@ async def change_password(
     
     # Update password
     current_user.hashed_password = get_password_hash(new_password)
-    db.commit()
+    await db.commit()
     
     return {"message": "Password changed successfully"}
 
 @router.get("/notification-settings")
 async def get_notification_settings(
     current_user: User = Depends(get_current_user_required),
-    db: Session = Depends(get_db)
+    db: AsyncSession = Depends(get_db)
 ):
     """Gets the user's notification settings."""
     
     # Get or create user settings
-    user_settings = db.query(UserSettings).filter(UserSettings.user_id == current_user.id).first()
+    result = await db.execute(select(UserSettings).where(UserSettings.user_id == current_user.id))
+    user_settings = result.scalars().first()
     
     if not user_settings:
         user_settings = UserSettings(
@@ -125,8 +128,8 @@ async def get_notification_settings(
             language_preference="en"
         )
         db.add(user_settings)
-        db.commit()
-        db.refresh(user_settings)
+        await db.commit()
+        await db.refresh(user_settings)
     
     return {
         "email_notifications": user_settings.email_notifications,
@@ -140,12 +143,13 @@ async def update_notification_settings(
     display_theme: str = Form(...),
     language_preference: str = Form(...),
     current_user: User = Depends(get_current_user_required),
-    db: Session = Depends(get_db)
+    db: AsyncSession = Depends(get_db)
 ):
     """Updates the user's notification settings."""
     
     # Get or create user settings
-    user_settings = db.query(UserSettings).filter(UserSettings.user_id == current_user.id).first()
+    result = await db.execute(select(UserSettings).where(UserSettings.user_id == current_user.id))
+    user_settings = result.scalars().first()
     
     if not user_settings:
         user_settings = UserSettings(
@@ -160,14 +164,14 @@ async def update_notification_settings(
         user_settings.display_theme = display_theme
         user_settings.language_preference = language_preference
     
-    db.commit()
+    await db.commit()
     
     return {"message": "Notification settings updated successfully"}
 
 @router.get("/privacy-settings")
 async def get_privacy_settings(
     current_user: User = Depends(get_current_user_required),
-    db: Session = Depends(get_db)
+    db: AsyncSession = Depends(get_db)
 ):
     """Gets the user's privacy settings."""
     
@@ -183,7 +187,7 @@ async def update_privacy_settings(
     profile_visibility: str = Form(...),
     activity_visibility: str = Form(...),
     current_user: User = Depends(get_current_user_required),
-    db: Session = Depends(get_db)
+    db: AsyncSession = Depends(get_db)
 ):
     """Updates the user's privacy settings."""
     
@@ -196,7 +200,7 @@ async def update_privacy_settings(
 async def delete_account(
     password: str = Form(...),
     current_user: User = Depends(get_current_user_required),
-    db: Session = Depends(get_db)
+    db: AsyncSession = Depends(get_db)
 ):
     """Permanently deletes the user's account."""
     
@@ -241,13 +245,14 @@ async def delete_account(
                 db.delete(notification)
         
         # Delete user settings if any
-        user_settings = db.query(UserSettings).filter(UserSettings.user_id == current_user.id).first()
+        result = await db.execute(select(UserSettings).where(UserSettings.user_id == current_user.id))
+        user_settings = result.scalars().first()
         if user_settings:
             db.delete(user_settings)
             
         # Now delete the user
         db.delete(current_user)
-        db.commit()
+        await db.commit()
         
     except Exception as e:
         db.rollback()
@@ -256,4 +261,4 @@ async def delete_account(
             detail=f"Error deleting account: {str(e)}"
         )
     
-    return {"message": "Account deleted successfully"} 
+    return {"message": "Account deleted successfully"}

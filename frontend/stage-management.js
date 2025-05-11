@@ -20,7 +20,7 @@ async function fetchExamStage() {
     const examId = getQueryParam('exam_id');
 
     try {
-        const response = await fetch(`/exams/${examId}/stage`);
+        const response = await fetch(`api/exams/${examId}/stage`);
         if (!response.ok) {
             throw new Error("Failed to fetch exam stage");
         }
@@ -36,7 +36,7 @@ async function fetchExamStage() {
 async function postExamStage(stage) {
     const examId = getQueryParam('exam_id');
     try {
-    const response = await fetch(`/exams/${examId}/stage`, {
+    const response = await fetch(`api/exams/${examId}/stage`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ exam_stage: stage })
@@ -56,7 +56,7 @@ async function postExamStage(stage) {
 
 function updateExamResult() {
     const examId = getQueryParam("exam_id");
-    fetch(`/exam/${examId}/add-result`, {
+    fetch(`api/exam/${examId}/add-result`, {
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
     })
@@ -71,7 +71,7 @@ function updateExamResult() {
 
 async function gradeExam(examId) {
     try {
-      const resp = await fetch(`/${examId}/grade-exam`, {
+      const resp = await fetch(`api/${examId}/grade-exam`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' }
       });

@@ -6,14 +6,14 @@ import logging
 import asyncio
 import threading
 import json
-import asyncio
 import re
 
 import google.generativeai as genai
 from fastapi import APIRouter, File, UploadFile, Depends, HTTPException, Form
 from fastapi.responses import JSONResponse, RedirectResponse
 from PIL import Image
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.future import select
 
 from backend.database import get_db
 from backend.models.files import AnswerScript, Material, FileTypeEnum
@@ -21,7 +21,6 @@ from backend.models.users import User
 from backend.utils.security import get_current_user_required
 from backend.models.tables import QuestionResponse, Question
 
-# Dynamically load API keys from environment variables.
 api_keys = []
 i = 1
 while True:
@@ -34,7 +33,6 @@ while True:
 if not api_keys:
     raise RuntimeError("No GEMINI_API_KEY_X environment variables found.")
 
-# Create model instances for each API key using the same model.
 model_name = "gemini-2.0-flash"
 models = []
 for key in api_keys:
@@ -43,8 +41,8 @@ for key in api_keys:
 
 call_count = 0
 call_lock = threading.Lock()
-async_call_lock = asyncio.Lock()  # Added for asyncio safety
-calls_per_key = 15  # Example value, adjust as needed
+async_call_lock = asyncio.Lock()
+calls_per_key = 15
 
 def get_model():
     """Return the appropriate model instance based on a global call counter.
@@ -53,7 +51,7 @@ def get_model():
     Thread-safe and asyncio-safe.
     """
     global call_count
-    with call_lock:  # Threading lock for synchronous safety
+    with call_lock:
         call_count += 1
         index = ((call_count - 1) // calls_per_key) % len(models)
         print(f"Number of calls: {call_count}")
@@ -62,11 +60,9 @@ def get_model():
         return models[index]
 
 async def get_model_async():
-    """Async wrapper for get_model to ensure asyncio safety."""
-    async with async_call_lock:  # Asyncio lock for coroutine safety
+    async with async_call_lock:
         return get_model()
-    
-# Create uploads folder.
+
 UPLOAD_DIRECTORY = "./uploads"
 os.makedirs(UPLOAD_DIRECTORY, exist_ok=True)
 
@@ -84,14 +80,13 @@ def extract_leaves(labels: List[str]) -> List[str]:
             leaves.append(lbl)
     return leaves
 
-
 @router.post("/extract-text")
 async def upload_and_extract(
     files: List[UploadFile] = File(...),
     exam_id: int = Form(...),
-    file_type: str = Form(...),   # expected: "question_paper", "solution_script", "marking_scheme", "answer_sheet"
+    file_type: str = Form(...),
     student_id: Optional[int] = Form(None),
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user_required)
 ):
     results = []
@@ -101,51 +96,43 @@ async def upload_and_extract(
         raise HTTPException(status_code=400, detail="Invalid file type provided.")
     for file in files:
         try:
-            # Check if a record already exists based on filename, exam_id and file_type.
             if file_type_enum in [FileTypeEnum.question_paper, FileTypeEnum.solution_script, FileTypeEnum.marking_scheme]:
-                existing = db.query(Material).filter(
+                result = await db.execute(select(Material).where(
                     Material.title == file.filename,
                     Material.related_exam_id == exam_id,
                     Material.file_type == file_type_enum
-                ).first()
+                ))
+                existing = result.scalars().first()
             elif file_type_enum == FileTypeEnum.answer_sheet:
                 if not student_id:
                     raise HTTPException(status_code=400, detail="student_id is required for answer_sheet.")
-                existing = db.query(AnswerScript).filter(
+                result = await db.execute(select(AnswerScript).where(
                     AnswerScript.title == file.filename,
                     AnswerScript.exam_id == exam_id,
-                    AnswerScript.student_id == student_id,
-                ).first()
+                    AnswerScript.student_id == student_id
+                ))
+                existing = result.scalars().first()
             else:
                 existing = None
 
-            # If a record exists and extracted_text is not empty, use it.
             if existing and existing.extracted_text:
                 results.append({"filename": file.filename, "text": existing.extracted_text})
                 continue
 
-            questions = db.query(Question).filter(Question.exam_id == exam_id).all()
+            result = await db.execute(select(Question).where(Question.exam_id == exam_id))
+            questions = result.scalars().all()
             if not questions:
                 raise HTTPException(status_code=404, detail="Exam not found or has no questions")
 
-            # Aggregate all part labels
             all_labels: List[str] = []
-
-            # Build per-question part label entries
             for q in questions:
                 raw = q.part_labels or ""
                 raw = raw.strip()
                 if not raw:
-                    # no explicit part labels: treat question number itself as a leaf
-                    # labels = [str(q.question_number)]
                     continue
-                # Try parsing JSON list first, fallback to comma-separated
                 try:
                     parsed = json.loads(raw)
                     if isinstance(parsed, list):
-                        # if len(parsed) == 0:
-                        #     labels = [str(q.question_number)]
-                        # else:
                         labels = [str(item).strip() for item in parsed]
                     else:
                         raise ValueError
@@ -154,11 +141,9 @@ async def upload_and_extract(
                 all_labels.append(str(q.question_number))
                 all_labels.extend(labels)
 
-            # Extract only leaf nodes
             leaf_labels = extract_leaves(all_labels)
             leaf_labels.sort(key=lambda x: [int(part) if part.isdigit() else part.lower() for part in x.split('.')])
 
-            # Read the file bytes and save a copy on disk.
             file_id = str(uuid.uuid4())
             file_location = os.path.join(UPLOAD_DIRECTORY, f"{file_id}_{file.filename}")
             with open(file_location, "wb") as f:
@@ -167,10 +152,8 @@ async def upload_and_extract(
             logger.info(f"Uploading {file.filename} to Gemini...")
 
             print(leaf_labels)
-            # Upload file to Gemini AI.
             sample_file = genai.upload_file(path=file_location, display_name=file.filename)
 
-            # Build prompt based on file type.
             if file_type_enum == FileTypeEnum.question_paper:
                 logger.info("Question Paper detected.")
 #                 prompt = """
@@ -290,14 +273,12 @@ If Q has parts, nest them under Q:
 ---
 
 """
-            # Use the selected model (and corresponding API key) to generate content.
             response = get_model().generate_content((sample_file, prompt))
             extracted_text = response.text if response.text else "No text extracted."
 
-            # Update existing record or create a new one.
             if existing:
                 existing.extracted_text = extracted_text
-                db.commit()
+                await db.commit()
                 results.append({"filename": file.filename, "text": extracted_text})
             else:
                 if file_type_enum in [FileTypeEnum.question_paper, FileTypeEnum.solution_script, FileTypeEnum.marking_scheme]:
@@ -313,8 +294,8 @@ If Q has parts, nest them under Q:
                         file_type=file_type_enum
                     )
                     db.add(new_material)
-                    db.commit()
-                    db.refresh(new_material)
+                    await db.commit()
+                    await db.refresh(new_material)
                     results.append({"filename": file.filename, "text": extracted_text})
                 elif file_type_enum == FileTypeEnum.answer_sheet:
                     new_answer = AnswerScript(
@@ -326,8 +307,8 @@ If Q has parts, nest them under Q:
                         extracted_text=extracted_text
                     )
                     db.add(new_answer)
-                    db.commit()
-                    db.refresh(new_answer)
+                    await db.commit()
+                    await db.refresh(new_answer)
                     results.append({"filename": file.filename, "text": extracted_text})
         except Exception as e:
             logger.error(f"Error processing file {file.filename}: {str(e)}", exc_info=True)
@@ -339,7 +320,7 @@ If Q has parts, nest them under Q:
 async def extract_question_labels(
     files: List[UploadFile] = File(...),
     exam_id: int = Form(...),
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user_required),
 ):
     """
@@ -348,16 +329,13 @@ async def extract_question_labels(
     """
     results = []
     for file in files:
-        # 2. Save upload locally
         fid = str(uuid.uuid4())
         file_path = os.path.join(UPLOAD_DIRECTORY, f"{fid}_{file.filename}")
         with open(file_path, "wb") as f:
             f.write(await file.read())
 
-        # 3. Upload to Gemini
         ai_file = genai.upload_file(file_path, display_name=file.filename)
 
-        # 4. Prompt: only top-level get marks
         prompt = """
 Extract every question label from the paper in the form Question_Number.Part.Subpart (any depth), 
 that is, parent questions are separated from their children by points '.'. There may be multiple levels of hierarchy.
@@ -377,7 +355,6 @@ Example output:
         resp = get_model().generate_content((ai_file, prompt))
         text = resp.text.strip() or ""
 
-        # 5. Separate raw labels (all lines) and top-level marks
         lines = [ln.strip() for ln in text.splitlines() if ln.strip()]
         raw_labels = []
         marks_dict = {}
@@ -397,7 +374,6 @@ Example output:
             else:
                 raw_labels.append(ln)
 
-        # 6. Build full-hierarchy set from raw_labels
         full_labels = set()
         top_questions = set()
 
@@ -405,19 +381,16 @@ Example output:
             parts = lbl.split(".")
             if parts and len(parts[0]) < 3:
                 top_questions.add(parts[0])
-                # collect every prefix, so sub-parts become "1.1", "1.1.a", etc.
                 for i in range(1, len(parts)):
                     prefix = ".".join(parts[: i + 1])
                     full_labels.add(prefix)
 
-        # sort numerically where possible
         def sort_key(s):
             return [int(p) if p.isdigit() else p for p in s.split(".")]
 
         ordered = sorted(full_labels, key=sort_key)
         top_questions = sorted(top_questions, key=lambda x: int(x))
 
-        # 7. Insert per top-level question
         for qnum in top_questions:
             q_labels = [lbl for lbl in ordered if lbl.split(".")[0] == qnum]
             part_labels_json = json.dumps(q_labels)
@@ -426,15 +399,15 @@ Example output:
             q = Question(
                 exam_id=exam_id,
                 question_number=int(qnum),
-                text="",  # fill later
+                text="",
                 ideal_answer=None,
                 ideal_marking_scheme=None,
                 max_marks=max_marks,
                 part_labels=part_labels_json,
             )
             db.add(q)
-            db.commit()
-            db.refresh(q)
+            await db.commit()
+            await db.refresh(q)
 
             results.append({
                 "question_number": q.question_number,
@@ -444,12 +417,11 @@ Example output:
 
     return {"results": results}
 
-
 # @router.post("/extract-question-labels")
 # async def extract_question_labels(
 #     files: List[UploadFile] = File(...),
 #     exam_id: int = Form(...),
-#     db: Session = Depends(get_db),
+#     db: AsyncSession = Depends(get_db),
 #     current_user: User = Depends(get_current_user_required),
 # ):
 #     """
@@ -516,8 +488,8 @@ Example output:
 #                 part_labels=part_labels_json,
 #             )
 #             db.add(q)
-#             db.commit()
-#             db.refresh(q)
+#             await db.commit()
+#             await db.refresh(q)
 #             results.append({
 #                 "question_number": q.question_number,
 #                 "part_labels": q.part_labels
@@ -528,11 +500,10 @@ Example output:
 @router.post("/grade-question")
 async def grade_question(
     request: dict,
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user_required)
 ):
     try:
-        # Extract data from the request payload.
         student_answer = request.get("student_answer")
         ideal_answer = request.get("ideal_answer")
         marking_scheme = request.get("marking_scheme")
@@ -543,15 +514,14 @@ async def grade_question(
         if not student_answer or (not ideal_answer and not marking_scheme):
             raise HTTPException(status_code=400, detail="Missing required parameters. Provide student_answer and at least one of ideal_answer or marking_scheme.")
         
-        # Fetch the particular question from the database.
-        question = db.query(Question).filter(
+        result = await db.execute(select(Question).where(
             Question.id == question_id,
             Question.exam_id == exam_id
-        ).first()
+        ))
+        question = result.scalars().first()
         if not question:
             raise HTTPException(status_code=404, detail="Question not found.")
         
-        # Build the prompt based on available data.
         if marking_scheme and ideal_answer:
             prompt = f"""Question: {question.text}
 
@@ -588,11 +558,9 @@ Output Format:
 Grade: X/{question.max_marks}, where X is the marks secured.
 Reason: Some Text"""
         
-        # Use the selected model (and corresponding API key) to generate content.
         response = get_model().generate_content(prompt)
         result_text = response.text
         
-        # Parse the API response.
         grade = None
         reason = ""
         if "Grade:" in result_text:
@@ -612,51 +580,47 @@ Reason: Some Text"""
         if grade is not None and (grade < 0 or grade > question.max_marks):
             grade = None
         
-        # Update or create the corresponding QuestionResponse record.
         if question_id and student_id and exam_id and grade is not None:
-            existing_response = db.query(QuestionResponse).filter(
+            result = await db.execute(select(QuestionResponse).where(
                 QuestionResponse.question_id == question_id,
                 QuestionResponse.student_id == student_id
-            ).first()
+            ))
+            existing_response = result.scalars().first()
             if existing_response:
                 existing_response.marks_obtained = grade
                 existing_response.reasoning = reason
-                db.commit()
-            # Optionally, create a new response record if one does not exist.
+                await db.commit()
         
         return {"grade": grade, "reasoning": reason, "raw_response": result_text}
         
     except Exception as e:
         logger.error(f"Error in grade_question: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Error grading question: {str(e)}")
-    
 
 @router.post("/grade-question-with-diagram")
 async def grade_question_with_diagram(
     request: dict,
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user_required)
 ):
     print("diagram grade")
     try:
-        # Extract data from the request payload.
         ideal_answer = request.get("ideal_answer")
         marking_scheme = request.get("marking_scheme")
         exam_id = request.get("exam_id")
         student_id = request.get("student_id")
         question_id = request.get("question_id")
         
-        qr = db.query(QuestionResponse).filter(
+        result = await db.execute(select(QuestionResponse).where(
             QuestionResponse.question_id == question_id,
             QuestionResponse.student_id == student_id
-        ).first()
+        ))
+        qr = result.scalars().first()
         student_answer = qr.answer_text if qr else None
         ans_table_images = json.loads(qr.ans_table_images) if (qr and qr.ans_table_images) else None
         ans_diagram_images = json.loads(qr.ans_diagram_images) if (qr and qr.ans_diagram_images) else None
-
         
-        # print(student_answer, ans_table_images, ans_diagram_images, ideal_answer, marking_scheme) 
-        if (not student_answer and len(ans_table_images) == 0 and len(ans_diagram_images) == 0):# or (not ideal_answer and not marking_scheme):
+        if (not student_answer and len(ans_table_images) == 0 and len(ans_diagram_images) == 0):
             raise HTTPException(status_code=400, detail="Missing required parameters. Provide student_answer and at least one of ideal_answer or marking_scheme.")
         
         async def upload_file(entry):
@@ -675,11 +639,12 @@ async def grade_question_with_diagram(
         tasks = [upload_file(table) for table in ans_table_images] + [upload_file(diagram) for diagram in ans_diagram_images]
         results = await asyncio.gather(*tasks, return_exceptions=True)
         uploaded_files = [(entry, uploaded_file) for entry, uploaded_file in results if entry is not None]
-        # Fetch the particular question from the database.
-        question = db.query(Question).filter(
+        
+        result = await db.execute(select(Question).where(
             Question.id == question_id,
             Question.exam_id == exam_id
-        ).first()
+        ))
+        question = result.scalars().first()
         ms_table_images = json.loads(question.ms_table_images) if (question and question.ms_table_images) else None
         ms_diagram_images = json.loads(question.ms_diagram_images) if (question and question.ms_diagram_images) else None
         
@@ -704,8 +669,6 @@ async def grade_question_with_diagram(
         ans_image_present, ans_table_present, ans_diagram_present = check_image_presence(ans_diagram_images, ans_table_images)
         ms_image_present, ms_table_present, ms_diagram_present = check_image_presence(ms_diagram_images, ms_table_images)
 
-        
-        # Build the prompt based on available data.
         if (marking_scheme or ms_image_present) and ideal_answer:
             prompt_content = [f"""Question: {question.text}
 
@@ -750,14 +713,11 @@ Output Format:
 Grade: X/{question.max_marks}, where X is the marks secured.
 Reason: Some Text"""]
 
-        # print(prompt_content)
-        # Use the selected model (and corresponding API key) to generate content.
         response = get_model().generate_content(prompt_content)
         result_text = response.text
         
         print("Question Num: ", question.question_number, "\nAns: ", result_text)
         
-        # Parse the API response.
         grade = None
         reason = ""
         if "Grade:" in result_text:
@@ -777,17 +737,16 @@ Reason: Some Text"""]
         if grade is not None and (grade < 0 or grade > question.max_marks):
             grade = None
         
-        # Update or create the corresponding QuestionResponse record.
         if question_id and student_id and exam_id and grade is not None:
-            existing_response = db.query(QuestionResponse).filter(
+            result = await db.execute(select(QuestionResponse).where(
                 QuestionResponse.question_id == question_id,
                 QuestionResponse.student_id == student_id
-            ).first()
+            ))
+            existing_response = result.scalars().first()
             if existing_response:
                 existing_response.marks_obtained = grade
                 existing_response.reasoning = reason
-                db.commit()
-            # Optionally, create a new response record if one does not exist.
+                await db.commit()
         
         return {"grade": grade, "reasoning": reason, "raw_response": result_text}
         
@@ -795,31 +754,27 @@ Reason: Some Text"""]
         logger.error(f"Error in grade_question: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Error grading question: {str(e)}")
 
-## USED IN RE-EVALUATE PARTICULAR ANSWER
 async def extract_single_answer_text(
     request: dict,
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user_required),
 ):
-    
     exam_id = request.get("exam_id")
     student_id = request.get("student_id")
     question_id = request.get("question_id")
-    # 1) Fetch the single QuestionResponse, ensure it belongs to this exam + student
-    qr = (
-        db.query(QuestionResponse)
-          .join(Question, Question.id == QuestionResponse.question_id)
-          .filter(
-              Question.exam_id == exam_id,
-              QuestionResponse.question_id == question_id,
-              QuestionResponse.student_id  == student_id,
-          )
-          .one_or_none()
+    result = await db.execute(
+        select(QuestionResponse)
+        .join(Question, Question.id == QuestionResponse.question_id)
+        .where(
+            Question.exam_id == exam_id,
+            QuestionResponse.question_id == question_id,
+            QuestionResponse.student_id == student_id
+        )
     )
+    qr = result.scalars().one_or_none()
     if not qr:
         raise HTTPException(404, "No answer found for this question/exam/user")
 
-    # 2) Parse the stored list of image-paths
     try:
         img_paths = json.loads(qr.ans_text_images) or []
     except json.JSONDecodeError:
@@ -830,7 +785,7 @@ async def extract_single_answer_text(
             status_code=200,
             content={"message": "Text extraction skipped"}
         )
-    # 3) Upload each image to the OCR/LLM service
+    
     uploads = []
     for path in img_paths:
         if os.path.exists(path):
@@ -844,7 +799,6 @@ async def extract_single_answer_text(
     if not uploads:
         raise HTTPException(500, "Failed to upload any image")
 
-    # 4) Send a single combined prompt to extract just this one answer
     prompt = """
 Task: The given image shows a student's handwritten answer with its Question Number at the top ”). 
 1) Read and extract that Question Number.
@@ -871,41 +825,34 @@ Part: [part_label] - Answer: [text]
     if not extracted_text:
         raise HTTPException(204, "No text extracted")
 
-    # 5) Persist and return
     qr.answer_text = extracted_text
     db.add(qr)
-    db.commit()
+    await db.commit()
 
     return JSONResponse(
         status_code=200,
         content={"message": "Text extracted successfully again"}
     )
 
-
 @router.post("/api/{exam_id}/process-text-images/answer_script")
 async def process_answer_text_image(
     exam_id: int,
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user_required)
 ):
-    # 1) Load all questions & build a map: question_id → question_number (as string)
-    questions = db.query(Question).filter(Question.exam_id == exam_id).all()
+    result = await db.execute(select(Question).where(Question.exam_id == exam_id))
+    questions = result.scalars().all()
     question_number_map = {
-        q.id: str(q.question_number)  # assumes `q.number` holds the base numeric part, e.g. 34
+        q.id: str(q.question_number)
         for q in questions
     }
 
-    # 2) Fetch this student’s QuestionResponses that have images
-    responses = (
-        db.query(QuestionResponse)
-          .filter(
-              QuestionResponse.question_id.in_(question_number_map.keys()),
-              QuestionResponse.student_id == current_user.id
-          )
-          .all()
-    )
+    result = await db.execute(select(QuestionResponse).where(
+        QuestionResponse.question_id.in_(question_number_map.keys()),
+        QuestionResponse.student_id == current_user.id
+    ))
+    responses = result.scalars().all()
 
-    # 3) Build a flat list of all images, attaching qr_id & its question_number
     batch_entries = []
     for qr in responses:
         try:
@@ -920,18 +867,15 @@ async def process_answer_text_image(
                     "img_path": img_path
                 })
 
-    # helper to split into chunks of size n
     def chunks(lst, n):
         for i in range(0, len(lst), n):
             yield lst[i:i+n]
 
     batches = list(chunks(batch_entries, 5))
 
-    # This will accumulate qr_id → [extracted_text, …]
     extraction_mapping = {}
 
     async def process_batch(batch):
-        # upload all files in parallel
         async def upload(entry):
             try:
                 up = await asyncio.to_thread(
@@ -950,10 +894,9 @@ async def process_answer_text_image(
         if not uploaded:
             return {}
 
-        # build the “read question numbers from the image” prompt
         prompt = """
 Task: Each image shows a student’s handwritten answer with its Question Number at the top ”). 
-1) Read and extract that Question Number.
+1) Read extract that Question Number.
 2) Extract the full answer text, breaking out any sub-parts.
 3) Carefully consider the context of each answer to avoid extraction errors that may result from poor handwriting.
 4) Return:
@@ -970,7 +913,6 @@ Part: [part_label] - Answer: [text]
 Separate each question with a blank line.
 """
 
-        # send all files + prompt to Gemini
         try:
             model = await get_model_async()
             response = await asyncio.to_thread(
@@ -982,20 +924,17 @@ Separate each question with a blank line.
             return {}
 
         text = response.text or ""
-        # parse out each “Question Number …” section
         def parse_sections(txt):
             data = {}
-            # splits into ['', '34.(a)(i)', '…body…', '35.(b)', '…body…', …]
             parts = re.split(r'Question Number\s*([^\r\n]+)', txt)
             for i in range(1, len(parts), 2):
-                qnum = parts[i].strip()    # e.g. “34.(a)(i)”
+                qnum = parts[i].strip()
                 body = parts[i+1].strip()
                 data[qnum] = body
             return data
 
         extracted = parse_sections(text)
 
-        # build a quick map: base_numeric → qr_id
         base_to_qr = {
             entry["question_number"]: entry["qr_id"]
             for entry in batch
@@ -1006,21 +945,19 @@ Separate each question with a blank line.
             m = re.match(r'(\d+)', qnum_str)
             if not m:
                 continue
-            base = m.group(1)  # “34” from “34.(a)(i)”
+            base = m.group(1)
             if base in base_to_qr:
                 qr_id = base_to_qr[base]
                 batch_result.setdefault(qr_id, []).append(body)
 
         return batch_result
 
-    # dispatch all batches concurrently
     results = await asyncio.gather(*(process_batch(b) for b in batches), return_exceptions=True)
     for r in results:
         if isinstance(r, dict):
             for qr_id, answers in r.items():
                 extraction_mapping.setdefault(qr_id, []).extend(answers)
 
-    # 4) Write back to each QuestionResponse
     updated = 0
     try:
         for qr in responses:
@@ -1028,7 +965,7 @@ Separate each question with a blank line.
                 qr.answer_text = "\n\n".join(extraction_mapping[qr.id])
                 db.add(qr)
                 updated += 1
-        db.commit()
+        await db.commit()
     except Exception as e:
         logger.error(f"DB write failed: {e}", exc_info=True)
         raise HTTPException(500, "Failed to update answers")
@@ -1045,7 +982,7 @@ Separate each question with a blank line.
 @router.post("/api/{exam_id}/process-text-images/marking_scheme")
 async def process_marking_scheme_text_image(
     exam_id: int,
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user_required)
 ):
     """
@@ -1061,11 +998,9 @@ async def process_marking_scheme_text_image(
     """
     # Retrieve all exam questions.
     questions = db.query(Question).filter(Question.exam_id == exam_id).all()
-    
-    # Filter for questions with marking scheme text images.
+   
     questions_with_images = [q for q in questions if q.ms_text_images]
 
-    # Build a list of batch entries.
     batch_entries = []
     for question in questions_with_images:
         try:
@@ -1083,22 +1018,17 @@ async def process_marking_scheme_text_image(
                     'img_path': img_path
                 })
     
-    # Utility to group entries into batches of a given size.
     def chunks(lst, n):
         for i in range(0, len(lst), n):
             yield lst[i:i+n]
 
-    # For instance, limit each batch to 5 images.
     batches = list(chunks(batch_entries, 5))
     
-    # Dictionary to map a Question id to a list of extracted marking scheme texts.
     extraction_mapping = {}
 
-    # Define an asynchronous function to process one batch.
     async def process_batch(batch):
         batch_extraction_mapping = {}
 
-        # Function to upload one file concurrently.
         async def upload_file(entry):
             try:
                 uploaded_file = await asyncio.to_thread(
@@ -1119,7 +1049,6 @@ async def process_marking_scheme_text_image(
         if not uploaded_files:
             return batch_extraction_mapping
 
-        # Construct a composite prompt for processing marking scheme images.
         prompt = f"""Task: You are provided with multiple images, each containing marking scheme information for an exam question.
 Each image has a unique key.
 
@@ -1143,7 +1072,6 @@ Images provided with keys: {", ".join(entry['key'] for entry, _ in uploaded_file
 """
 
         logger.info(prompt)
-        # Call the Gemini API to process the images along with the prompt.
         try:
             model = await get_model_async()
             response = await asyncio.to_thread(
@@ -1154,7 +1082,6 @@ Images provided with keys: {", ".join(entry['key'] for entry, _ in uploaded_file
             logger.error(f"Error processing batch: {str(e)}", exc_info=True)
             return batch_extraction_mapping
         
-        # If a response is received, parse the text to map keys to extracted marking scheme details.
         if response.text:
             def parse_text(sample_text):
                 extracted_data = {}
@@ -1177,11 +1104,9 @@ Images provided with keys: {", ".join(entry['key'] for entry, _ in uploaded_file
         
         return batch_extraction_mapping
 
-    # Process all batches concurrently.
     batch_tasks = [process_batch(batch) for batch in batches]
     batch_results = await asyncio.gather(*batch_tasks, return_exceptions=True)
 
-    # Combine the extracted data from each batch.
     for batch_result in batch_results:
         if isinstance(batch_result, dict):
             for question_id, texts in batch_result.items():
@@ -1189,12 +1114,10 @@ Images provided with keys: {", ".join(entry['key'] for entry, _ in uploaded_file
         else:
             logger.error(f"Batch processing failed: {str(batch_result)}")
 
-    # Update the marking scheme field for each Question.
     processed_count = 0
     try:
         for question in questions_with_images:
             if question.id in extraction_mapping:
-                # Here we join the multiple extracted parts into one comprehensive marking scheme text.
                 question.ideal_marking_scheme = "\n".join(extraction_mapping[question.id])
                 db.add(question)
                 processed_count += 1
@@ -1202,59 +1125,49 @@ Images provided with keys: {", ".join(entry['key'] for entry, _ in uploaded_file
         logger.error(f"Error updating Question: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail="Error updating Question records.")
 
-    db.commit()
+    await db.commit()
 
     return JSONResponse(
         status_code=200,
         content={"message": f"Processed marking scheme images for {processed_count} questions."}
     )
 
-
-
-
-
-
-
 @router.post("/{exam_id}/grade-exam")
 async def grade_exam(
     exam_id: int,
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user_required)
 ):
     student_id = current_user.id
-    # 0) check if exam_id and student_id are provided
     if not exam_id or not student_id:
         raise HTTPException(status_code=400, detail="Both exam_id and student_id are required.")
 
-    # 1) fetch all questions for this exam
-    questions = db.query(Question).filter(Question.exam_id == exam_id).all()
+    result = await db.execute(select(Question).where(Question.exam_id == exam_id))
+    questions = result.scalars().all()
     if not questions:
         raise HTTPException(status_code=404, detail="No questions found for this exam.")
 
     results = []
     for question in questions:
-        # 3) build the same payload your grade_question endpoint expects
         req = {
-            # "student_answer":   resp.answer_text,
-            "ideal_answer":     question.ideal_answer,
-            "marking_scheme":   question.ideal_marking_scheme,
-            "exam_id":          exam_id,
-            "student_id":       student_id,
-            "question_id":      question.id
+            "ideal_answer": question.ideal_answer,
+            "marking_scheme": question.ideal_marking_scheme,
+            "exam_id": exam_id,
+            "student_id": student_id,
+            "question_id": question.id
         }
 
-        # 4) call into your existing grading logic
         grade_res = await grade_question_with_diagram(req, db, current_user)
 
         results.append({
             "question_number": question.question_number,
-            "grade":       grade_res["grade"],
-            "reasoning":   grade_res["reasoning"],
-            "raw":         grade_res["raw_response"]
+            "grade": grade_res["grade"],
+            "reasoning": grade_res["reasoning"],
+            "raw": grade_res["raw_response"]
         })
 
     return {
-        "exam_id":    exam_id,
+        "exam_id": exam_id,
         "student_id": student_id,
-        "results":    results
+        "results": results
     }

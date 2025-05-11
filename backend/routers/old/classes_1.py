@@ -3,6 +3,7 @@ from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 from typing import Optional
 from datetime import datetime, timezone
+from sqlalchemy.dialects.postgresql import TIMESTAMP
 from pydantic import BaseModel
 import os
 import shortuuid
@@ -47,7 +48,7 @@ def parse_datetime(dt_str: str) -> datetime:
         raise ValueError(f"Invalid datetime format: {dt_str}") from e
 
 @router.get("/dashboard")
-async def dashboard(db: Session = Depends(get_db), current_user: User = Depends(get_current_user_required)):
+async def dashboard(db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user_required)):
     print(current_user.is_professor)
     # if current_user.is_professor:
     teaching_courses_prof = db.query(Classroom).filter(Classroom.owner_id == current_user.id).all()
@@ -85,7 +86,7 @@ async def dashboard(db: Session = Depends(get_db), current_user: User = Depends(
     })
 
 @router.post("/classes/create")
-async def create_class(request: Request, name: str = Form(...), subject: str = Form(...), description: Optional[str] = Form(None), db: Session = Depends(get_db), current_user: User = Depends(get_current_user_required)):
+async def create_class(request: Request, name: str = Form(...), subject: str = Form(...), description: Optional[str] = Form(None), db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user_required)):
     try:
         if not current_user.is_professor:
             raise HTTPException(status_code=403, detail="Only professors can create classes")
@@ -98,8 +99,8 @@ async def create_class(request: Request, name: str = Form(...), subject: str = F
             created_at=datetime.now(timezone.utc)
         )
         db.add(new_class)
-        db.commit()
-        db.refresh(new_class)
+        await db.commit()
+        await db.refresh(new_class)
         logger.info(f"Class created: {new_class.name} by {current_user.email}")
         return JSONResponse({"success": True, "class": {
             "id": new_class.id,
@@ -113,7 +114,7 @@ async def create_class(request: Request, name: str = Form(...), subject: str = F
         return JSONResponse(status_code=500, content={"success": False, "error": "An error occurred while creating the class"})
 
 @router.post("/classes/join-class")
-async def join_class(class_code: str = Form(...), db: Session = Depends(get_db), current_user: User = Depends(get_current_user_required)):
+async def join_class(class_code: str = Form(...), db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user_required)):
     try:
         class_code = class_code.strip().upper()
         classroom = db.query(Classroom).filter(Classroom.class_code == class_code).first()
@@ -131,7 +132,7 @@ async def join_class(class_code: str = Form(...), db: Session = Depends(get_db),
             #     return JSONResponse({"success": True, "message": "Request already pending"})        ##  FOR NOW ALL ACCEPTED ON JOINING,  UNCOMMENT LATER
             else:
                 existing_enrollment.status = "accepted"                                  ##  FOR NOW ALL ACCEPTED ON JOINING
-                db.commit()
+                await db.commit()
         else:
             new_enrollment = Enrollment(
                 student_id=current_user.id,
@@ -139,20 +140,21 @@ async def join_class(class_code: str = Form(...), db: Session = Depends(get_db),
                 status="accepted"                                                        ##  FOR NOW ALL ACCEPTED ON JOINING
             )
             db.add(new_enrollment)
-            db.commit()
+            await db.commit()
         return JSONResponse({"success": True, "message": "Enrollment request submitted"})
     except Exception as e:
         logger.error(f"Error joining class: {str(e)}", exc_info=True)
         return JSONResponse(status_code=500, content={"success": False, "error": "An error occurred while joining the class"})
 
 @router.post("/classes/{class_id}/assignments")
-async def create_assignment(class_id: int, assignment: AssignmentCreate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user_required)):
+async def create_assignment(class_id: int, assignment: AssignmentCreate, db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user_required)):
     try:
-        enrollment = db.query(Enrollment).filter(
+        result = await db.execute(select(Enrollment).where(
             Enrollment.classroom_id == class_id,
             Enrollment.student_id == current_user.id,
             Enrollment.status == "accepted"
-        ).first()
+        ))
+        enrollment = result.scalars().first()
         if not enrollment or (enrollment.role != "ta" and not current_user.is_professor):
             raise HTTPException(status_code=403, detail="Only professors and TAs can create assignments")
         
@@ -173,8 +175,8 @@ async def create_assignment(class_id: int, assignment: AssignmentCreate, db: Ses
             created_at=datetime.now(timezone.utc)
         )
         db.add(new_assignment)
-        db.commit()
-        db.refresh(new_assignment)
+        await db.commit()
+        await db.refresh(new_assignment)
         return JSONResponse({"success": True, "assignment": {
             "id": new_assignment.id,
             "title": new_assignment.title,
@@ -187,7 +189,7 @@ async def create_assignment(class_id: int, assignment: AssignmentCreate, db: Ses
         raise HTTPException(status_code=500, detail="An error occurred while creating the assignment")
 
 @router.post("/assignments/{assignment_id}/submissions")
-async def submit_assignment(assignment_id: int, submission: SubmissionCreate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user_required)):
+async def submit_assignment(assignment_id: int, submission: SubmissionCreate, db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user_required)):
     try:
         assignment_obj = db.query(Assignment).filter(Assignment.id == assignment_id).first()
         if not assignment_obj:
@@ -209,8 +211,8 @@ async def submit_assignment(assignment_id: int, submission: SubmissionCreate, db
             submitted_at=datetime.now(timezone.utc)
         )
         db.add(new_submission)
-        db.commit()
-        db.refresh(new_submission)
+        await db.commit()
+        await db.refresh(new_submission)
         return JSONResponse({"success": True, "submission": {
             "id": new_submission.id,
             "content": new_submission.content,
@@ -221,7 +223,7 @@ async def submit_assignment(assignment_id: int, submission: SubmissionCreate, db
         raise HTTPException(status_code=500, detail="An error occurred while submitting the assignment")
 
 @router.post("/submissions/{submission_id}/grade")
-async def grade_submission(submission_id: int, grade_data: GradeSubmission, db: Session = Depends(get_db), current_user: User = Depends(get_current_user_required)):
+async def grade_submission(submission_id: int, grade_data: GradeSubmission, db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user_required)):
     try:
         submission = db.query(Submission).filter(Submission.id == submission_id).first()
         if not submission:
@@ -243,8 +245,8 @@ async def grade_submission(submission_id: int, grade_data: GradeSubmission, db: 
         submission.feedback = grade_data.feedback
         submission.graded_by_id = current_user.id
         submission.graded_at = datetime.now(timezone.utc)
-        db.commit()
-        db.refresh(submission)
+        await db.commit()
+        await db.refresh(submission)
         return JSONResponse({"success": True, "submission": {
             "id": submission.id,
             "grade": submission.grade,
@@ -255,34 +257,41 @@ async def grade_submission(submission_id: int, grade_data: GradeSubmission, db: 
         raise HTTPException(status_code=500, detail="An error occurred while grading the submission")
 
 @router.get("/classes/{class_id}")
-async def view_class(class_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user_required)):
+async def view_class(class_id: int, db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user_required)):
     try:
-        classroom = db.query(Classroom).filter(Classroom.id == class_id).first()
+        result = await db.execute(select(Classroom).where(Classroom.id == class_id))
+        classroom = result.scalars().first()
         if not classroom:
             raise HTTPException(status_code=404, detail="Class not found")
         
-        enrollment = db.query(Enrollment).filter(
+        result = await db.execute(select(Enrollment).where(
             Enrollment.classroom_id == class_id,
             Enrollment.student_id == current_user.id,
             Enrollment.status == "accepted"
-        ).first()
+        ))
+        enrollment = result.scalars().first()
         is_owner = classroom.owner_id == current_user.id
         if not enrollment and not is_owner:
             raise HTTPException(status_code=403, detail="Access denied")
         
-        announcements = db.query(Announcement).filter(Announcement.classroom_id == class_id).order_by(Announcement.created_at.desc()).all()
-        assignments = db.query(Assignment).filter(Assignment.classroom_id == class_id).order_by(Assignment.created_at.desc()).all()
-        ta_enrollments = db.query(Enrollment).filter(
+        result = await db.execute(select(Announcement).where(Announcement.classroom_id == class_id).order_by(Announcement.created_at.desc()))
+        announcements = result.scalars().all()
+        result = await db.execute(select(Assignment).where(Assignment.classroom_id == class_id).order_by(Assignment.created_at.desc()))
+        assignments = result.scalars().all()
+        result = await db.execute(select(Enrollment).where(
             Enrollment.classroom_id == class_id,
             Enrollment.status == "accepted",
             Enrollment.role == "ta"
-        ).all()
-        student_enrollments = db.query(Enrollment).filter(
+        ))
+        ta_enrollments = result.scalars().all()
+        result = await db.execute(select(Enrollment).where(
             Enrollment.classroom_id == class_id,
             Enrollment.status == "accepted",
             Enrollment.role == "student"
-        ).all()
-        exams = db.query(Exam).filter(Exam.classroom_id == class_id).order_by(Exam.created_at.desc()).all()
+        ))
+        student_enrollments = result.scalars().all()
+        result = await db.execute(select(Exam).where(Exam.classroom_id == class_id).order_by(Exam.created_at.desc()))
+        exams = result.scalars().all()
         
         def announcement_to_dict(ann):
             return {"id": ann.id, "title": ann.title, "content": ann.content, "created_at": ann.created_at.isoformat() if ann.created_at else None}

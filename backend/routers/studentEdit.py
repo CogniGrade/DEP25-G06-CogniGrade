@@ -1,7 +1,9 @@
 import json
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import JSONResponse
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession     # ASYNC
+from sqlalchemy.future import select
+
 from typing import List, Optional
 from pydantic import BaseModel
 
@@ -16,14 +18,13 @@ import base64
 import json
 
 # Constants for upload directories. Adjust these paths as needed.
-UPLOAD_DIRECTORY_TEXT_ANS = "uploads/text_images/ans"
-UPLOAD_DIRECTORY_TABLE_ANS = "uploads/table_images/ans"
-UPLOAD_DIRECTORY_DIAGRAM_ANS = "uploads/diagram_images/ans"
+UPLOAD_DIRECTORY_TEXT_ANS = "Uploads/text_images/ans"
+UPLOAD_DIRECTORY_TABLE_ANS = "Uploads/table_images/ans"
+UPLOAD_DIRECTORY_DIAGRAM_ANS = "Uploads/diagram_images/ans"
 
-UPLOAD_DIRECTORY_TEXT_MS = "uploads/text_images/ms"
-UPLOAD_DIRECTORY_TABLE_MS = "uploads/table_images/ms"
-UPLOAD_DIRECTORY_DIAGRAM_MS = "uploads/diagram_images/ms"
-
+UPLOAD_DIRECTORY_TEXT_MS = "Uploads/text_images/ms"
+UPLOAD_DIRECTORY_TABLE_MS = "Uploads/table_images/ms"
+UPLOAD_DIRECTORY_DIAGRAM_MS = "Uploads/diagram_images/ms"
 
 # Ensure that the directories exist.
 for directory in [UPLOAD_DIRECTORY_TEXT_ANS, UPLOAD_DIRECTORY_TABLE_ANS, UPLOAD_DIRECTORY_DIAGRAM_ANS, UPLOAD_DIRECTORY_TEXT_MS, UPLOAD_DIRECTORY_TABLE_MS, UPLOAD_DIRECTORY_DIAGRAM_MS]:
@@ -80,12 +81,13 @@ async def submit_question_response(
     exam_id: int,
     document_type: str,
     payload: QuestionResponsePayload,
-    db: Session = Depends(get_db),                          # Import your get_db dependency
+    db: AsyncSession = Depends(get_db),                          # Import your get_db dependency
     current_user: User = Depends(get_current_user_required)  # Import your get_current_user_required dependency
 ):
     document_type = document_type.lower()
     # Optionally retrieve the question from DB to get question number.
-    question = db.query(Question).filter(Question.id == payload.question_id).first()
+    result = await db.execute(select(Question).where(Question.id == payload.question_id))
+    question = result.scalars().first()
     if not question:
         raise HTTPException(status_code=404, detail="Question not found")
     question_num = str(question.question_number)
@@ -104,10 +106,11 @@ async def submit_question_response(
         processed_table_images = process_images(payload.table_images, UPLOAD_DIRECTORY_TABLE_ANS)
         processed_diagram_images = process_images(payload.diagram_images, UPLOAD_DIRECTORY_DIAGRAM_ANS)
         # Look for an existing QuestionResponse for the student & question.
-        qr = db.query(QuestionResponse).filter(
+        result = await db.execute(select(QuestionResponse).where(
             QuestionResponse.question_id == payload.question_id,
             QuestionResponse.student_id == current_user.id
-        ).first()
+        ))
+        qr = result.scalars().first()
 
         if not qr:
             qr = QuestionResponse(question_id=payload.question_id, student_id=current_user.id)
@@ -117,8 +120,8 @@ async def submit_question_response(
         qr.ans_text_images = json.dumps(processed_text_images)                    ### LATER CHANGE TO ANSWER_TEXT_IMAGES
         qr.ans_table_images = json.dumps(processed_table_images)                   ### LATER CHANGE TO ANSWER_TABLE_IMAGES
         qr.ans_diagram_images = json.dumps(processed_diagram_images)                ### LATER CHANGE TO ANSWER_DIAGRAM_IMAGES
-        db.commit()
-        db.refresh(qr)
+        await db.commit()
+        await db.refresh(qr)
     elif document_type == "marking_scheme":
         print(len(payload.diagram_images))
         processed_text_images = process_images(payload.text_images, UPLOAD_DIRECTORY_TEXT_MS)
@@ -127,7 +130,7 @@ async def submit_question_response(
         question.ms_text_images = json.dumps(processed_text_images)                    ### LATER CHANGE TO MARKING_TEXT_IMAGES
         question.ms_table_images = json.dumps(processed_table_images)                   ### LATER CHANGE TO MARKING_TABLE_IMAGES
         question.ms_diagram_images = json.dumps(processed_diagram_images)                ### LATER CHANGE TO MARKING_DIAGRAM_IMAGES
-        db.commit()
-        db.refresh(question)
+        await db.commit()
+        await db.refresh(question)
 
     return JSONResponse(status_code=200, content={"message": "Images added to QuestionResponse table successfully."})

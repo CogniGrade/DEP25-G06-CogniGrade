@@ -1,8 +1,11 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Request, Form
 from fastapi.responses import JSONResponse
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession     # ASYNC
+from sqlalchemy.future import select
+
 from typing import Optional
 from datetime import datetime, timezone
+from sqlalchemy.dialects.postgresql import TIMESTAMP
 from pydantic import BaseModel
 
 import logging
@@ -16,8 +19,9 @@ logger = logging.getLogger(__name__)
 router = APIRouter(tags=["pplManagement"])
 
 @router.get("/classes/{class_id}/people")
-async def get_class_people(class_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user_required)):
-    classroom = db.query(Classroom).filter(Classroom.id == class_id).first()
+async def get_class_people(class_id: int, db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user_required)):
+    result = await db.execute(select(Classroom).where(Classroom.id == class_id))
+    classroom = result.scalars().first()
     if not classroom:
         raise HTTPException(status_code=404, detail="Class not found")
     
@@ -29,18 +33,20 @@ async def get_class_people(class_id: int, db: Session = Depends(get_db), current
     }
     
     # Fetch TA enrollments
-    ta_enrollments = db.query(Enrollment).filter(
+    result = await db.execute(select(Enrollment).where(
         Enrollment.classroom_id == class_id,
         Enrollment.status == "accepted",
         Enrollment.role == "ta"
-    ).all()
+    ))
+    ta_enrollments = result.scalars().all()
     
     # Fetch student enrollments
-    student_enrollments = db.query(Enrollment).filter(
+    result = await db.execute(select(Enrollment).where(
         Enrollment.classroom_id == class_id,
         Enrollment.status == "accepted",
         Enrollment.role == "student"
-    ).all()
+    ))
+    student_enrollments = result.scalars().all()
     
     teachers = [professor] + [{
         "enrollment_id": e.id,
@@ -58,16 +64,15 @@ async def get_class_people(class_id: int, db: Session = Depends(get_db), current
     
     return JSONResponse({"success": True, "teachers": teachers, "students": students})
 
-
-
-
 @router.post("/enrollments/{enrollment_id}/remove")
-async def remove_student(enrollment_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user_required)):
-    enrollment = db.query(Enrollment).filter(Enrollment.id == enrollment_id).first()
+async def remove_student(enrollment_id: int, db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user_required)):
+    result = await db.execute(select(Enrollment).where(Enrollment.id == enrollment_id))
+    enrollment = result.scalars().first()
     if not enrollment:
         raise HTTPException(status_code=404, detail="Enrollment not found")
     
-    classroom = db.query(Classroom).filter(Classroom.id == enrollment.classroom_id).first()
+    result = await db.execute(select(Classroom).where(Classroom.id == enrollment.classroom_id))
+    classroom = result.scalars().first()
     if not classroom:
         raise HTTPException(status_code=404, detail="Class not found")
     
@@ -76,12 +81,13 @@ async def remove_student(enrollment_id: int, db: Session = Depends(get_db), curr
     if current_user.is_professor:
         authorized = True
     else:
-        ta_enrollment = db.query(Enrollment).filter(
+        result = await db.execute(select(Enrollment).where(
             Enrollment.classroom_id == classroom.id,
             Enrollment.student_id == current_user.id,
             Enrollment.status == "accepted",
             Enrollment.role == "ta"
-        ).first()
+        ))
+        ta_enrollment = result.scalars().first()
         authorized = bool(ta_enrollment and enrollment.role == "student")
     
     if not authorized:
@@ -89,19 +95,19 @@ async def remove_student(enrollment_id: int, db: Session = Depends(get_db), curr
     
     student_id = enrollment.student_id
     db.delete(enrollment)
-    db.commit()
+    await db.commit()
     
     # (Optional) Send a notification if needed...
     
     return JSONResponse({"success": True, "message": "Student removed from class"})
 
-
 @router.post("/enrollments/{enrollment_id}/make-ta")
-async def make_ta(enrollment_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user_required)):
+async def make_ta(enrollment_id: int, db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user_required)):
     if not current_user.is_professor:
         raise HTTPException(status_code=403, detail="Only professors can promote students to TA")
     
-    enrollment = db.query(Enrollment).filter(Enrollment.id == enrollment_id).first()
+    result = await db.execute(select(Enrollment).where(Enrollment.id == enrollment_id))
+    enrollment = result.scalars().first()
     if not enrollment:
         raise HTTPException(status_code=404, detail="Enrollment not found")
     
@@ -109,16 +115,16 @@ async def make_ta(enrollment_id: int, db: Session = Depends(get_db), current_use
         raise HTTPException(status_code=400, detail="Enrollment is not a student")
     
     enrollment.role = "ta"
-    db.commit()
+    await db.commit()
     return JSONResponse({"success": True, "message": "Student promoted to TA"})
 
-
 @router.post("/enrollments/{enrollment_id}/make-student")
-async def make_student(enrollment_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user_required)):
+async def make_student(enrollment_id: int, db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user_required)):
     if not current_user.is_professor:
         raise HTTPException(status_code=403, detail="Only professors can demote TAs to student")
     
-    enrollment = db.query(Enrollment).filter(Enrollment.id == enrollment_id).first()
+    result = await db.execute(select(Enrollment).where(Enrollment.id == enrollment_id))
+    enrollment = result.scalars().first()
     if not enrollment:
         raise HTTPException(status_code=404, detail="Enrollment not found")
     
@@ -126,5 +132,5 @@ async def make_student(enrollment_id: int, db: Session = Depends(get_db), curren
         raise HTTPException(status_code=400, detail="Enrollment is not a TA")
     
     enrollment.role = "student"
-    db.commit()
+    await db.commit()
     return JSONResponse({"success": True, "message": "TA demoted to Student"})

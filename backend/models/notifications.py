@@ -1,6 +1,7 @@
 from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Boolean, Text, Enum
 from sqlalchemy.orm import relationship
 from datetime import datetime, timezone
+from sqlalchemy.dialects.postgresql import TIMESTAMP
 import enum
 from backend.database import Base
 
@@ -25,11 +26,11 @@ class Notification(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     type = Column(Enum(NotificationType), nullable=False)
-    title = Column(String, nullable=False)
+    title = Column(String(100), nullable=False)
     message = Column(Text, nullable=True)
-    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    created_at = Column(TIMESTAMP(timezone=True), default=lambda: datetime.now(timezone.utc))
     read = Column(Boolean, default=False)
-    action_url = Column(String, nullable=True)
+    action_url = Column(Text, nullable=True)
     sender_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"))
     recipient_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"))
     classroom_id = Column(Integer, ForeignKey("classrooms.id", ondelete="CASCADE"), nullable=True)

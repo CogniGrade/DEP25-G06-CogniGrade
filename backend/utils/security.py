@@ -4,7 +4,8 @@ from jose import JWTError, jwt
 from passlib.context import CryptContext
 from fastapi import Depends, HTTPException, status, Request
 from fastapi.security import OAuth2PasswordBearer
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.future import select
 import logging
 
 from backend.config import settings
@@ -48,23 +49,25 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
         logger.error(f"Error creating access token: {str(e)}", exc_info=True)
         raise
 
-def get_user(db: Session, user_id: int):
+async def get_user(db: AsyncSession, user_id: int):
     """Get a user by ID"""
     try:
-        return db.query(User).filter(User.id == user_id).first()
+        result = await db.execute(select(User).where(User.id == user_id))
+        return result.scalars().first()
     except Exception as e:
         logger.error(f"Error getting user by ID: {str(e)}", exc_info=True)
         return None
 
-def get_user_by_email(db: Session, email: str):
+async def get_user_by_email(db: AsyncSession, email: str):
     """Get a user by email"""
     try:
-        return db.query(User).filter(User.email == email.lower()).first()
+        result = await db.execute(select(User).where(User.email == email.lower()))
+        return result.scalars().first()
     except Exception as e:
         logger.error(f"Error getting user by email: {str(e)}", exc_info=True)
         return None
 
-async def get_current_user_from_cookie(request: Request, db: Session = Depends(get_db)):
+async def get_current_user_from_cookie(request: Request, db: AsyncSession = Depends(get_db)):
     """Get the current user from the session cookie"""
     try:
         token = request.cookies.get("access_token")
@@ -82,7 +85,7 @@ async def get_current_user_from_cookie(request: Request, db: Session = Depends(g
             logger.warning(f"Invalid token: {str(e)}")
             return None
         
-        user = get_user(db, int(user_id))
+        user = await get_user(db, int(user_id))
         if not user:
             logger.warning(f"User not found for ID: {user_id}")
             return None
@@ -92,7 +95,7 @@ async def get_current_user_from_cookie(request: Request, db: Session = Depends(g
         logger.error(f"Error in get_current_user_from_cookie: {str(e)}", exc_info=True)
         return None
 
-async def get_current_user_required(request: Request, db: Session = Depends(get_db)):
+async def get_current_user_required(request: Request, db: AsyncSession = Depends(get_db)):
     """Get the current user and raise an error if not authenticated"""
     user = await get_current_user_from_cookie(request, db)
     if not user:

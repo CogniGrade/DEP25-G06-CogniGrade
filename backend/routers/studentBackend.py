@@ -1,5 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession     # ASYNC
+from sqlalchemy.future import select
+
 from backend.database import get_db
 from backend.models.users import User
 from backend.models.files import Material, AnswerScript, FileTypeEnum
@@ -9,9 +11,9 @@ import re
 router = APIRouter(prefix="/student", tags=["studentBackend"])
 
 @router.get("/exam/{exam_id}/available-documents")
-def available_documents(
+async def available_documents(
     exam_id: int,
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user_required)
 ):
     """
@@ -23,10 +25,11 @@ def available_documents(
     available = {}
 
     # Check for answer_script availability (stored in AnswerScript table)
-    answer_script = db.query(AnswerScript).filter(
+    result = await db.execute(select(AnswerScript).where(
         AnswerScript.exam_id == exam_id,
         AnswerScript.student_id == current_user.id
-    ).first()
+    ))
+    answer_script = result.scalars().first()
     available["answer_script"] = bool(answer_script)
 
     # Mapping for the three document types stored in the Materials table.
@@ -36,20 +39,20 @@ def available_documents(
         "marking_scheme": FileTypeEnum.marking_scheme,
     }
     for option, file_enum in mapping.items():
-        material = db.query(Material).filter(
+        result = await db.execute(select(Material).where(
             Material.related_exam_id == exam_id,
             Material.file_type == file_enum
-        ).first()
+        ))
+        material = result.scalars().first()
         available[option] = bool(material)
 
     return available
 
-
 @router.get("/exam/{exam_id}/document/{doc_type}")
-def get_document(
+async def get_document(
     exam_id: int,
     doc_type: str,
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user_required)
 ):
     """
@@ -60,10 +63,11 @@ def get_document(
     doc_type_norm = doc_type.lower()
 
     if doc_type_norm == "answer_script":
-        document = db.query(AnswerScript).filter(
+        result = await db.execute(select(AnswerScript).where(
             AnswerScript.exam_id == exam_id,
             AnswerScript.student_id == current_user.id
-        ).first()
+        ))
+        document = result.scalars().first()
         if not document:
             raise HTTPException(status_code=404, detail="Answer Script not found.")
     elif doc_type_norm in ["question_paper", "solution_script", "marking_scheme"]:
@@ -73,10 +77,11 @@ def get_document(
             "marking_scheme": FileTypeEnum.marking_scheme
         }
         file_enum = mapping.get(doc_type_norm)
-        document = db.query(Material).filter(
+        result = await db.execute(select(Material).where(
             Material.related_exam_id == exam_id,
             Material.file_type == file_enum
-        ).first()
+        ))
+        document = result.scalars().first()
         if not document:
             raise HTTPException(status_code=404, detail=f"{doc_type.title()} not found.")
     else:
@@ -88,22 +93,23 @@ def get_document(
     }
 
 @router.post("/exam/{exam_id}/student-responses")
-def create_student_response(
+async def create_student_response(
     exam_id: int,
     response_data: dict,
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user_required)
 ):
     """Create or update a student's response to a question"""
-    existing_response = db.query(QuestionResponse).filter(
+    result = await db.execute(select(QuestionResponse).where(
         QuestionResponse.question_id == response_data.get("question_id"),
         QuestionResponse.student_id == response_data.get("student_id")
-    ).first()
+    ))
+    existing_response = result.scalars().first()
     
     if existing_response:
         existing_response.answer_text = response_data.get("answer_text")
-        db.commit()
-        db.refresh(existing_response)
+        await db.commit()
+        await db.refresh(existing_response)
         return {
             "id": existing_response.id,
             "message": "Response updated successfully"
@@ -115,8 +121,8 @@ def create_student_response(
             answer_text=response_data.get("answer_text")
         )
         db.add(new_response)
-        db.commit()
-        db.refresh(new_response)
+        await db.commit()
+        await db.refresh(new_response)
         return {
             "id": new_response.id,
             "message": "Response created successfully"
@@ -137,9 +143,9 @@ def strip_markdown(text: str) -> str:
     return text.strip()
 
 @router.get("/exam/{exam_id}/evaluation")
-def get_exam_evaluation(
+async def get_exam_evaluation(
     exam_id: int,
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user_required)
 ):
     """
@@ -152,13 +158,19 @@ def get_exam_evaluation(
     Also returns the marks obtained (if any) and any query raised.
     """
     pattern = re.compile(r"Max(?:imum)?\s*Marks\s*(?:[:\-]\s*)?\d+", re.IGNORECASE)
-    questions = db.query(Question).filter(Question.exam_id == exam_id).order_by(Question.question_number).all()
+    result = await db.execute(
+        select(Question)
+        .where(Question.exam_id == exam_id)
+        .order_by(Question.question_number)
+    )
+    questions = result.scalars().all()
     evaluation = []
     for q in questions:
-        response = db.query(QuestionResponse).filter(
+        result = await db.execute(select(QuestionResponse).where(
             QuestionResponse.question_id == q.id,
             QuestionResponse.student_id == current_user.id
-        ).first()
+        ))
+        response = result.scalars().first()
         marks_obtained = response.marks_obtained if response and response.marks_obtained is not None else ""
         query_text = response.query if response and response.query else ""
         # Remove "Max(imum) Marks" substring
@@ -183,12 +195,11 @@ def get_exam_evaluation(
         })
     return evaluation
 
-
 @router.post("/exam/{exam_id}/post-query")
-def post_query(
+async def post_query(
     exam_id: int,
     query_data: dict,
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user_required)
 ):
     """
@@ -200,15 +211,16 @@ def post_query(
     if not question_id or query_text is None:
         raise HTTPException(status_code=400, detail="Missing question_id or query")
     
-    response = db.query(QuestionResponse).filter(
+    result = await db.execute(select(QuestionResponse).where(
         QuestionResponse.question_id == question_id,
         QuestionResponse.student_id == current_user.id
-    ).first()
+    ))
+    response = result.scalars().first()
     
     if response:
         response.query = query_text
-        db.commit()
-        db.refresh(response)
+        await db.commit()
+        await db.refresh(response)
         return {"id": response.id, "message": "Query updated successfully", "query": response.query}
     else:
         new_response = QuestionResponse(
@@ -218,6 +230,6 @@ def post_query(
             query=query_text
         )
         db.add(new_response)
-        db.commit()
-        db.refresh(new_response)
+        await db.commit()
+        await db.refresh(new_response)
         return {"id": new_response.id, "message": "Query created successfully", "query": new_response.query}

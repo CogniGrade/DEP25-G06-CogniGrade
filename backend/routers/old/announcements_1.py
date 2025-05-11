@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, Form, Request
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 from datetime import datetime, timezone
+from sqlalchemy.dialects.postgresql import TIMESTAMP
 import os
 
 from backend.database import get_db
@@ -15,8 +16,9 @@ logger = logging.getLogger(__name__)
 router = APIRouter(tags=["announcements"])
 
 @router.get("/classes/{class_id}/announcements")
-async def view_announcements(class_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user_required)):
-    classroom = db.query(Classroom).filter(Classroom.id == class_id).first()
+async def view_announcements(class_id: int, db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user_required)):
+    result = await db.execute(select(Classroom).where(Classroom.id == class_id))
+        classroom = result.scalars().first()
     if not classroom:
         raise HTTPException(status_code=404, detail="Class not found")
     announcements = db.query(Announcement).filter(
@@ -35,9 +37,10 @@ async def view_announcements(class_id: int, db: Session = Depends(get_db), curre
     return JSONResponse({"success": True, "announcements": ann_list})
 
 @router.post("/classes/{class_id}/announcements")
-async def post_announcement(class_id: int, content: str = Form(...), db: Session = Depends(get_db), current_user: User = Depends(get_current_user_required)):
+async def post_announcement(class_id: int, content: str = Form(...), db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user_required)):
     try:
-        classroom = db.query(Classroom).filter(Classroom.id == class_id).first()
+        result = await db.execute(select(Classroom).where(Classroom.id == class_id))
+        classroom = result.scalars().first()
         if not classroom:
             raise HTTPException(status_code=404, detail="Class not found")
         
@@ -59,7 +62,7 @@ async def post_announcement(class_id: int, content: str = Form(...), db: Session
             created_at=datetime.now(timezone.utc)
         )
         db.add(announcement)
-        db.commit()
+        await db.commit()
         return JSONResponse({"success": True, "message": "Announcement posted"})
     except Exception as e:
         logger.error(f"Error creating announcement: {str(e)}", exc_info=True)

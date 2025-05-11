@@ -1,8 +1,9 @@
 from typing import List, Optional
 from fastapi import APIRouter, Depends, File, UploadFile, Form, HTTPException
 from fastapi.responses import JSONResponse
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import AsyncSession
 from datetime import datetime, timezone
+from sqlalchemy.dialects.postgresql import TIMESTAMP
 import logging
 import os
 import uuid
@@ -24,7 +25,7 @@ router = APIRouter(tags=["exams"])
 @router.get("/exams/{exam_id}/students")
 async def get_exam_students(
     exam_id: int,
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user_required)
 ):
     # Find the exam record
@@ -67,7 +68,7 @@ def parse_datetime(dt_str: str) -> datetime:
 @router.get("/exams/{exam_id}/files")
 async def get_exam_files(
     exam_id: int,
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user_required)
 ):
     # Get Materials for static sections
@@ -105,7 +106,7 @@ async def create_exam(
     title: str = Form(...),
     exam_date: str = Form(...),
     points_possible: int = Form(...),
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user_required)
 ):
     # Verify classroom exists
@@ -133,8 +134,8 @@ async def create_exam(
         created_at=datetime.now(timezone.utc)
     )
     db.add(new_exam)
-    db.commit()
-    db.refresh(new_exam)
+    await db.commit()
+    await db.refresh(new_exam)
     logger.info(f"Exam '{new_exam.title}' created for class ID {classId} by user {current_user.email}")
 
     return JSONResponse({
@@ -153,7 +154,7 @@ async def save_files(
     file_type: str = Form(...),  # expected values: question_paper, solution_script, marking_scheme, answer_sheet
     student_id: Optional[int] = Form(None),  # required if file_type is answer_sheet
     files: List[UploadFile] = File(...),
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user_required)
 ):
     print("YOO")
@@ -190,8 +191,8 @@ async def save_files(
                     file_type=file_type_enum
                 )
                 db.add(material)
-                db.commit()
-                db.refresh(material)
+                await db.commit()
+                await db.refresh(material)
                 saved_files.append({"id": material.id, "title": material.title})
         return JSONResponse({"success": True, "saved_files": saved_files})
     
@@ -222,8 +223,8 @@ async def save_files(
                     extracted_text=""
                 )
                 db.add(answer_script)
-                db.commit()
-                db.refresh(answer_script)
+                await db.commit()
+                await db.refresh(answer_script)
                 saved_files.append({"id": answer_script.id})
         return JSONResponse({"success": True, "saved_files": saved_files})
     else:
@@ -233,7 +234,7 @@ async def save_files(
 @router.delete("/exams/{exam_id}/files")
 async def reset_exam_files(
     exam_id: int,
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user_required)
 ):
     # Delete Materials (static exam files)
@@ -255,14 +256,14 @@ async def reset_exam_files(
             os.remove(a.file_path)
         db.delete(a)
     
-    db.commit()
+    await db.commit()
     return JSONResponse({"success": True, "message": "All files deleted for this exam."})
 
 @router.delete("/exams/{exam_id}/files/{file_id}")
 async def delete_exam_file(
     exam_id: int,
     file_id: int,
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user_required)
 ):
     # Try to delete from Materials first
@@ -274,7 +275,7 @@ async def delete_exam_file(
         if material.file_path and os.path.exists(material.file_path):
             os.remove(material.file_path)
         db.delete(material)
-        db.commit()
+        await db.commit()
         return JSONResponse({"success": True, "message": "Material file deleted."})
     
     # Try to delete from AnswerScripts
@@ -286,7 +287,7 @@ async def delete_exam_file(
         if answer_script.file_path and os.path.exists(answer_script.file_path):
             os.remove(answer_script.file_path)
         db.delete(answer_script)
-        db.commit()
+        await db.commit()
         return JSONResponse({"success": True, "message": "Answer script deleted."})
     
     raise HTTPException(status_code=404, detail="File not found for this exam.")
@@ -294,7 +295,7 @@ async def delete_exam_file(
 @router.delete("/exams/{exam_id}/questions")
 def delete_exam_questions(
     exam_id: int,
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user_required)
 ):
     """Delete all questions for an exam to start fresh"""
@@ -305,14 +306,14 @@ def delete_exam_questions(
     for question in questions:
         db.delete(question)
     
-    db.commit()
+    await db.commit()
     return {"success": True, "message": "All questions deleted for this exam"}
 
 @router.post("/exams/{exam_id}/questions")
 def create_exam_question(
     exam_id: int,
     question: dict,
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user_required)
 ):
     """Create a new question for the exam"""
@@ -323,8 +324,8 @@ def create_exam_question(
         max_marks=question.get("max_marks", 10)
     )
     db.add(new_question)
-    db.commit()
-    db.refresh(new_question)
+    await db.commit()
+    await db.refresh(new_question)
     return {
         "id": new_question.id,
         "question_number": new_question.question_number,
@@ -335,7 +336,7 @@ def create_exam_question(
 @router.get("/exams/{exam_id}/questions/all")
 async def get_exam_questions(
     exam_id: int,
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user_required)
 ):
     questions = db.query(Question).filter(Question.exam_id == exam_id).order_by(Question.question_number).all()
@@ -354,7 +355,7 @@ async def get_exam_questions(
 @router.get("/exams/{exam_id}/document/answer_script")
 async def get_answer_scripts(
     exam_id: int,
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user_required)
 ):
     answer_scripts = db.query(AnswerScript).filter(
@@ -375,7 +376,7 @@ async def get_answer_scripts(
 async def post_student_response(
     exam_id: int,
     payload: dict,
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user_required)
 ):
     student_id = payload.get("student_id")
@@ -391,8 +392,8 @@ async def post_student_response(
         created_at=datetime.now(timezone.utc)
     )
     db.add(new_response)
-    db.commit()
-    db.refresh(new_response)
+    await db.commit()
+    await db.refresh(new_response)
     return JSONResponse({"success": True, "id": new_response.id})
 
 
@@ -402,7 +403,7 @@ async def update_question(
     exam_id: int,
     question_id: int,
     update_data: dict,
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user_required)
 ):
     question = db.query(Question).filter(
@@ -417,8 +418,8 @@ async def update_question(
     if "ideal_marking_scheme" in update_data:
         question.ideal_marking_scheme = update_data["ideal_marking_scheme"]
 
-    db.commit()
-    db.refresh(question)
+    await db.commit()
+    await db.refresh(question)
     return JSONResponse({
         "success": True,
         "question": {

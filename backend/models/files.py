@@ -2,6 +2,7 @@ import enum
 from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Text, Enum
 from sqlalchemy.orm import relationship
 from datetime import datetime, timezone
+from sqlalchemy.dialects.postgresql import TIMESTAMP
 from backend.database import Base
 
 class FileTypeEnum(enum.Enum):
@@ -16,12 +17,12 @@ class Material(Base):
     __tablename__ = "materials"
 
     id = Column(Integer, primary_key=True, index=True)
-    title = Column(String, nullable=False)
+    title = Column(String(100), nullable=False)
     description = Column(Text, nullable=True)
-    file_path = Column(String, nullable=True)
+    file_path = Column(Text, nullable=True)
     file_size = Column(Integer, nullable=True)
     link_url = Column(String, nullable=True)
-    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    created_at = Column(TIMESTAMP(timezone=True), default=lambda: datetime.now(timezone.utc))
 
     # Add ondelete="CASCADE" where appropriate.
     classroom_id = Column(Integer, ForeignKey("classrooms.id", ondelete="CASCADE"), nullable=True)
@@ -47,10 +48,10 @@ class AnswerScript(Base):
     __tablename__ = "answer_scripts"
 
     id = Column(Integer, primary_key=True, index=True)
-    title = Column(String, nullable=False)
-    file_path = Column(String, nullable=True)
+    title = Column(String(100), nullable=False)
+    file_path = Column(Text, nullable=True)
     file_size = Column(Integer, nullable=True)
-    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    created_at = Column(TIMESTAMP(timezone=True), default=lambda: datetime.now(timezone.utc))
     exam_id = Column(Integer, ForeignKey("exams.id", ondelete="CASCADE"), nullable=False)
     student_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     extracted_text = Column(Text, nullable=True)

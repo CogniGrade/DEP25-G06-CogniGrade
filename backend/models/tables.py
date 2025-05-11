@@ -1,6 +1,7 @@
 from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Text, Boolean, Enum
 from sqlalchemy.orm import relationship
 from datetime import datetime, timezone
+from sqlalchemy.dialects.postgresql import TIMESTAMP
 import shortuuid
 import enum
 from backend.database import Base
@@ -25,11 +26,11 @@ class Classroom(Base):
     __tablename__ = "classrooms"
 
     id = Column(Integer, primary_key=True, index=True)
-    name = Column(String, nullable=False)
-    subject = Column(String, nullable=False)
+    name = Column(String(100), nullable=False)
+    subject = Column(String(100), nullable=False)
     description = Column(Text, nullable=True)
-    class_code = Column(String, unique=True, index=True, default=lambda: shortuuid.ShortUUID().random(length=6).upper())
-    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    class_code = Column(String(10), unique=True, index=True, default=lambda: shortuuid.ShortUUID().random(length=6).upper())
+    created_at = Column(TIMESTAMP(timezone=True), default=lambda: datetime.now(timezone.utc))
     owner_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"))
     is_archived = Column(Boolean, default=False)
 
@@ -50,8 +51,8 @@ class Enrollment(Base):
     classroom_id = Column(Integer, ForeignKey("classrooms.id", ondelete="CASCADE"))
     status = Column(Enum(EnrollmentStatus), default=EnrollmentStatus.PENDING)
     role = Column(Enum(Role), default=Role.STUDENT)
-    joined_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
-    last_accessed = Column(DateTime, nullable=True)
+    joined_at = Column(TIMESTAMP(timezone=True), default=lambda: datetime.now(timezone.utc))
+    last_accessed = Column(TIMESTAMP(timezone=True), nullable=True)
 
     # Relationships
     student = relationship("User", back_populates="enrollments")
@@ -61,14 +62,14 @@ class Assignment(Base):
     __tablename__ = "assignments"
 
     id = Column(Integer, primary_key=True, index=True)
-    title = Column(String, nullable=False)
+    title = Column(String(100), nullable=False)
     description = Column(Text, nullable=True)
-    due_date = Column(DateTime, nullable=True)
+    due_date = Column(TIMESTAMP(timezone=True), nullable=True)
     points_possible = Column(Integer, default=100)
-    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    created_at = Column(TIMESTAMP(timezone=True), default=lambda: datetime.now(timezone.utc))
     classroom_id = Column(Integer, ForeignKey("classrooms.id", ondelete="CASCADE"))
     author_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"))
-    attachment_path = Column(String, nullable=True)
+    attachment_path = Column(Text, nullable=True)
 
     # Relationships
     classroom = relationship("Classroom", back_populates="assignments")
@@ -83,15 +84,15 @@ class Submission(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     content = Column(Text, nullable=True)
-    file_path = Column(String, nullable=True)
-    submitted_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    file_path = Column(Text, nullable=True)
+    submitted_at = Column(TIMESTAMP(timezone=True), default=lambda: datetime.now(timezone.utc))
     grade = Column(Integer, nullable=True)
     feedback = Column(Text, nullable=True)
     status = Column(Enum(AssignmentStatus), default=AssignmentStatus.PENDING)
     assignment_id = Column(Integer, ForeignKey("assignments.id", ondelete="CASCADE"))
     student_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"))
     graded_by = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=True)
-    graded_at = Column(DateTime, nullable=True)
+    graded_at = Column(TIMESTAMP(timezone=True), nullable=True)
 
     # Relationships
     assignment = relationship("Assignment", back_populates="submissions")
@@ -102,13 +103,13 @@ class Announcement(Base):
     __tablename__ = "announcements"
 
     id = Column(Integer, primary_key=True, index=True)
-    title = Column(String, nullable=False)
+    title = Column(String(100), nullable=False)
     content = Column(Text, nullable=False)
-    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
-    updated_at = Column(DateTime, onupdate=lambda: datetime.now(timezone.utc))
+    created_at = Column(TIMESTAMP(timezone=True), default=lambda: datetime.now(timezone.utc))
+    updated_at = Column(TIMESTAMP(timezone=True), onupdate=lambda: datetime.now(timezone.utc))
     classroom_id = Column(Integer, ForeignKey("classrooms.id", ondelete="CASCADE"))
     author_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"))
-    attachment_path = Column(String, nullable=True)
+    attachment_path = Column(Text, nullable=True)
 
     classroom = relationship("Classroom", back_populates="announcements")
     author = relationship("User")
@@ -120,12 +121,12 @@ class Exam(Base):
     __tablename__ = "exams"
 
     id = Column(Integer, primary_key=True, index=True)
-    title = Column(String, nullable=False)
+    title = Column(String(100), nullable=False)
     description = Column(Text, nullable=True)
-    exam_date = Column(DateTime, nullable=True)
+    exam_date = Column(TIMESTAMP(timezone=True), nullable=True)
     duration_minutes = Column(Integer, nullable=True)
     points_possible = Column(Integer, default=100)
-    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    created_at = Column(TIMESTAMP(timezone=True), default=lambda: datetime.now(timezone.utc))
     classroom_id = Column(Integer, ForeignKey("classrooms.id", ondelete="CASCADE"))
     author_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"))
     exam_stage = Column(Integer, default=0)  # e.g., "Question Upload", "Label Extract", "Solution Upload", "Marking Annotate", Answer Script Upload", "Answer Script Annotate", "Grading", "Graded"
@@ -147,7 +148,7 @@ class ExamResult(Base):
     marks_obtained = Column(Integer, nullable=True)
     feedback = Column(Text, nullable=True)
     graded_by = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=True)
-    graded_at = Column(DateTime, nullable=True)
+    graded_at = Column(TIMESTAMP(timezone=True), nullable=True)
 
     exam = relationship("Exam", back_populates="results")
     student = relationship("User", foreign_keys=[student_id])
@@ -162,7 +163,7 @@ class Question(Base):
     ideal_answer = Column(Text, nullable=True)   # The ideal answer for the question
     ideal_marking_scheme = Column(Text, nullable=True)  # Marking scheme for the ideal answer
     max_marks = Column(Integer, nullable=False)
-    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    created_at = Column(TIMESTAMP(timezone=True), default=lambda: datetime.now(timezone.utc))
     part_labels = Column(Text, nullable=True) 
 
     ms_text_images = Column(Text, nullable=True)
@@ -181,7 +182,7 @@ class QuestionResponse(Base):
     marks_obtained = Column(Integer, nullable=True)
     query = Column(Text, nullable=True)
     reasoning = Column(Text, nullable=True)
-    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    created_at = Column(TIMESTAMP(timezone=True), default=lambda: datetime.now(timezone.utc))
     # New columns to store extracted regions JSON data (as a JSON string)
     ans_text_images = Column(Text, nullable=True)
     ans_table_images = Column(Text, nullable=True)
@@ -194,10 +195,10 @@ class Query(Base):
     __tablename__ = "queries"
     
     id = Column(Integer, primary_key=True, index=True)
-    title = Column(String, nullable=False)
+    title = Column(String(100), nullable=False)
     content = Column(Text, nullable=False)
     is_public = Column(Boolean, default=True)
-    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    created_at = Column(TIMESTAMP(timezone=True), default=lambda: datetime.now(timezone.utc))
     classroom_id = Column(Integer, ForeignKey("classrooms.id", ondelete="CASCADE"))
     student_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"))
     

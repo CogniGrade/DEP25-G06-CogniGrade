@@ -44,7 +44,7 @@
   <script>
     document.addEventListener("visibilitychange", function() {
       if (document.visibilityState === "visible") {
-        fetch("/check-session")
+        fetch("api/check-session")
           .then(response => {
             if (response.ok) {
               // User is logged in, redirect to dashboard
@@ -71,7 +71,7 @@
         return;
       }
       try {
-        const response = await fetch("/signup", {
+        const response = await fetch("api/signup", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ 

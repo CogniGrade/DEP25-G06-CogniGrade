@@ -1,36 +1,43 @@
 from fastapi import APIRouter, Depends, HTTPException, Form
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession     # ASYNC
+from sqlalchemy.future import select
+
 from sqlalchemy import desc
 from datetime import datetime, timezone
+from sqlalchemy.dialects.postgresql import TIMESTAMP
 import logging
 
 from backend.database import get_db
 from backend.models.tables import Announcement, Classroom, Enrollment, Query
 from backend.models.users import User
 from backend.utils.security import get_current_user_required
-
+from backend.models.notifications import Notification, NotificationType
+    
 router = APIRouter(tags=["announcements"])
 logger = logging.getLogger(__name__)
 
 @router.get("/classes/{class_id}/announcements")
 async def get_class_announcements(
     class_id: int,
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user_required)
 ):
     # Verify class exists and user has access
-    classroom = db.query(Classroom).filter(Classroom.id == class_id).first()
+    result = await db.execute(select(Classroom).where(Classroom.id == class_id))
+    classroom = result.scalars().first()    
     if not classroom:
         raise HTTPException(status_code=404, detail="Class not found")
     
     # Check if user is enrolled or is the owner
     if classroom.owner_id != current_user.id:
-        enrollment = db.query(Enrollment).filter(
+        result = await db.execute(select(Enrollment).where(
             Enrollment.classroom_id == class_id,
             Enrollment.student_id == current_user.id,
             Enrollment.status == "accepted"
-        ).first()
+        ))
+        enrollment = result.scalars().first()
         if not enrollment:
             raise HTTPException(status_code=403, detail="You are not enrolled in this class")
     
@@ -66,21 +73,23 @@ async def create_announcement(
     class_id: int,
     title: str = Form(...),
     content: str = Form(...),
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user_required)
 ):
     # Verify class exists and user has access
-    classroom = db.query(Classroom).filter(Classroom.id == class_id).first()
+    result = await db.execute(select(Classroom).where(Classroom.id == class_id))
+    classroom = result.scalars().first()    
     if not classroom:
         raise HTTPException(status_code=404, detail="Class not found")
     
     # Check if user is enrolled or is the owner
     if classroom.owner_id != current_user.id:
-        enrollment = db.query(Enrollment).filter(
+        result = await db.execute(select(Enrollment).where(
             Enrollment.classroom_id == class_id,
             Enrollment.student_id == current_user.id,
             Enrollment.status == "accepted"
-        ).first()
+        ))
+        enrollment = result.scalars().first()    
         if not enrollment:
             raise HTTPException(status_code=403, detail="You are not enrolled in this class")
     
@@ -93,18 +102,18 @@ async def create_announcement(
         created_at=datetime.now(timezone.utc)
     )
     db.add(new_announcement)
-    db.commit()
-    db.refresh(new_announcement)
+    await db.commit()
+    await db.refresh(new_announcement)
     
     # Create notifications for all students in the class
-    from backend.models.notifications import Notification, NotificationType
     
     # Get all student enrollments for this class
-    enrollments = db.query(Enrollment).filter(
+    result = await db.execute(select(Enrollment).where(
         Enrollment.classroom_id == class_id,
         Enrollment.status == "accepted",
         Enrollment.role == "student"
-    ).all()
+    ))
+    enrollments = result.scalars().all()
     
     # Create a notification for each enrolled student
     for enrollment in enrollments:
@@ -121,7 +130,7 @@ async def create_announcement(
                 created_at=datetime.now(timezone.utc)
             )
             db.add(notification)
-    db.commit()
+    await db.commit()
     
     logger.info(f"Announcement created for class ID {class_id} by user {current_user.email}")
     
@@ -140,19 +149,21 @@ async def update_announcement(
     class_id: int,
     announcement_id: int,
     content: str = Form(...),
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user_required)
 ):
     # Verify class exists
-    classroom = db.query(Classroom).filter(Classroom.id == class_id).first()
+    result = await db.execute(select(Classroom).where(Classroom.id == class_id))
+    classroom = result.scalars().first()    
     if not classroom:
         raise HTTPException(status_code=404, detail="Class not found")
     
-    # Get announcement
-    announcement = db.query(Announcement).filter(
+    # Get announcement    
+    result = await db.execute(select(Announcement).where(
         Announcement.id == announcement_id,
         Announcement.classroom_id == class_id
-    ).first()
+    ))
+    announcement = result.scalars().first()    
     if not announcement:
         raise HTTPException(status_code=404, detail="Announcement not found")
     
@@ -162,7 +173,7 @@ async def update_announcement(
     
     # Update announcement
     announcement.content = content
-    db.commit()
+    await db.commit()
     
     return JSONResponse({
         "success": True,
@@ -173,19 +184,21 @@ async def update_announcement(
 async def delete_announcement(
     class_id: int,
     announcement_id: int,
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user_required)
 ):
     # Verify class exists
-    classroom = db.query(Classroom).filter(Classroom.id == class_id).first()
+    result = await db.execute(select(Classroom).where(Classroom.id == class_id))
+    classroom = result.scalars().first()    
     if not classroom:
         raise HTTPException(status_code=404, detail="Class not found")
     
     # Get announcement
-    announcement = db.query(Announcement).filter(
+    result = await db.execute(select(Announcement).where(
         Announcement.id == announcement_id,
         Announcement.classroom_id == class_id
-    ).first()
+    ))
+    announcement = result.scalars().first()  
     if not announcement:
         raise HTTPException(status_code=404, detail="Announcement not found")
     
@@ -207,7 +220,7 @@ async def delete_announcement(
         
         # Delete the announcement
         db.delete(announcement)
-        db.commit()
+        await db.commit()
         
         return JSONResponse({
             "success": True,

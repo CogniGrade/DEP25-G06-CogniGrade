@@ -1,8 +1,9 @@
 from fastapi import APIRouter, Request, Depends, Form, HTTPException
 from fastapi.responses import JSONResponse
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.future import select
 from datetime import datetime, timezone
-
+from sqlalchemy.dialects.postgresql import TIMESTAMP
 from backend.database import get_db
 from backend.models.tables import Classroom, Enrollment
 from backend.models.users import User
@@ -12,18 +13,20 @@ from backend.utils.security import get_current_user_required
 router = APIRouter(tags=["enrollments"])
 
 @router.post("/classes/join-class")
-async def join_class(class_code: str = Form(...), role: str = Form("student"), db: Session = Depends(get_db), current_user: User = Depends(get_current_user_required)):
+async def join_class(class_code: str = Form(...), role: str = Form("student"), db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user_required)):
     if current_user.is_professor:
         raise HTTPException(status_code=403, detail="Professors cannot join classes")
     
-    classroom = db.query(Classroom).filter(Classroom.class_code == class_code.strip().upper()).first()
+    result = await db.execute(select(Classroom).where(Classroom.class_code == class_code.strip().upper()))
+    classroom = result.scalars().first()
     if not classroom:
         return JSONResponse(status_code=400, content={"success": False, "error": "Invalid class code"})
     
-    existing_enrollment = db.query(Enrollment).filter(
+    result = await db.execute(select(Enrollment).where(
         Enrollment.student_id == current_user.id,
         Enrollment.classroom_id == classroom.id
-    ).first()
+    ))
+    existing_enrollment = result.scalars().first()
     
     if existing_enrollment:
         if existing_enrollment.status == "accepted":
@@ -32,7 +35,7 @@ async def join_class(class_code: str = Form(...), role: str = Form("student"), d
             return JSONResponse({"success": True, "message": "Request already pending"})
         else:
             existing_enrollment.status = "pending"
-            db.commit()
+            await db.commit()
     else:
         new_enrollment = Enrollment(
             student_id=current_user.id,
@@ -40,7 +43,7 @@ async def join_class(class_code: str = Form(...), role: str = Form("student"), d
             status="pending"
         )
         db.add(new_enrollment)
-        db.commit()
+        await db.commit()
     
     notification = Notification(
         type=NotificationType.ENROLLMENT_REQUEST,
@@ -53,33 +56,38 @@ async def join_class(class_code: str = Form(...), role: str = Form("student"), d
         created_at=datetime.now(timezone.utc)
     )
     db.add(notification)
-    db.commit()
+    await db.commit()
     
     return JSONResponse({"success": True, "message": "Enrollment request submitted"})
 
 @router.get("/enrollments/manage/{class_id}")
-async def manage_enrollments(class_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user_required)):
-    classroom = db.query(Classroom).filter(Classroom.id == class_id).first()
+async def manage_enrollments(class_id: int, db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user_required)):
+    result = await db.execute(select(Classroom).where(Classroom.id == class_id))
+    classroom = result.scalars().first()
     if not classroom or classroom.owner_id != current_user.id:
         raise HTTPException(status_code=403, detail="Not authorized")
     
-    pending_enrollments = db.query(Enrollment).filter(
+    result = await db.execute(select(Enrollment).where(
         Enrollment.classroom_id == class_id,
         Enrollment.status == "pending"
-    ).all()
+    ))
+    pending_enrollments = result.scalars().all()
     pending_students = []
     for enrollment in pending_enrollments:
-        student = db.query(User).get(enrollment.student_id)
+        result = await db.execute(select(User).where(User.id == enrollment.student_id))
+        student = result.scalars().first()
         if student:
             pending_students.append({"student_id": student.id, "full_name": student.full_name, "enrollment_id": enrollment.id})
     
-    accepted_enrollments = db.query(Enrollment).filter(
+    result = await db.execute(select(Enrollment).where(
         Enrollment.classroom_id == class_id,
         Enrollment.status == "accepted"
-    ).all()
+    ))
+    accepted_enrollments = result.scalars().all()
     enrolled_students = []
     for enrollment in accepted_enrollments:
-        student = db.query(User).get(enrollment.student_id)
+        result = await db.execute(select(User).where(User.id == enrollment.student_id))
+        student = result.scalars().first()
         if student:
             enrolled_students.append({"student_id": student.id, "full_name": student.full_name, "enrollment_id": enrollment.id})
     
@@ -91,17 +99,19 @@ async def manage_enrollments(class_id: int, db: Session = Depends(get_db), curre
     })
 
 @router.post("/enrollments/{enrollment_id}/accept")
-async def accept_enrollment(enrollment_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user_required)):
-    enrollment = db.query(Enrollment).filter(Enrollment.id == enrollment_id).first()
+async def accept_enrollment(enrollment_id: int, db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user_required)):
+    result = await db.execute(select(Enrollment).where(Enrollment.id == enrollment_id))
+    enrollment = result.scalars().first()
     if not enrollment:
         raise HTTPException(status_code=404, detail="Enrollment not found")
     
-    classroom = db.query(Classroom).filter(Classroom.id == enrollment.classroom_id).first()
+    result = await db.execute(select(Classroom).where(Classroom.id == enrollment.classroom_id))
+    classroom = result.scalars().first()
     if not classroom or classroom.owner_id != current_user.id:
         raise HTTPException(status_code=403, detail="Not authorized")
     
     enrollment.status = "accepted"
-    db.commit()
+    await db.commit()
     
     notification = Notification(
         type=NotificationType.ENROLLMENT_ACCEPTED,
@@ -114,22 +124,24 @@ async def accept_enrollment(enrollment_id: int, db: Session = Depends(get_db), c
         created_at=datetime.now(timezone.utc)
     )
     db.add(notification)
-    db.commit()
+    await db.commit()
     
     return JSONResponse({"success": True, "message": "Enrollment accepted"})
 
 @router.post("/enrollments/{enrollment_id}/reject")
-async def reject_enrollment(enrollment_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user_required)):
-    enrollment = db.query(Enrollment).filter(Enrollment.id == enrollment_id).first()
+async def reject_enrollment(enrollment_id: int, db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user_required)):
+    result = await db.execute(select(Enrollment).where(Enrollment.id == enrollment_id))
+    enrollment = result.scalars().first()
     if not enrollment:
         raise HTTPException(status_code=404, detail="Enrollment not found")
     
-    classroom = db.query(Classroom).filter(Classroom.id == enrollment.classroom_id).first()
+    result = await db.execute(select(Classroom).where(Classroom.id == enrollment.classroom_id))
+    classroom = result.scalars().first()
     if not classroom or classroom.owner_id != current_user.id:
         raise HTTPException(status_code=403, detail="Not authorized")
     
     enrollment.status = "rejected"
-    db.commit()
+    await db.commit()
     
     notification = Notification(
         type=NotificationType.ENROLLMENT_REJECTED,
@@ -141,23 +153,25 @@ async def reject_enrollment(enrollment_id: int, db: Session = Depends(get_db), c
         created_at=datetime.now(timezone.utc)
     )
     db.add(notification)
-    db.commit()
+    await db.commit()
     
     return JSONResponse({"success": True, "message": "Enrollment rejected"})
 
 @router.post("/enrollments/{enrollment_id}/remove")
-async def remove_student(enrollment_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user_required)):
-    enrollment = db.query(Enrollment).filter(Enrollment.id == enrollment_id).first()
+async def remove_student(enrollment_id: int, db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user_required)):
+    result = await db.execute(select(Enrollment).where(Enrollment.id == enrollment_id))
+    enrollment = result.scalars().first()
     if not enrollment:
         raise HTTPException(status_code=404, detail="Enrollment not found")
     
-    classroom = db.query(Classroom).filter(Classroom.id == enrollment.classroom_id).first()
+    result = await db.execute(select(Classroom).where(Classroom.id == enrollment.classroom_id))
+    classroom = result.scalars().first()
     if not classroom or classroom.owner_id != current_user.id:
         raise HTTPException(status_code=403, detail="Not authorized")
     
     student_id = enrollment.student_id
-    db.delete(enrollment)
-    db.commit()
+    await db.delete(enrollment)
+    await db.commit()
     
     notification = Notification(
         type=NotificationType.ENROLLMENT_REMOVED,
@@ -170,6 +184,6 @@ async def remove_student(enrollment_id: int, db: Session = Depends(get_db), curr
         created_at=datetime.now(timezone.utc)
     )
     db.add(notification)
-    db.commit()
+    await db.commit()
     
     return JSONResponse({"success": True, "message": "Student removed from class"})

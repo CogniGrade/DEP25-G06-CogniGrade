@@ -23,7 +23,7 @@ class Settings:
     COOKIE_SAMESITE = "lax"
     
     # Database settings
-    DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./classroom.db")
+    DATABASE_URL = os.getenv("DATABASE_URL", "postgresql+asyncpg://myuser:mypassword@localhost:5432/classroom")
     DATABASE_POOL_SIZE = int(os.getenv("DATABASE_POOL_SIZE", 20))
     DATABASE_MAX_OVERFLOW = int(os.getenv("DATABASE_MAX_OVERFLOW", 10))
     DATABASE_POOL_TIMEOUT = int(os.getenv("DATABASE_POOL_TIMEOUT", 30))

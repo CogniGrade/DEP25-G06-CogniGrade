@@ -61,7 +61,7 @@
   <script>
     document.addEventListener("visibilitychange", function() {
       if (document.visibilityState === "visible") {
-        fetch("/check-session")
+        fetch("api/check-session")
           .then(response => {
             if (response.ok) {
               // User is logged in, redirect to dashboard
@@ -80,7 +80,7 @@
       const confirmPassword = document.getElementById("confirm_password").value;
       const isProfessor = document.getElementById("is_professor").checked;
       console.log("YEH")
-      const response = await fetch("/signup", {
+      const response = await fetch("api/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ 

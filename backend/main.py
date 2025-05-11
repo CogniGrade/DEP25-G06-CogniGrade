@@ -2,6 +2,7 @@ from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse, RedirectResponse
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.sessions import SessionMiddleware
+from contextlib import asynccontextmanager
 import os
 import logging
 
@@ -18,10 +19,16 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# Create database tables
-Base.metadata.create_all(bind=engine)
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+    yield
+    # Shutdown
+    await engine.dispose()  # closes all connections
 
-app = FastAPI(title=settings.PROJECT_NAME, version=settings.PROJECT_VERSION)
+app = FastAPI(title=settings.PROJECT_NAME, version=settings.PROJECT_VERSION, lifespan=lifespan)
 
 # Serve static files with HTML support (so index.html is served as the default)
 app.mount("/static", StaticFiles(directory="frontend", html=True), name="static")
@@ -57,7 +64,7 @@ app.include_router(studentEdit.router)  # <-- Added new studentEdit endpoints
 app.include_router(user_routes.router)  # <-- Added new user endpoints
 @app.get("/")
 async def root(request: Request):
-    return JSONResponse({"message": "Welcome to the Institute Classroom Portal API. Please login."})
+    return RedirectResponse(url="/static/login.htm")
 
 @app.get("/health")
 async def health_check():

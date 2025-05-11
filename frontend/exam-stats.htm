@@ -649,7 +649,7 @@
 
     // Poll for exam stats every 5 seconds
     function fetchExamStats() {
-      fetch(`/exams/${examId}/stats`)
+      fetch(`api/exams/${examId}/stats`)
         .then(res => res.json())
         .then(data => {
           studentData = data.students;
@@ -770,7 +770,7 @@
 
     // Function to open the student detail modal
     function openStudentDetail(student) {
-      fetch(`/exam/${examId}/student-evaluation/${student.id}`)
+      fetch(`api/exam/${examId}/student-evaluation/${student.id}`)
         .then(res => res.json())
         .then(data => {
           evaluationData = data; // Store data globally for easy access
@@ -889,7 +889,7 @@
 
     // Helper function to update marks on the server
     function updateMarks(studentId, questionId, newMarks) {
-      fetch(`/exams/${examId}/student/${studentId}/question/${questionId}/update`, {
+      fetch(`api/exams/${examId}/student/${studentId}/question/${questionId}/update`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ grade: newMarks })
@@ -939,13 +939,13 @@
 
   // Edit marks for a specific question
   function editMarks(studentId, qId) {
-    fetch(`/exams/${examId}/student/${studentId}/question/${qId}/details`)
+    fetch(`api/exams/${examId}/student/${studentId}/question/${qId}/details`)
       .then(res => res.json())
       .then(data => {
         const currentGrade = data.grade || 'N/A';
         const newGrade = prompt(`Enter new marks for student ${studentId}, question ${qId} (current: ${currentGrade}):`, currentGrade);
         if (newGrade !== null) {
-          fetch(`/exams/${examId}/student/${studentId}/question/${qId}/update`, {
+          fetch(`api/exams/${examId}/student/${studentId}/question/${qId}/update`, {
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ grade: newGrade })
@@ -986,7 +986,7 @@
 
     // Fetch and populate question dropdown
     function fetchQuestions() {
-      fetch(`/exam/${examId}/question-metrics`)
+      fetch(`api/exam/${examId}/question-metrics`)
         .then(res => res.json())
         .then(data => {
           questionData = data;
@@ -1060,7 +1060,7 @@
     function saveQuestionText() {
       const questionId = document.getElementById('questionSelect').value;
       const text = document.getElementById('questionText').value;
-      fetch(`/exams/${examId}/questions/${questionId}`, {
+      fetch(`api/exams/${examId}/questions/${questionId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ text: text })
@@ -1091,7 +1091,7 @@
     function saveSolutionText() {
       const questionId = document.getElementById('questionSelect').value;
       const text = document.getElementById('solutionText').value;
-      fetch(`/exams/${examId}/questions/${questionId}`, {
+      fetch(`api/exams/${examId}/questions/${questionId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ideal_answer: text })
@@ -1114,7 +1114,7 @@
     function dropQuestion() {
       const questionId = document.getElementById('questionSelect').value;
       if (confirm('Are you sure you want to drop this question?')) {
-        fetch(`/exam/${examId}/question/${questionId}/drop`, { method: 'POST' })
+        fetch(`api/exam/${examId}/question/${questionId}/drop`, { method: 'POST' })
           .then(res => res.json())
           .then(data => {
             alert(data.message);
@@ -1129,7 +1129,7 @@
     function awardFullMarks() {
       const questionId = document.getElementById('questionSelect').value;
       if (confirm('Are you sure you want to award full marks to all students?')) {
-        fetch(`/exam/${examId}/question/${questionId}/full-marks`, { method: 'POST' })
+        fetch(`api/exam/${examId}/question/${questionId}/full-marks`, { method: 'POST' })
           .then(res => res.json())
           .then(data => {
             alert(data.message);
@@ -1145,7 +1145,7 @@
       const tbody = document.querySelector('#questionPerformanceTable tbody');
       tbody.innerHTML = ''; // Clear the table body
       studentData.forEach(student => {
-        fetch(`/exams/${examId}/student/${student.id}/question/${questionId}/details`)
+        fetch(`api/exams/${examId}/student/${student.id}/question/${questionId}/details`)
           .then(res => res.json())
           .then(qResponse => {
             const responseText = qResponse && qResponse.response ? qResponse.response : '';
@@ -1191,7 +1191,7 @@
     // Save student answer
     function saveAnswer() {
       const answer = document.getElementById('answerText').value;
-      fetch(`/exam/${examId}/question/${currentQuestionId}/student/${currentStudentId}/update`, {
+      fetch(`api/exam/${examId}/question/${currentQuestionId}/student/${currentStudentId}/update`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ response: answer })
@@ -1211,7 +1211,7 @@
       if (confirm('Re-evaluate all responses for this student?')) {
         // Loop over all questions in the exam (assuming questionData is already loaded)
         questionData.forEach(question => {
-          fetch(`/exam/${examId}/question/${question.question_id}/student/${studentId}/reevaluate`, { 
+          fetch(`api/exam/${examId}/question/${question.question_id}/student/${studentId}/reevaluate`, { 
             method: 'POST' 
           })
           .then(res => res.json())
@@ -1232,7 +1232,7 @@
     // Re-evaluate single answer
     function reevaluateAnswer(studentId, questionId) {
       if (confirm('Re-evaluate this answer?')) {
-        fetch(`/exam/${examId}/question/${questionId}/student/${studentId}/reevaluate`, { method: 'POST' })
+        fetch(`api/exam/${examId}/question/${questionId}/student/${studentId}/reevaluate`, { method: 'POST' })
           .then(res => res.json())
           .then(data => {
             alert(data.message);
@@ -1248,7 +1248,7 @@
       const questionId = document.getElementById('questionSelect').value;
       if (confirm('Re-evaluate this question for all students?')) {
         studentData.forEach(student => {
-          fetch(`/exam/${examId}/question/${questionId}/student/${student.id}/reevaluate`, { method: 'POST' })
+          fetch(`api/exam/${examId}/question/${questionId}/student/${student.id}/reevaluate`, { method: 'POST' })
             .catch(err => console.error("Error re-evaluating:", err));
         });
         alert('Re-evaluation initiated for all students');

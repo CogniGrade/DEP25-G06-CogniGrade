@@ -1,8 +1,12 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Request, Form, UploadFile, File
 from fastapi.responses import JSONResponse
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, selectinload
+from sqlalchemy.ext.asyncio import AsyncSession     # ASYNC
+from sqlalchemy.future import select
+
 from typing import Optional, List
 from datetime import datetime, timezone, timedelta
+from sqlalchemy.dialects.postgresql import TIMESTAMP
 from pydantic import BaseModel
 import os
 import shortuuid
@@ -56,51 +60,72 @@ def parse_datetime(dt_str: str) -> datetime:
         raise ValueError(f"Invalid datetime format: {dt_str}") from e
 
 @router.get("/dashboard")
-async def dashboard(db: Session = Depends(get_db), current_user: User = Depends(get_current_user_required)):
-    print(current_user.is_professor)
+async def dashboard(db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user_required)):
+    print("\n\n\n", current_user.is_professor)
     # if current_user.is_professor:
-    teaching_courses_prof = db.query(Classroom).filter(Classroom.owner_id == current_user.id).all()
+    result = await db.execute(select(Classroom).where(Classroom.owner_id == current_user.id))
+    teaching_courses_prof = result.scalars().all()
+    print("\n\n\nteaching_courses_prof: ", teaching_courses_prof)
     # enrolled_courses = []
     # else:
-    enrolled_courses = db.query(Enrollment).filter(
-	Enrollment.student_id == current_user.id,
-	Enrollment.status == "accepted",
-	Enrollment.role == "student"
-    ).all()
-    ta_enrollments = db.query(Enrollment).filter(
-	Enrollment.student_id == current_user.id,
-	Enrollment.status == "accepted",
-	Enrollment.role == "ta"
-    ).all()
+    result = await db.execute(select(Enrollment)
+        .options(
+            selectinload(Enrollment.classroom)
+            .selectinload(Classroom.owner)
+        )
+        .where(
+            Enrollment.student_id == current_user.id,
+            Enrollment.status     == "accepted",  # compare against Enum
+            Enrollment.role       == "student"   
+        )
+    )
+    enrolled_courses = result.scalars().all()
+    print("\n\n\nEnrolled Courses: ", enrolled_courses)
+    result = await db.execute(select(Enrollment).where(
+        Enrollment.student_id == current_user.id,
+        Enrollment.status == "accepted",
+        Enrollment.role == "ta"
+    ))
+    ta_enrollments = result.scalars().all()
+    print("\n\n\nTA Enrollments: ", ta_enrollments)
     teaching_courses = [enrollment.classroom for enrollment in ta_enrollments] + teaching_courses_prof   
-    def course_to_dict(course):
-        student_enrollements = db.query(Enrollment).filter(
+    print("\n\n\nTeaching Courses: ", teaching_courses)
+    async def course_to_dict(course):
+        from sqlalchemy import func
+        result = await db.execute(select(func.count()).select_from(Enrollment).where(
             Enrollment.classroom == course,
             Enrollment.status == "accepted",
             Enrollment.role == "student"
-        )
+        ))
+        student_enrollements_count = result.scalar()
+    
         return {
             "id": course.id,
             "name": course.name,
             "subject": course.subject,
             "description": course.description,
             "class_code": course.class_code,
-            "number_of_students": student_enrollements.count(),
+            "number_of_students": student_enrollements_count,
             "owner_name": getattr(course.owner, "full_name", "Unknown") if hasattr(course, "owner") else "Unknown",
             "owner_email": getattr(course.owner, "email", "Unknown") if hasattr(course, "owner") else "Unknown",
             "owner_photo": getattr(course.owner, "profile_picture", "Unknown") if hasattr(course, "owner") else "Unknown"
         }
+    
+    teaching_courses_dicts = [await course_to_dict(course) for course in teaching_courses]
+    enrolled_courses_dicts = [await course_to_dict(enrollment.classroom) for enrollment in enrolled_courses]
+    
+    print("\n\n\nEnrolled Course Dicts: ", enrolled_courses_dicts)
     return JSONResponse({
         "user": {
             "full_name": current_user.full_name,
             "is_professor": current_user.is_professor
         },
-        "teaching_courses": [course_to_dict(course) for course in teaching_courses],
-        "enrolled_courses": [course_to_dict(enrollment.classroom) for enrollment in enrolled_courses]
+        "teaching_courses": teaching_courses_dicts,
+        "enrolled_courses": enrolled_courses_dicts
     })
 
 @router.post("/classes/create")
-async def create_class(request: Request, name: str = Form(...), subject: str = Form(...), description: Optional[str] = Form(None), db: Session = Depends(get_db), current_user: User = Depends(get_current_user_required)):
+async def create_class(request: Request, name: str = Form(...), subject: str = Form(...), description: Optional[str] = Form(None), db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user_required)):
     try:
         if not current_user.is_professor:
             raise HTTPException(status_code=403, detail="Only professors can create classes")
@@ -113,8 +138,8 @@ async def create_class(request: Request, name: str = Form(...), subject: str = F
             created_at=datetime.now(timezone.utc)
         )
         db.add(new_class)
-        db.commit()
-        db.refresh(new_class)
+        await db.commit()
+        await db.refresh(new_class)
         logger.info(f"Class created: {new_class.name} by {current_user.email}")
         return JSONResponse({"success": True, "class": {
             "id": new_class.id,
@@ -128,17 +153,20 @@ async def create_class(request: Request, name: str = Form(...), subject: str = F
         return JSONResponse(status_code=500, content={"success": False, "error": "An error occurred while creating the class"})
 
 @router.post("/classes/join-class")
-async def join_class(class_code: str = Form(...), db: Session = Depends(get_db), current_user: User = Depends(get_current_user_required)):
+async def join_class(class_code: str = Form(...), db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user_required)):
     try:
         class_code = class_code.strip().upper()
-        classroom = db.query(Classroom).filter(Classroom.class_code == class_code).first()
+        result = await db.execute(select(Classroom).where(Classroom.class_code == class_code))
+        classroom = result.scalars().first()
         if not classroom:
             return JSONResponse(status_code=400, content={"success": False, "error": "Invalid class code"})
         
-        existing_enrollment = db.query(Enrollment).filter(
+        result = await db.execute(select(Enrollment).where(
             Enrollment.classroom_id == classroom.id,
             Enrollment.student_id == current_user.id
-        ).first()
+        ))
+        existing_enrollment = result.scalars().first()
+
         if existing_enrollment:
             if existing_enrollment.status == "accepted":
                 return JSONResponse({"success": True, "message": "Already enrolled", "redirect": f"/classes/{classroom.id}"})
@@ -146,7 +174,7 @@ async def join_class(class_code: str = Form(...), db: Session = Depends(get_db),
             #     return JSONResponse({"success": True, "message": "Request already pending"})        ##  FOR NOW ALL ACCEPTED ON JOINING,  UNCOMMENT LATER
             else:
                 existing_enrollment.status = "accepted"                                  ##  FOR NOW ALL ACCEPTED ON JOINING
-                db.commit()
+                await db.commit()
         else:
             new_enrollment = Enrollment(
                 student_id=current_user.id,
@@ -154,28 +182,33 @@ async def join_class(class_code: str = Form(...), db: Session = Depends(get_db),
                 status="accepted"                                                        ##  FOR NOW ALL ACCEPTED ON JOINING
             )
             db.add(new_enrollment)
-            db.commit()
+            await db.commit()
         return JSONResponse({"success": True, "message": "Enrollment request submitted"})
     except Exception as e:
         logger.error(f"Error joining class: {str(e)}", exc_info=True)
         return JSONResponse(status_code=500, content={"success": False, "error": "An error occurred while joining the class"})
 
 @router.post("/classes/{class_id}/assignments")
-async def create_assignment(class_id: int, assignment: AssignmentCreate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user_required)):
+async def create_assignment(class_id: int, assignment: AssignmentCreate, db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user_required)):
     try:
         # Check if class exists
-        classroom = db.query(Classroom).filter(Classroom.id == class_id).first()
+        result = await db.execute(select(Classroom).where(
+            Classroom.id == class_id
+        ))
+        classroom = result.scalars().first()
+        
         if not classroom:
             raise HTTPException(status_code=404, detail="Class not found")
             
         # Check if user is the class owner (professor)
         is_owner = classroom.owner_id == current_user.id
         
-        enrollment = db.query(Enrollment).filter(
+        result = await db.execute(select(Enrollment).where(
             Enrollment.classroom_id == class_id,
             Enrollment.student_id == current_user.id,
             Enrollment.status == "accepted"
-        ).first()
+        ))
+        enrollment = result.scalars().first()
         
         # Allow if user is class owner, professor, or TA
         if not (is_owner or current_user.is_professor or (enrollment and enrollment.role == "ta")):
@@ -198,8 +231,8 @@ async def create_assignment(class_id: int, assignment: AssignmentCreate, db: Ses
             created_at=datetime.now(timezone.utc)
         )
         db.add(new_assignment)
-        db.commit()
-        db.refresh(new_assignment)
+        await db.commit()
+        await db.refresh(new_assignment)
         return JSONResponse({"success": True, "assignment": {
             "id": new_assignment.id,
             "title": new_assignment.title,
@@ -214,36 +247,45 @@ async def create_assignment(class_id: int, assignment: AssignmentCreate, db: Ses
 @router.get("/assignments/{assignment_id}/submissions")
 async def get_assignment_submissions(
     assignment_id: int, 
-    db: Session = Depends(get_db), 
+    db: AsyncSession = Depends(get_db), 
     current_user: User = Depends(get_current_user_required)
 ):
     """Get all submissions for an assignment (professor/TA only)"""
     try:
         # Fetch the assignment
-        assignment = db.query(Assignment).filter(Assignment.id == assignment_id).first()
+        result = await db.execute(select(Assignment).where(
+            Assignment.id == assignment_id
+        ))
+        assignment = result.scalars().first()
         if not assignment:
             raise HTTPException(status_code=404, detail="Assignment not found")
 
         # Check if user is professor or TA
-        enrollment = db.query(Enrollment).filter(
+        result = await db.execute(select(Enrollment).where(
             Enrollment.classroom_id == assignment.classroom_id,
             Enrollment.student_id == current_user.id,
             Enrollment.status == "accepted"
-        ).first()
+        ))
+        enrollment = result.scalars().first()
         
         is_owner = assignment.classroom.owner_id == current_user.id
         if not is_owner and (not enrollment or enrollment.role != "ta"):
             raise HTTPException(status_code=403, detail="Only professors and TAs can view all submissions")
 
         # Get all submissions
-        submissions = db.query(Submission).filter(
+        result = await db.execute(select(Submission).where(
             Submission.assignment_id == assignment_id
-        ).order_by(Submission.submitted_at.desc()).all()
+        ).order_by(Submission.submitted_at.desc()))
+        submissions = result.scalars().all()
 
         # Format submissions with student names
         formatted_submissions = []
         for submission in submissions:
-            student = db.query(User).filter(User.id == submission.student_id).first()
+            result = await db.execute(select(User).where(
+                User.id == submission.student_id
+            ))
+            student = result.scalars().first()
+            
             student_name = student.full_name if student else "Unknown"
             
             # Check if there are any files in the student's upload directory
@@ -276,32 +318,37 @@ async def get_assignment_submissions(
 @router.get("/assignments/{assignment_id}/my-submission")
 async def get_my_submission(
     assignment_id: int, 
-    db: Session = Depends(get_db), 
+    db: AsyncSession = Depends(get_db), 
     current_user: User = Depends(get_current_user_required)
 ):
     """Get current user's submission for an assignment"""
     try:
         # Fetch the assignment
-        assignment = db.query(Assignment).filter(Assignment.id == assignment_id).first()
+        result = await db.execute(select(Assignment).where(
+            Assignment.id == assignment_id
+        ))
+        assignment = result.scalars().first()
         if not assignment:
             raise HTTPException(status_code=404, detail="Assignment not found")
 
         # Check if user is enrolled
-        enrollment = db.query(Enrollment).filter(
+        result = await db.execute(select(Enrollment).where(
             Enrollment.classroom_id == assignment.classroom_id,
             Enrollment.student_id == current_user.id,
             Enrollment.status == "accepted",
             Enrollment.role == "student"
-        ).first()
+        ))
+        enrollment = result.scalars().first()
         
         if not enrollment:
             raise HTTPException(status_code=403, detail="Only enrolled students can view their submissions")
 
         # Get user's submission
-        submission = db.query(Submission).filter(
+        result = await db.execute(select(Submission).where(
             Submission.assignment_id == assignment_id,
             Submission.student_id == current_user.id
-        ).order_by(Submission.submitted_at.desc()).first()
+        ).order_by(Submission.submitted_at.desc()))
+        submission = result.scalars().first()
 
         if not submission:
             # Return empty submission object instead of error
@@ -337,43 +384,54 @@ async def get_my_submission(
 @router.get("/assignments/{assignment_id}")
 async def get_assignment(
     assignment_id: int, 
-    db: Session = Depends(get_db), 
+    db: AsyncSession = Depends(get_db), 
     current_user: User = Depends(get_current_user_required)
 ):
     """Get assignment details by ID with classroom and user information"""
     try:
         # Fetch the assignment
-        assignment = db.query(Assignment).filter(Assignment.id == assignment_id).first()
+        result = await db.execute(select(Assignment).where(
+            Assignment.id == assignment_id
+        ))
+        assignment = result.scalars().first()
         if not assignment:
             raise HTTPException(status_code=404, detail="Assignment not found")
 
         # Get classroom details
-        classroom = db.query(Classroom).filter(Classroom.id == assignment.classroom_id).first()
+        result = await db.execute(select(Classroom).where(
+            Classroom.id == assignment.classroom_id
+        ))
+        classroom = result.scalars().first()
         if not classroom:
             raise HTTPException(status_code=404, detail="Classroom not found")
 
         # Check if user has access (enrolled or owner)
-        enrollment = db.query(Enrollment).filter(
+        result = await db.execute(select(Enrollment).where(
             Enrollment.classroom_id == assignment.classroom_id,
             Enrollment.student_id == current_user.id,
             Enrollment.status == "accepted"
-        ).first()
+        ))
+        enrollment = result.scalars().first()
         
         is_owner = classroom.owner_id == current_user.id
         if not enrollment and not is_owner:
             raise HTTPException(status_code=403, detail="Access denied")
 
         # Get author information
-        author = db.query(User).filter(User.id == assignment.author_id).first()
+        result = await db.execute(select(User).where(
+            User.id == assignment.author_id
+        ))
+        author = result.scalars().first()
         author_name = author.full_name if author else "Unknown"
 
         # Get user's submission for students
         user_submission = None
         if enrollment and enrollment.role == "student":
-            user_submission = db.query(Submission).filter(
+            result = await db.execute(select(Submission).where(
                 Submission.assignment_id == assignment_id,
                 Submission.student_id == current_user.id
-            ).order_by(Submission.submitted_at.desc()).first()
+            ).order_by(Submission.submitted_at.desc()))
+            user_submission = result.scalars().first()
 
         # Format user submission data if exists
         formatted_submission = None
@@ -437,22 +495,26 @@ async def get_assignment(
 @router.get("/assignments/{assignment_id}/comments")
 async def get_assignment_comments(
     assignment_id: int, 
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user_required)
 ):
     """Get comments/queries for an assignment"""
     try:
         # Fetch the assignment
-        assignment = db.query(Assignment).filter(Assignment.id == assignment_id).first()
+        result = await db.execute(select(Assignment).where(
+            Assignment.id == assignment_id
+        ))
+        assignment = result.scalars().first()
         if not assignment:
             raise HTTPException(status_code=404, detail="Assignment not found")
 
         # Check if user has access
-        enrollment = db.query(Enrollment).filter(
+        result = await db.execute(select(Enrollment).where(
             Enrollment.classroom_id == assignment.classroom_id,
             Enrollment.student_id == current_user.id,
             Enrollment.status == "accepted"
-        ).first()
+        ))
+        enrollment = result.scalars().first()
         
         is_owner = assignment.classroom.owner_id == current_user.id
         if not enrollment and not is_owner:
@@ -467,7 +529,8 @@ async def get_assignment_comments(
         # Format queries with author names
         formatted_comments = []
         for query in queries:
-            author = db.query(User).filter(User.id == query.student_id).first()
+            result = await db.execute(select(User).where(User.id == query.student_id))
+            author = result.scalars().first()
             author_name = author.full_name if author else "Unknown"
             
             formatted_comments.append({
@@ -487,22 +550,26 @@ async def get_assignment_comments(
 async def delete_assignment_comment(
     assignment_id: int,
     comment_id: int,
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user_required)
 ):
     """Delete a comment/query for an assignment"""
     try:
         # Fetch the assignment
-        assignment = db.query(Assignment).filter(Assignment.id == assignment_id).first()
+        result = await db.execute(select(Assignment).where(
+            Assignment.id == assignment_id
+        ))
+        assignment = result.scalars().first()
         if not assignment:
             raise HTTPException(status_code=404, detail="Assignment not found")
 
         # Find the comment
-        comment = db.query(Query).filter(
+        result = await db.execute(select(Query).where(
             Query.id == comment_id,
             Query.related_assignment_id == assignment_id
-        ).first()
-        
+        ))
+        comment = result.scalars().first()
+
         if not comment:
             raise HTTPException(status_code=404, detail="Comment not found")
         
@@ -510,11 +577,12 @@ async def delete_assignment_comment(
         is_author = comment.student_id == current_user.id
         is_owner = assignment.classroom.owner_id == current_user.id
         
-        enrollment = db.query(Enrollment).filter(
+        result = await db.execute(select(Enrollment).where(
             Enrollment.classroom_id == assignment.classroom_id,
             Enrollment.student_id == current_user.id,
             Enrollment.status == "accepted"
-        ).first()
+        ))
+        enrollment = result.scalars().first()
         
         is_ta = enrollment and enrollment.role == "ta"
         
@@ -523,7 +591,7 @@ async def delete_assignment_comment(
         
         # Delete the comment
         db.delete(comment)
-        db.commit()
+        await db.commit()
         
         return {"success": True, "message": "Comment deleted successfully"}
     except HTTPException as e:
@@ -536,23 +604,27 @@ async def delete_assignment_comment(
 async def submit_assignment_file(
     assignment_id: int,
     file: UploadFile = File(...),
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user_required)
 ):
     """Submit an assignment with a file attachment"""
     try:
         # Check if assignment exists
-        assignment = db.query(Assignment).filter(Assignment.id == assignment_id).first()
+        result = await db.execute(select(Assignment).where(
+            Assignment.id == assignment_id
+        ))
+        assignment = result.scalars().first()
         if not assignment:
             raise HTTPException(status_code=404, detail="Assignment not found")
 
         # Check if user is enrolled as student
-        enrollment = db.query(Enrollment).filter(
+        result = await db.execute(select(Enrollment).where(
             Enrollment.classroom_id == assignment.classroom_id,
             Enrollment.student_id == current_user.id,
             Enrollment.status == "accepted",
             Enrollment.role == "student"
-        ).first()
+        ))
+        enrollment = result.scalars().first()
         
         if not enrollment:
             raise HTTPException(status_code=403, detail="Only enrolled students can submit assignments")
@@ -568,18 +640,19 @@ async def submit_assignment_file(
             f.write(content)
         
         # Create or update submission
-        existing_submission = db.query(Submission).filter(
+        result = await db.execute(select(Submission).where(
             Submission.assignment_id == assignment_id,
             Submission.student_id == current_user.id
-        ).first()
+        ))
+        existing_submission = result.scalars().first()
         
         if existing_submission:
             # Update existing submission
             # Do not overwrite file_path, as it could contain a previous file
             # We'll retrieve all files from the directory when needed
             existing_submission.submitted_at = datetime.now(timezone.utc)
-            db.commit()
-            db.refresh(existing_submission)
+            await db.commit()
+            await db.refresh(existing_submission)
             submission = existing_submission
         else:
             # Create new submission
@@ -589,8 +662,8 @@ async def submit_assignment_file(
                 submitted_at=datetime.now(timezone.utc)
             )
             db.add(new_submission)
-            db.commit()
-            db.refresh(new_submission)
+            await db.commit()
+            await db.refresh(new_submission)
             submission = new_submission
         
         # Get all files in directory
@@ -616,31 +689,36 @@ async def submit_assignment_file(
 @router.post("/assignments/{assignment_id}/unsubmit")
 async def unsubmit_assignment(
     assignment_id: int,
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user_required)
 ):
     try:
         # Find the assignment
-        assignment = db.query(Assignment).filter(Assignment.id == assignment_id).first()
+        result = await db.execute(select(Assignment).where(
+            Assignment.id == assignment_id
+        ))
+        assignment = result.scalars().first()
         if not assignment:
             raise HTTPException(status_code=404, detail="Assignment not found")
         
         # Check if user is enrolled as a student
-        enrollment = db.query(Enrollment).filter(
+        result = await db.execute(select(Enrollment).where(
             Enrollment.classroom_id == assignment.classroom_id,
             Enrollment.student_id == current_user.id,
             Enrollment.status == "accepted",
             Enrollment.role == "student"
-        ).first()
+        ))
+        enrollment = result.scalars().first()
         
         if not enrollment:
             raise HTTPException(status_code=403, detail="Only enrolled students can unsubmit assignments")
         
         # Find the student's submission
-        submission = db.query(Submission).filter(
+        result = await db.execute(select(Submission).where(
             Submission.assignment_id == assignment_id,
             Submission.student_id == current_user.id
-        ).first()
+        ))
+        submission = result.scalars().first()
         
         if not submission:
             raise HTTPException(status_code=404, detail="No submission found to unsubmit")
@@ -654,7 +732,7 @@ async def unsubmit_assignment(
         submission.submitted_at = None
         
         # Save the changes
-        db.commit()
+        await db.commit()
         
         # Get all files in directory for the response
         file_paths = []
@@ -677,17 +755,19 @@ async def unsubmit_assignment(
 async def grade_submission(
     submission_id: int,
     grade_data: GradeSubmission,
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user_required)
 ):
     """Grade a submission"""
     try:
-        submission = db.query(Submission).filter(Submission.id == submission_id).first()
+        result = await db.execute(select(Submission).where(Submission.id == submission_id))
+        submission = result.scalars().first()
         if not submission:
             raise HTTPException(status_code=404, detail="Submission not found")
 
         # Get the assignment
-        assignment = db.query(Assignment).filter(Assignment.id == submission.assignment_id).first()
+        result = await db.execute(select(Assignment).where(Assignment.id == submission.assignment_id))
+        assignment = result.scalars().first()
         if not assignment:
             raise HTTPException(status_code=404, detail="Assignment not found")
             
@@ -695,12 +775,13 @@ async def grade_submission(
         is_owner = assignment.classroom.owner_id == current_user.id
         
         if not is_owner and not current_user.is_professor:
-            enrollment = db.query(Enrollment).filter(
+            result = await db.execute(select(Enrollment).where(
                 Enrollment.classroom_id == assignment.classroom_id,
                 Enrollment.student_id == current_user.id,
                 Enrollment.status == "accepted",
                 Enrollment.role == "ta"
-            ).first()
+            ))
+            enrollment = result.scalars().first()
             
             if not enrollment:
                 raise HTTPException(status_code=403, detail="Only professors and TAs can grade submissions")
@@ -716,8 +797,8 @@ async def grade_submission(
         submission.graded_at = datetime.now(timezone.utc)
         
         # Save to database
-        db.commit()
-        db.refresh(submission)
+        await db.commit()
+        await db.refresh(submission)
         
         return {
             "success": True,
@@ -736,9 +817,10 @@ async def grade_submission(
         raise HTTPException(status_code=500, detail="An error occurred while grading the submission")
 
 @router.post("/classes/{class_id}/announcements")
-async def create_announcement(class_id: int, announcement: AnnouncementCreate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user_required)):
+async def create_announcement(class_id: int, announcement: AnnouncementCreate, db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user_required)):
     try:
-        classroom = db.query(Classroom).filter(Classroom.id == class_id).first()
+        result = await db.execute(select(Classroom).where(Classroom.id == class_id))
+        classroom = result.scalars().first()
         if not classroom:
             raise HTTPException(status_code=404, detail="Classroom not found")
         
@@ -747,11 +829,12 @@ async def create_announcement(class_id: int, announcement: AnnouncementCreate, d
         
         if not is_owner:
             # Check if user is enrolled
-            enrollment = db.query(Enrollment).filter(
+            result = await db.execute(select(Enrollment).where(
                 Enrollment.classroom_id == class_id,
                 Enrollment.student_id == current_user.id,
                 Enrollment.status == "accepted"
-            ).first()
+            ))
+            enrollment = result.scalars().first()
             
             if not enrollment:
                 raise HTTPException(status_code=403, detail="You are not enrolled in this class")
@@ -766,8 +849,8 @@ async def create_announcement(class_id: int, announcement: AnnouncementCreate, d
             created_at=datetime.now(timezone.utc)
         )
         db.add(new_announcement)
-        db.commit()
-        db.refresh(new_announcement)
+        await db.commit()
+        await db.refresh(new_announcement)
         return JSONResponse({"success": True, "announcement": {
             "id": new_announcement.id,
             "title": new_announcement.title,
@@ -782,21 +865,22 @@ async def update_announcement(
     class_id: int, 
     announcement_id: int, 
     announcement: AnnouncementCreate, 
-    db: Session = Depends(get_db), 
+    db: AsyncSession = Depends(get_db), 
     current_user: User = Depends(get_current_user_required)
 ):
     try:
         # Check if class exists
-        classroom = db.query(Classroom).filter(Classroom.id == class_id).first()
+        result = await db.execute(select(Classroom).where(Classroom.id == class_id))
+        classroom = result.scalars().first()
         if not classroom:
             raise HTTPException(status_code=404, detail="Class not found")
         
         # Check if announcement exists
-        existing_announcement = db.query(Announcement).filter(
+        result = await db.execute(select(Announcement).where(
             Announcement.id == announcement_id,
             Announcement.classroom_id == class_id
-        ).first()
-        
+        ))
+        existing_announcement = result.scalars().first()
         if not existing_announcement:
             raise HTTPException(status_code=404, detail="Announcement not found")
         
@@ -805,12 +889,13 @@ async def update_announcement(
         is_author = existing_announcement.author_id == current_user.id
         
         if not (is_owner or is_author):
-            enrollment = db.query(Enrollment).filter(
+            result = await db.execute(select(Enrollment).where(
                 Enrollment.classroom_id == class_id,
                 Enrollment.student_id == current_user.id,
                 Enrollment.status == "accepted",
                 Enrollment.role == "ta"
-            ).first()
+            ))
+            enrollment = result.scalars().first()
             
             if not enrollment:
                 raise HTTPException(status_code=403, detail="You do not have permission to edit this announcement")
@@ -819,8 +904,8 @@ async def update_announcement(
         existing_announcement.title = announcement.title
         existing_announcement.content = announcement.content
         
-        db.commit()
-        db.refresh(existing_announcement)
+        await db.commit()
+        await db.refresh(existing_announcement)
         
         return JSONResponse({
             "success": True, 
@@ -835,38 +920,46 @@ async def update_announcement(
         raise HTTPException(status_code=500, detail="An error occurred while updating the announcement")
 
 @router.get("/classes/{class_id}")
-async def view_class(class_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user_required)):
+async def view_class(class_id: int, db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user_required)):
     try:
-        classroom = db.query(Classroom).filter(Classroom.id == class_id).first()
+        result = await db.execute(select(Classroom).where(Classroom.id == class_id))
+        classroom = result.scalars().first()
         if not classroom:
             raise HTTPException(status_code=404, detail="Class not found")
         
-        enrollment = db.query(Enrollment).filter(
+        result = await db.execute(select(Enrollment).where(
             Enrollment.classroom_id == class_id,
             Enrollment.student_id == current_user.id,
             Enrollment.status == "accepted"
-        ).first()
+        ))
+        enrollment = result.scalars().first()
         is_owner = classroom.owner_id == current_user.id
         if not enrollment and not is_owner:
             raise HTTPException(status_code=403, detail="Access denied")
         
-        announcements = db.query(Announcement).filter(Announcement.classroom_id == class_id).order_by(Announcement.created_at.desc()).all()
-        assignments = db.query(Assignment).filter(Assignment.classroom_id == class_id).order_by(Assignment.created_at.desc()).all()
-        ta_enrollments = db.query(Enrollment).filter(
+        result = await db.execute(select(Announcement).where(Announcement.classroom_id == class_id).order_by(Announcement.created_at.desc()))
+        announcements = result.scalars().all()
+        result = await db.execute(select(Assignment).where(Assignment.classroom_id == class_id).order_by(Assignment.created_at.desc()))
+        assignments = result.scalars().all()
+        result = await db.execute(select(Enrollment).where(
             Enrollment.classroom_id == class_id,
             Enrollment.status == "accepted",
             Enrollment.role == "ta"
-        ).all()
-        student_enrollments = db.query(Enrollment).filter(
+        ))
+        ta_enrollments = result.scalars().all()
+        result = await db.execute(select(Enrollment).where(
             Enrollment.classroom_id == class_id,
             Enrollment.status == "accepted",
             Enrollment.role == "student"
-        ).all()
-        exams = db.query(Exam).filter(Exam.classroom_id == class_id).order_by(Exam.created_at.desc()).all()
+        ))
+        student_enrollments = result.scalars().all()
+        result = await db.execute(select(Exam).where(Exam.classroom_id == class_id).order_by(Exam.created_at.desc()))
+        exams = result.scalars().all()
         
-        def announcement_to_dict(ann):
+        async def announcement_to_dict(ann):
             # Get author information
-            author = db.query(User).filter(User.id == ann.author_id).first()
+            result = await db.execute(select(User).where(User.id == ann.author_id))
+            author = result.scalars().first()
             author_name = author.full_name if author else "Unknown"
             
             # Check if current user can edit this announcement
@@ -877,43 +970,45 @@ async def view_class(class_id: int, db: Session = Depends(get_db), current_user:
             
             # Get related exam ID
             related_exam_id = None
-            related_query = db.query(Query).filter(
+            result = await db.execute(select(Query).where(
                 Query.related_announcement_id == ann.id,
                 Query.related_exam_id != None
-            ).first()
+            ))
+            related_query = result.scalars().first()
             
             if related_query:
                 related_exam_id = related_query.related_exam_id
             # If no direct link is found, use the time-based heuristic as fallback
             elif "Exam" in ann.title:
                 # Find the most recent exam
-                latest_exam = db.query(Exam).filter(
+                result = await db.execute(select(Exam).where(
                     Exam.classroom_id == class_id,
                     Exam.created_at <= ann.created_at + timedelta(minutes=1),
                     Exam.created_at >= ann.created_at - timedelta(minutes=1)
-                ).order_by(Exam.created_at.desc()).first()
-                
+                ).order_by(Exam.created_at.desc()))
+                latest_exam = result.scalars().first()                
                 if latest_exam:
                     related_exam_id = latest_exam.id
             
             # Get related assignment ID
             related_assignment_id = None
-            related_query = db.query(Query).filter(
+            result = await db.execute(select(Query).where(
                 Query.related_announcement_id == ann.id,
                 Query.related_assignment_id != None
-            ).first()
+            ))
+            related_query = result.scalars().first()
             
             if related_query:
                 related_assignment_id = related_query.related_assignment_id
             # If no direct link is found, use the time-based heuristic as fallback
             elif "Assignment" in ann.title:
                 # Find the most recent assignment
-                latest_assignment = db.query(Assignment).filter(
+                result = await db.execute(select(Assignment).where(
                     Assignment.classroom_id == class_id,
                     Assignment.created_at <= ann.created_at + timedelta(minutes=1),
                     Assignment.created_at >= ann.created_at - timedelta(minutes=1)
-                ).order_by(Assignment.created_at.desc()).first()
-                
+                ).order_by(Assignment.created_at.desc()))
+                latest_assignment = result.scalars().first()
                 if latest_assignment:
                     related_assignment_id = latest_assignment.id
             
@@ -934,6 +1029,9 @@ async def view_class(class_id: int, db: Session = Depends(get_db), current_user:
         def exam_to_dict(exam):
             return {"id": exam.id, "title": exam.title, "exam_date": exam.exam_date.isoformat() if exam.exam_date else None, "points_possible": exam.points_possible}
         
+        announcements_dicts = [await announcement_to_dict(ann) for ann in announcements]
+        assignment_dicts = [assignment_to_dict(asmt) for asmt in assignments]
+        exams_dicts = [exam_to_dict(exam) for exam in exams]
         return JSONResponse({
             "user": {
                 "full_name": current_user.full_name,
@@ -944,9 +1042,9 @@ async def view_class(class_id: int, db: Session = Depends(get_db), current_user:
             "subject": classroom.subject,
             "description": classroom.description,
             "class_code": classroom.class_code,
-            "announcements": [announcement_to_dict(ann) for ann in announcements],
-            "assignments": [assignment_to_dict(asmt) for asmt in assignments],
-            "exams": [exam_to_dict(exam) for exam in exams],
+            "announcements": announcements_dicts,
+            "assignments": assignment_dicts,
+            "exams": exams_dicts,
             "ta_enrollments": [e.id for e in ta_enrollments],
             "student_enrollments": [e.id for e in student_enrollments]
         })
@@ -957,28 +1055,31 @@ async def view_class(class_id: int, db: Session = Depends(get_db), current_user:
 @router.get("/classes/{class_id}/members")
 async def get_class_members(
     class_id: int,
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user_required)
 ):
     """Get all members (teachers and students) of a class"""
     try:
         # Check if class exists
-        classroom = db.query(Classroom).filter(Classroom.id == class_id).first()
+        result = await db.execute(select(Classroom).where(Classroom.id == class_id))
+        classroom = result.scalars().first()
         if not classroom:
             raise HTTPException(status_code=404, detail="Class not found")
 
         # Check if user is enrolled or is the owner
         if classroom.owner_id != current_user.id:
-            enrollment = db.query(Enrollment).filter(
+            result = await db.execute(select(Enrollment).where(
                 Enrollment.classroom_id == class_id,
                 Enrollment.student_id == current_user.id,
                 Enrollment.status == "accepted"
-            ).first()
+            ))
+            enrollment = result.scalars().first()
             if not enrollment:
                 raise HTTPException(status_code=403, detail="You are not enrolled in this class")
 
         # Get the class owner/teacher
-        teacher = db.query(User).filter(User.id == classroom.owner_id).first()
+        result = await db.execute(select(User).where(User.id == classroom.owner_id))
+        teacher = result.scalars().first()
         teachers = []
         if teacher:
             teachers.append({
@@ -989,14 +1090,16 @@ async def get_class_members(
             })
 
         # Get TAs (teaching assistants)
-        ta_enrollments = db.query(Enrollment).filter(
+        result = await db.execute(select(Enrollment).where(
             Enrollment.classroom_id == class_id,
             Enrollment.status == "accepted",
             Enrollment.role == "ta"
-        ).all()
+        ))
+        ta_enrollments = result.scalars().all()
         
         for enrollment in ta_enrollments:
-            ta = db.query(User).filter(User.id == enrollment.student_id).first()
+            result = await db.execute(select(User).where(User.id == enrollment.student_id))
+            ta = result.scalars().first()
             if ta:
                 teachers.append({
                     "id": ta.id,
@@ -1006,15 +1109,17 @@ async def get_class_members(
                 })
 
         # Get students
-        student_enrollments = db.query(Enrollment).filter(
+        result = await db.execute(select(Enrollment).where(
             Enrollment.classroom_id == class_id,
             Enrollment.status == "accepted",
             Enrollment.role == "student"
-        ).all()
+        ))
+        student_enrollments = result.scalars().all()
         
         students = []
         for enrollment in student_enrollments:
-            student = db.query(User).filter(User.id == enrollment.student_id).first()
+            result = await db.execute(select(User).where(User.id == enrollment.student_id))
+            student = result.scalars().first()
             if student:
                 students.append({
                     "id": student.id,
@@ -1037,58 +1142,65 @@ async def get_class_members(
 async def get_announcement_queries(
     class_id: int,
     announcement_id: int,
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user_required)
 ):
     """Get queries (comments) for a specific announcement"""
     try:
         # Check if class exists
-        classroom = db.query(Classroom).filter(Classroom.id == class_id).first()
+        result = await db.execute(select(Classroom).where(Classroom.id == class_id))
+        classroom = result.scalars().first()
         if not classroom:
             raise HTTPException(status_code=404, detail="Class not found")
         
         # Check if announcement exists
-        announcement = db.query(Announcement).filter(
+        result = await db.execute(select(Announcement).where(
             Announcement.id == announcement_id,
             Announcement.classroom_id == class_id
-        ).first()
+        ))
+        announcement = result.scalars().first()
         if not announcement:
             raise HTTPException(status_code=404, detail="Announcement not found")
         
         # Check if user is enrolled or is the owner
         if classroom.owner_id != current_user.id:
-            enrollment = db.query(Enrollment).filter(
+            result = await db.execute(select(Enrollment).where(
                 Enrollment.classroom_id == class_id,
                 Enrollment.student_id == current_user.id,
                 Enrollment.status == "accepted"
-            ).first()
+            ))
+            enrollment = result.scalars().first()
             if not enrollment:
                 raise HTTPException(status_code=403, detail="You are not enrolled in this class")
         
         # Get queries for this announcement
         from backend.models.tables import Query
-        queries = db.query(Query).filter(
+        result = await db.execute(select(Query).where(
             Query.classroom_id == class_id,
             Query.related_announcement_id == announcement_id,
-            Query.parent_query_id == None  # Only top-level queries, not replies
-        ).order_by(Query.created_at.asc()).all()
+            Query.parent_query_id == None
+        ).order_by(Query.created_at.asc()))
+        queries = result.scalars().all()
         
         # Format queries
         queries_list = []
         for query in queries:
             # Get author information
-            author = db.query(User).filter(User.id == query.student_id).first()
+            result = await db.execute(select(User).where(User.id == query.student_id))
+            author = result.scalars().first()
             author_name = author.full_name if author else "Unknown"
             
             # Get replies to this query
-            replies = db.query(Query).filter(
+            result = await db.execute(select(Query).where(
                 Query.parent_query_id == query.id
-            ).order_by(Query.created_at.asc()).all()
+            ).order_by(Query.created_at.asc()))
+            replies = result.scalars().all()
             
             # Format replies
             replies_list = []
             for reply in replies:
-                reply_author = db.query(User).filter(User.id == reply.student_id).first()
+                result = await db.execute(select(User).where(User.id == reply.student_id))
+                reply_author = result.scalars().first()
                 reply_author_name = reply_author.full_name if reply_author else "Unknown"
                 
                 replies_list.append({
@@ -1123,48 +1235,53 @@ async def get_announcement_queries(
 async def create_query(
     class_id: int,
     query: QueryCreate,
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user_required)
 ):
     """Create a new query (comment) for a class"""
     try:
         # Check if class exists
-        classroom = db.query(Classroom).filter(Classroom.id == class_id).first()
+        result = await db.execute(select(Classroom).where(Classroom.id == class_id))
+        classroom = result.scalars().first()
         if not classroom:
             raise HTTPException(status_code=404, detail="Class not found")
         
         # Check if user is enrolled or is the owner
         if classroom.owner_id != current_user.id:
-            enrollment = db.query(Enrollment).filter(
+            result = await db.execute(select(Enrollment).where(
                 Enrollment.classroom_id == class_id,
                 Enrollment.student_id == current_user.id,
                 Enrollment.status == "accepted"
-            ).first()
+            ))
+            enrollment = result.scalars().first()
             if not enrollment:
                 raise HTTPException(status_code=403, detail="You are not enrolled in this class")
         
         # Validate related items if any
         if query.related_announcement_id:
-            announcement = db.query(Announcement).filter(
+            result = await db.execute(select(Announcement).where(
                 Announcement.id == query.related_announcement_id,
                 Announcement.classroom_id == class_id
-            ).first()
+            ))
+            announcement = result.scalars().first()
             if not announcement:
                 raise HTTPException(status_code=404, detail="Related announcement not found")
         
         if query.related_assignment_id:
-            assignment = db.query(Assignment).filter(
+            result = await db.execute(select(Assignment).where(
                 Assignment.id == query.related_assignment_id,
                 Assignment.classroom_id == class_id
-            ).first()
+            ))
+            assignment = result.scalars().first()
             if not assignment:
                 raise HTTPException(status_code=404, detail="Related assignment not found")
         
         if query.related_exam_id:
-            exam = db.query(Exam).filter(
+            result = await db.execute(select(Exam).where(
                 Exam.id == query.related_exam_id,
                 Exam.classroom_id == class_id
-            ).first()
+            ))
+            exam = result.scalars().first()
             if not exam:
                 raise HTTPException(status_code=404, detail="Related exam not found")
         
@@ -1191,11 +1308,12 @@ async def create_query(
             created_at=datetime.now(timezone.utc)
         )
         db.add(new_query)
-        db.commit()
-        db.refresh(new_query)
+        await db.commit()
+        await db.refresh(new_query)
         
         # Get author name
-        author = db.query(User).filter(User.id == current_user.id).first()
+        result = await db.execute(select(User).where(User.id == current_user.id))
+        author = result.scalars().first()
         author_name = author.full_name if author else "Unknown"
         
         return JSONResponse({
@@ -1218,13 +1336,14 @@ async def create_query(
 @router.get("/classes/{class_id}/classwork")
 async def get_class_classwork(
     class_id: int,
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user_required)
 ):
     """Get all classwork (assignments and exams) for a class"""
     try:
         # Check if the class exists
-        classroom = db.query(Classroom).filter(Classroom.id == class_id).first()
+        result = await db.execute(select(Classroom).where(Classroom.id == class_id))
+        classroom = result.scalars().first()
         if not classroom:
             raise HTTPException(status_code=404, detail="Class not found")
         
@@ -1233,11 +1352,12 @@ async def get_class_classwork(
         enrollment = None
         
         if not is_owner:
-            enrollment = db.query(Enrollment).filter(
+            result = await db.execute(select(Enrollment).where(
                 Enrollment.classroom_id == class_id,
                 Enrollment.student_id == current_user.id,
                 Enrollment.status == "accepted"
-            ).first()
+            ))
+            enrollment = result.scalars().first()
             
             if not enrollment:
                 raise HTTPException(status_code=403, detail="Access denied")
@@ -1250,36 +1370,42 @@ async def get_class_classwork(
             user_role = "owner"
         
         # Retrieve all assignments for the class
-        assignments = db.query(Assignment).filter(Assignment.classroom_id == class_id).all()
+        result = await db.execute(select(Assignment).where(Assignment.classroom_id == class_id))
+        assignments = result.scalars().all()
         
         # Retrieve all exams for the class
-        exams = db.query(Exam).filter(Exam.classroom_id == class_id).all()
+        result = await db.execute(select(Exam).where(Exam.classroom_id == class_id))
+        exams = result.scalars().all()
         
         # Format assignments
         formatted_assignments = []
         for assignment in assignments:
             # Get creator info
-            creator = db.query(User).filter(User.id == assignment.author_id).first()
+            result = await db.execute(select(User).where(User.id == assignment.author_id))
+            creator = result.scalars().first()
             creator_name = creator.full_name if creator else "Unknown"
             
             # Get submission count
-            submission_count = db.query(Submission).filter(Submission.assignment_id == assignment.id).count()
+            from sqlalchemy import func
+            result = await db.execute(select(func.count()).select_from(Submission).where(Submission.assignment_id == assignment.id))
+            submission_count = result.scalar()
             
             # Get student count
-            student_count = db.query(Enrollment).filter(
+            result = await db.execute(select(func.count()).select_from(Enrollment).where(
                 Enrollment.classroom_id == class_id,
                 Enrollment.role == "student",
                 Enrollment.status == "accepted"
-            ).count()
+            ))
+            student_count = result.scalar()
             
             # Get user's submission if student
             user_submission = None
             if user_role == "student":
-                user_submission_obj = db.query(Submission).filter(
+                result = await db.execute(select(Submission).where(
                     Submission.assignment_id == assignment.id,
                     Submission.student_id == current_user.id
-                ).first()
-                
+                ))
+                user_submission_obj = result.scalars().first()
                 if user_submission_obj:
                     user_submission = {
                         "id": user_submission_obj.id,
@@ -1311,16 +1437,18 @@ async def get_class_classwork(
         formatted_exams = []
         for exam in exams:
             # Get creator info
-            creator = db.query(User).filter(User.id == exam.author_id).first()
+            result = await db.execute(select(User).where(User.id == exam.author_id))
+            creator = result.scalars().first()
             creator_name = creator.full_name if creator else "Unknown"
             
             # Get user's result if student
             user_result = None
             if user_role == "student":
-                user_result_obj = db.query(ExamResult).filter(
+                result = await db.execute(select(ExamResult).where(
                     ExamResult.exam_id == exam.id,
                     ExamResult.student_id == current_user.id
-                ).first()
+                ))
+                user_result_obj = result.scalars().first()
                 
                 if user_result_obj:
                     user_result = {
@@ -1378,13 +1506,16 @@ async def upload_assignment_materials(
     assignment_id: int = Form(...),
     material_type: str = Form(...),  # Possible values: questions, solution, marking
     files: List[UploadFile] = File(...),
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user_required)
 ):
     """Upload materials for an assignment (question paper, answer key, marking scheme)"""
     try:
         # Check if assignment exists
-        assignment = db.query(Assignment).filter(Assignment.id == assignment_id).first()
+        result = await db.execute(select(Assignment).where(
+            Assignment.id == assignment_id
+        ))
+        assignment = result.scalars().first()
         if not assignment:
             raise HTTPException(status_code=404, detail="Assignment not found")
 
@@ -1392,12 +1523,13 @@ async def upload_assignment_materials(
         is_owner = assignment.classroom.owner_id == current_user.id
         
         if not is_owner and not current_user.is_professor:
-            enrollment = db.query(Enrollment).filter(
+            result = await db.execute(select(Enrollment).where(
                 Enrollment.classroom_id == assignment.classroom_id,
                 Enrollment.student_id == current_user.id,
                 Enrollment.status == "accepted",
                 Enrollment.role == "ta"
-            ).first()
+            ))
+            enrollment = result.scalars().first()
             
             if not enrollment:
                 raise HTTPException(status_code=403, detail="Only professors and TAs can upload materials")

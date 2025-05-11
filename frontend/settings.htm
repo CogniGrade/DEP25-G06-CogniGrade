@@ -493,7 +493,7 @@
   <script>
     // Function to load user profile data and display profile picture or avatar
     function loadProfileData() {
-      fetch("/get-info", { headers: { "Content-Type": "application/json" } })
+      fetch("api/get-info", { headers: { "Content-Type": "application/json" } })
         .then(response => response.json())
         .then(data => {
           // Create profile image element
@@ -528,7 +528,7 @@
 
     // Load notification settings
     function loadNotificationSettings() {
-      fetch("/notification-settings", { 
+      fetch("api/notification-settings", { 
         method: "GET",
         headers: { "Content-Type": "application/json" } 
       })
@@ -546,7 +546,7 @@
 
     // Load privacy settings
     function loadPrivacySettings() {
-      fetch("/privacy-settings", { 
+      fetch("api/privacy-settings", { 
         method: "GET",
         headers: { "Content-Type": "application/json" } 
       })
@@ -709,7 +709,7 @@
       saveButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
       saveButton.disabled = true;
 
-      fetch("/update-profile", {
+      fetch("api/update-profile", {
         method: "POST",
         body: formData
       })
@@ -781,7 +781,7 @@
       formData.append("new_password", newPassword);
       formData.append("confirm_password", confirmPassword);
 
-      fetch("/change-password", {
+      fetch("api/change-password", {
         method: "POST",
         body: formData
       })
@@ -823,7 +823,7 @@
       formData.append("display_theme", displayTheme);
       formData.append("language_preference", languagePreference);
 
-      fetch("/notification-settings", {
+      fetch("api/notification-settings", {
         method: "POST",
         body: formData
       })
@@ -861,7 +861,7 @@
       formData.append("profile_visibility", profileVisibility);
       formData.append("activity_visibility", activityVisibility);
 
-      fetch("/privacy-settings", {
+      fetch("api/privacy-settings", {
         method: "POST",
         body: formData
       })
@@ -907,7 +907,7 @@
       const formData = new FormData();
       formData.append("password", password);
 
-      fetch("/delete-account", {
+      fetch("api/delete-account", {
         method: "POST",
         body: formData
       })

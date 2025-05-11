@@ -1,0 +1,73 @@
+# version: '3.8'
+
+# services:
+#   postgres:
+#     image: postgres:15
+#     restart: always
+#     environment:
+#       POSTGRES_USER: myuser
+#       POSTGRES_PASSWORD: mypassword
+#       POSTGRES_DB: classroom
+#     ports:
+#       - "5432:5432"
+#     volumes:
+#       - postgres_data:/var/lib/postgresql/data
+
+# volumes:
+#   postgres_data:
+
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15
+    restart: always
+    env_file: ./.env
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  backend:
+    build:
+      context: ./backend
+    container_name: portal_backend
+    restart: always
+    env_file: ./.env
+    depends_on:
+      - postgres
+    volumes:
+      - ./uploads:/app/uploads
+      - ./profile_pictures:/app/profile_pictures
+      # - ./data:/app/data
+    networks:
+      - internal
+    # no ports exposed → only reachable via nginx
+
+  frontend:
+    build:
+      context: ./frontend
+    container_name: portal_frontend
+    restart: always
+    networks:
+      - internal
+    # no ports exposed → only reachable via nginx
+
+  nginx:
+    image: nginx:alpine
+    container_name: portal_nginx
+    restart: always
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    ports:
+      - "80:80"
+    depends_on:
+      - frontend
+      - backend
+    networks:
+      - internal
+
+volumes:
+  postgres_data:
+
+networks:
+  internal:
+    driver: bridge

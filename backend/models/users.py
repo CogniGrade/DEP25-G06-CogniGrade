@@ -1,20 +1,23 @@
 from sqlalchemy import Column, Integer, String, Boolean, DateTime, ForeignKey, Table, Text
 from sqlalchemy.orm import relationship
 from datetime import datetime, timezone
+from sqlalchemy.dialects.postgresql import TIMESTAMP
 from backend.database import Base
+
+
 
 class User(Base):
     __tablename__ = "users"
 
     id = Column(Integer, primary_key=True, index=True)
-    email = Column(String, unique=True, index=True)
-    hashed_password = Column(String, nullable=False)
-    full_name = Column(String, nullable=False)
-    profile_picture = Column(String, nullable=True)
+    email = Column(String(100), unique=True, index=True)
+    hashed_password = Column(Text, nullable=False)
+    full_name = Column(String(100), nullable=False)
+    profile_picture = Column(Text, nullable=True)
     bio = Column(Text, nullable=True)
     is_professor = Column(Boolean, default=False)
-    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
-    last_login = Column(DateTime, nullable=True)
+    created_at = Column(TIMESTAMP(timezone=True), default=lambda: datetime.now(timezone.utc))
+    last_login = Column(TIMESTAMP(timezone=True), nullable=True)
     
     # Relationships with passive_deletes where cascade deletion is applied
     owned_classes = relationship("Classroom", back_populates="owner", cascade="all, delete-orphan", passive_deletes=True)
@@ -30,8 +33,8 @@ class UserSettings(Base):
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), unique=True)
     email_notifications = Column(Boolean, default=True)
-    display_theme = Column(String, default="light")
-    language_preference = Column(String, default="en")
+    display_theme = Column(String(100), default="light")
+    language_preference = Column(String(100), default="en")
     
     user = relationship("User")
 
@@ -40,8 +43,8 @@ class LoginHistory(Base):
     
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"))
-    login_time = Column(DateTime, default=lambda: datetime.now(timezone.utc))
-    ip_address = Column(String, nullable=True)
-    user_agent = Column(String, nullable=True)
+    login_time = Column(TIMESTAMP(timezone=True), default=lambda: datetime.now(timezone.utc))
+    ip_address = Column(String(100), nullable=True)
+    user_agent = Column(Text, nullable=True)
     
     user = relationship("User")

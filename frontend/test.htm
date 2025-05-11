@@ -52,7 +52,7 @@
       const prompt = `This is the correct solution: {${markingScheme}} \n\n On the basis of this, grade this answer: {${question}} \n\n Return a grade between 0 and 100. Also give me the reason for the grades carefully. Output Format - \nGrade: X [New Line] \nReason:Some Text}`;
       console.log(prompt);
       try {
-        const response = await fetch("/grade-question", { 
+        const response = await fetch("api/grade-question", { 
           method: "POST",
           body: JSON.stringify({ prompt })
         });
