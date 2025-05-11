@@ -31,7 +31,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(title=settings.PROJECT_NAME, version=settings.PROJECT_VERSION, lifespan=lifespan)
 
 # Serve static files with HTML support (so index.html is served as the default)
-app.mount("/static", StaticFiles(directory="frontend", html=True), name="static")
+# app.mount("/static", StaticFiles(directory="frontend", html=True), name="static")         ### NOT IN DEPLOYMENT
 
 app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 
