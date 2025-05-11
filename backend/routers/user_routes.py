@@ -53,6 +53,8 @@ async def update_profile(
                 
             # Save with high quality
             img.save(file_location, "JPEG", quality=95)
+
+            print(f"Profile picture saved at {file_location}")
             current_user.profile_picture = file_location
             await db.commit()
         except Exception as e:

@@ -30,7 +30,7 @@ function loadUserInfo() {
                 console.log(data.user.profile_picture);
                 if (data.user && data.user.profile_picture) {
                     
-                    let imagePath = "../" + data.user.profile_picture.replace("./", "");
+                    let imagePath = "/api/" + data.user.profile_picture.replace("./", "");
                     console.log("FRONTEND_FILE_PATH: ", imagePath);
                     profileImg.src = imagePath;
                 } else {

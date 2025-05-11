@@ -261,7 +261,7 @@
       
       if (isPdf) {
         const iframe = document.createElement("iframe");
-        iframe.src = "../" + doc.file_path.replace("./", "");
+        iframe.src = "/api/" + doc.file_path.replace("./", "");
         iframe.style.width = "100%";
         iframe.style.height = "100%";
         iframe.style.border = "none";
@@ -269,7 +269,7 @@
         docContent.appendChild(iframe);
       } else {
         const img = document.createElement("img");
-        img.src = "../" + doc.file_path.replace("./", "");
+        img.src = "/api/" + doc.file_path.replace("./", "");
         img.alt = "Document Preview";
         docContent.appendChild(img);
       }

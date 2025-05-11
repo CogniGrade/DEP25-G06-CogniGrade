@@ -504,7 +504,7 @@
             profileImg.src = generateAvatar(initials);
             
           } else {
-            profileImg.src = "../" + data.user.profile_picture.replace("./", "");
+            profileImg.src = "/api/" + data.user.profile_picture.replace("./", "");
           }
 
           profileImg.alt = "Profile Picture";

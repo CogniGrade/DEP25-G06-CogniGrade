@@ -1024,7 +1024,7 @@
         }
         // Otherwise, assume it has a file_path property and convert it.
         if (fileObj.file_path) {
-          const src = "../" + fileObj.file_path.replace("./", "");
+          const src = "/api/" + fileObj.file_path.replace("./", "");
           try {
             const response = await fetch(src);
             if (!response.ok) {
@@ -1619,7 +1619,7 @@
             img.src = "pdf-icon.svg";
           } else {
             console.log("BACKEND LOAD ", firstFile.file_path);
-            img.src = "../" + firstFile.file_path.replace("./", "");
+            img.src = "/api/" + firstFile.file_path.replace("./", "");
           }
         }
         
@@ -1707,7 +1707,7 @@
           formData.append("files", file);
         } else if (file.file_path) {
           try {
-            src = "../" + file.file_path.replace("./", "");
+            src = "/api/" + file.file_path.replace("./", "");
             const response = await fetch(src);
             if (!response.ok) {
               throw new Error("Failed to fetch file from " + file.file_path);
@@ -1812,7 +1812,7 @@
         if (file instanceof File) {
           pdfUrl = URL.createObjectURL(file);
         } else if (file.file_path) {
-          pdfUrl = "../" + file.file_path.replace("./", "");
+          pdfUrl = "/api/" + file.file_path.replace("./", "");
         }
         pdfFrame.src = pdfUrl;
       } else {
@@ -1832,7 +1832,7 @@
         if (file instanceof File && file.type && file.type.startsWith("image/")) {
           imgSrc = URL.createObjectURL(file);
         } else if (file && file.file_path) {
-          imgSrc = "../" + file.file_path.replace("./", "");
+          imgSrc = "/api/" + file.file_path.replace("./", "");
         }
         imgElement.src = imgSrc;
       }
@@ -1936,7 +1936,7 @@
             formData.append("files", file);
           } else if (file.file_path) {
             try {
-              src = "../" + file.file_path.replace("./", "");
+              src = "/api/" + file.file_path.replace("./", "");
               const response = await fetch(src);
               if (!response.ok) {
                 throw new Error("Failed to fetch file from " + file.file_path);
@@ -2380,7 +2380,7 @@
           formData.append("files", file);
         } else if (file.file_path) {
           try {
-            const src = "../" + file.file_path.replace("./", "");
+            const src = "/api/" + file.file_path.replace("./", "");
             const response = await fetch(src);
             if (!response.ok) {
               throw new Error("Failed to fetch file from " + file.file_path);

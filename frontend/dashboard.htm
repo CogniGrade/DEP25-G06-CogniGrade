@@ -1082,7 +1082,7 @@
               console.log(shapeDivs);
 
               const randomColor = studentAccentColors[Math.floor(Math.random() * studentAccentColors.length)];
-              owner_photo_src = "../" + course.owner_photo.replace("./", "");
+              owner_photo_src = "/api/" + course.owner_photo.replace("./", "");
               const cardHTML = `
               <div class="card student-card" onclick="enterClass(${course.id})">
                 <div class="accent-line" style="background: ${randomColor};"></div>
@@ -1167,7 +1167,7 @@
               }
 
               const randomColor = studentAccentColors[Math.floor(Math.random() * studentAccentColors.length)];
-              owner_photo_src = "../" + course.owner_photo.replace("./", "");
+              owner_photo_src = "/api/" + course.owner_photo.replace("./", "");
               const cardHTML = `
               <div class="card student-card" onclick="enterClass(${course.id})">
                 <div class="accent-line" style="background: ${randomColor};"></div>

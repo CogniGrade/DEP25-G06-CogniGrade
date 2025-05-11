@@ -206,7 +206,7 @@ async function load_pdf_in_cropper(examId) {
             })
             .then(data => {
               if (data.file_path) {
-                data.file_path = "../" + data.file_path.replace("./", "");
+                data.file_path = "/api/" + data.file_path.replace("./", "");
                 fetch(data.file_path)
                   .then(response => response.arrayBuffer())
                   .then(arrayBuffer => loadPDF(arrayBuffer))
