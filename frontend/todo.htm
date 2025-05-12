@@ -1,0 +1,1617 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>To-do | Classroom</title>
+    <!-- Material Icons -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css">
+    
+    <style>
+        :root {
+            --primary-color: #1a73e8;
+            --background-color: #f5f5f5;
+            --card-color: #ffffff;
+            --text-primary: #202124;
+            --text-secondary: #5f6368;
+            --border-color: #dadce0;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Roboto', sans-serif;
+        }
+        
+        body {
+            background-color: var(--background-color);
+            color: var(--text-primary);
+        }
+        
+        .content-container {
+            padding: 20px;
+            margin-left: 256px; /* Match the sidebar width */
+        }
+
+        header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 24px;
+            background-color: white;
+            border-bottom: 1px solid var(--border-color);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        header h1 {
+            font-size: 24px;
+            font-weight: 400;
+            color: var(--text-primary);
+        }
+
+        .section-header {
+            margin: 24px 0 16px 0;
+            font-size: 18px;
+            font-weight: 500;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+        }
+        
+        .section-header .material-icons {
+            margin-right: 8px;
+            color: var(--primary-color);
+        }
+
+        .tab-container {
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 20px;
+        }
+
+        .tabs {
+            display: flex;
+            list-style: none;
+        }
+
+        .tabs li {
+            padding: 12px 24px;
+            cursor: pointer;
+            color: var(--text-secondary);
+            font-weight: 500;
+            font-size: 14px;
+            position: relative;
+        }
+
+        .tabs li.active {
+            color: var(--primary-color);
+        }
+
+        .tabs li.active::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background-color: var(--primary-color);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .class-dropdown {
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        .dropdown-select {
+            padding: 12px 16px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            background-color: white;
+            width: 300px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .dropdown-options {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            width: 300px;
+            background-color: white;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            z-index: 10;
+            max-height: 300px;
+            overflow-y: auto;
+            display: none;
+        }
+
+        .dropdown-options.active {
+            display: block;
+        }
+
+        .dropdown-option {
+            padding: 12px 16px;
+            cursor: pointer;
+        }
+
+        .dropdown-option:hover {
+            background-color: #f5f5f5;
+        }
+
+        .todo-item {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+            margin-bottom: 16px;
+            padding: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .todo-item-left {
+            display: flex;
+            align-items: flex-start;
+            gap: 16px;
+        }
+
+        .todo-icon {
+            color: var(--primary-color);
+            background-color: #e8f0fe;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .todo-icon.exam {
+            color: #ea4335;
+            background-color: #fce8e6;
+        }
+
+        .todo-details h3 {
+            font-size: 16px;
+            margin-bottom: 4px;
+        }
+
+        .todo-details p {
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        .todo-item-right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .due-date {
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        .overdue {
+            color: #ea4335;
+        }
+
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+            text-align: center;
+        }
+
+        .empty-state img {
+            width: 200px;
+            margin-bottom: 20px;
+        }
+
+        .empty-state h3 {
+            font-size: 18px;
+            margin-bottom: 8px;
+            color: var(--text-primary);
+        }
+
+        .empty-state p {
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        .loading {
+            display: flex;
+            justify-content: center;
+            padding: 40px;
+        }
+
+        .spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            border-radius: 50%;
+            border-top: 4px solid var(--primary-color);
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Custom Sidebar Styles for Todo Page */
+        .custom-sidebar {
+            background-color: white;
+            width: 256px;
+            height: calc(100vh - 64px);
+            position: fixed;
+            left: 0;
+            top: 64px;
+            overflow-y: auto;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            z-index: 900;
+            padding-top: 12px;
+            scrollbar-width: thin;
+        }
+        
+        .custom-sidebar::-webkit-scrollbar {
+            width: 4px;
+        }
+        
+        .custom-sidebar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        
+        .custom-sidebar::-webkit-scrollbar-thumb {
+            background-color: rgba(0, 0, 0, 0.2);
+            border-radius: 4px;
+        }
+        
+        .custom-navigation {
+            list-style: none;
+            padding: 4px 0;
+            margin: 0;
+        }
+        
+        .custom-navigation li {
+            margin: 4px 0;
+            padding: 0;
+        }
+        
+        .custom-nav-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 24px;
+            color: #475569;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            border-radius: 0 28px 28px 0;
+            margin-right: 16px;
+            font-family: 'Poppins', sans-serif;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .custom-nav-item::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            width: 3px;
+            background-color: transparent;
+            transition: all 0.2s ease;
+        }
+        
+        .custom-nav-item:hover {
+            background-color: rgba(241, 245, 249, 0.8);
+            color: #1e40af;
+        }
+        
+        .custom-nav-item:hover::before {
+            background-color: #3b82f6;
+        }
+        
+        .custom-nav-item.active {
+            background-color: #e0eaff;
+            color: #1e40af;
+            font-weight: 600;
+        }
+        
+        .custom-nav-item.active::before {
+            background-color: #3b82f6;
+        }
+        
+        .custom-nav-item i {
+            font-size: 18px;
+            width: 24px;
+            margin-right: 16px;
+            text-align: center;
+            transition: transform 0.2s ease;
+        }
+        
+        .custom-nav-item:hover i {
+            transform: scale(1.1);
+        }
+        
+        .custom-divider {
+            height: 1px;
+            background-color: #e2e8f0;
+            margin: 12px 16px;
+        }
+
+        .badge {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 2px 6px;
+            border-radius: 12px;
+            font-size: 12px;
+            margin-left: 8px;
+        }
+        
+        .todo-icon.review {
+            color: #34a853;
+            background-color: #e6f4ea;
+        }
+        
+        .section-container {
+            margin-bottom: 32px;
+        }
+        
+        .no-work-message {
+            background-color: white;
+            border-radius: 8px;
+            padding: 40px;
+            text-align: center;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            margin-top: 24px;
+        }
+        
+        .no-work-message h2 {
+            font-size: 24px;
+            margin-bottom: 16px;
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+        
+        .no-work-message p {
+            color: var(--text-secondary);
+            font-size: 16px;
+            max-width: 400px;
+            margin: 0 auto;
+            line-height: 1.5;
+        }
+        
+        .no-work-message .material-icons {
+            font-size: 64px;
+            color: var(--primary-color);
+            margin-bottom: 16px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Load components -->
+    <script src="/static/load-components.js"></script>
+
+    <div class="app-container">
+        <!-- Custom Sidebar for Todo Page -->
+        <aside class="custom-sidebar">
+          <ul class="custom-navigation">
+            <li>
+              <a href="/static/dashboard.htm" class="custom-nav-item">
+                <i class="fas fa-home"></i>
+                <span class="nav-text">Home</span>
+              </a>
+            </li>
+            <li>
+              <a href="/static/todo.htm" class="custom-nav-item active">
+                <i class="fas fa-clipboard-check"></i>
+                <span class="nav-text">To-do</span>
+              </a>
+            </li>
+            <li class="custom-divider"></li>
+            <li>
+              <a href="/static/settings.htm" class="custom-nav-item">
+                <i class="fas fa-cog"></i>
+                <span class="nav-text">Settings</span>
+              </a>
+            </li>
+            <li>
+              <a href="/logout" class="custom-nav-item">
+                <i class="fas fa-sign-out-alt"></i>
+                <span class="nav-text">Logout</span>
+              </a>
+            </li>
+          </ul>
+        </aside>
+        
+        <div class="content-container">
+            <header>
+                <h1>To-do</h1>
+            </header>
+            
+            <div class="class-dropdown">
+                <div class="dropdown-select" id="class-selector">
+                    <span>All classes</span>
+                    <span class="material-icons">arrow_drop_down</span>
+                </div>
+                <div class="dropdown-options" id="class-options">
+                    <div class="dropdown-option selected" data-class-id="all">All classes</div>
+                    <!-- Class options will be dynamically added here -->
+                </div>
+            </div>
+            
+            <!-- To Review section (teacher role) -->
+            <div id="to-review-section" class="section-container" style="display: none;">
+                <h2 class="section-header">
+                    <span class="material-icons">rate_review</span>
+                    To Review
+                </h2>
+                <div class="loading" id="to-review-loading">
+                    <div class="spinner"></div>
+                </div>
+                <div id="to-review-content"></div>
+            </div>
+            
+            <!-- Assigned section (student role) -->
+            <div id="assigned-section" class="section-container" style="display: none;">
+                <h2 class="section-header">
+                    <span class="material-icons">assignment</span>
+                    Assigned
+                </h2>
+                
+                <div class="tab-container">
+                    <ul class="tabs">
+                        <li class="tab active" data-tab="assigned">Assigned</li>
+                        <li class="tab" data-tab="missing">Missing</li>
+                        <li class="tab" data-tab="done">Done</li>
+                    </ul>
+                </div>
+                
+                <div class="tab-content active" id="assigned-tab">
+                    <div class="loading" id="assigned-loading">
+                        <div class="spinner"></div>
+                    </div>
+                    <div id="assigned-content"></div>
+                </div>
+                
+                <div class="tab-content" id="missing-tab">
+                    <div class="loading" id="missing-loading">
+                        <div class="spinner"></div>
+                    </div>
+                    <div id="missing-content"></div>
+                </div>
+                
+                <div class="tab-content" id="done-tab">
+                    <div class="loading" id="done-loading">
+                        <div class="spinner"></div>
+                    </div>
+                    <div id="done-content"></div>
+                </div>
+            </div>
+            
+            <!-- Message when no work is assigned -->
+            <div id="no-work-message" class="no-work-message" style="display: none;">
+                <span class="material-icons">task_alt</span>
+                <h2>You're all caught up!</h2>
+                <p>There's no work for you right now. Take a break or check back later for new assignments.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Tab switching functionality
+            const tabs = document.querySelectorAll('.tab');
+            tabs.forEach(tab => {
+                tab.addEventListener('click', function() {
+                    // Remove active class from all tabs
+                    tabs.forEach(t => t.classList.remove('active'));
+                    // Add active class to clicked tab
+                    this.classList.add('active');
+                    
+                    // Hide all tab content
+                    document.querySelectorAll('.tab-content').forEach(content => {
+                        content.classList.remove('active');
+                    });
+                    
+                    // Show the selected tab content
+                    const tabId = this.getAttribute('data-tab');
+                    document.getElementById(`${tabId}-tab`).classList.add('active');
+                });
+            });
+            
+            // Class dropdown functionality
+            const classSelector = document.getElementById('class-selector');
+            const classOptions = document.getElementById('class-options');
+            
+            classSelector.addEventListener('click', function() {
+                classOptions.classList.toggle('active');
+            });
+            
+            // Close dropdown when clicking outside
+            document.addEventListener('click', function(event) {
+                if (!classSelector.contains(event.target) && !classOptions.contains(event.target)) {
+                    classOptions.classList.remove('active');
+                }
+            });
+            
+            // Load the user's to-do list
+            loadToDoList();
+        });
+        
+        // Function to format date
+        function formatDate(dateString) {
+            if (!dateString) return 'No due date';
+            
+            try {
+                const date = new Date(dateString);
+                const now = new Date();
+                
+                // Check if date is invalid
+                if (isNaN(date.getTime())) {
+                    console.error('Invalid date for formatting:', dateString);
+                    return 'Invalid date';
+                }
+                
+                // Check if date is today
+                if (date.toDateString() === now.toDateString()) {
+                    return 'Due today';
+                }
+                
+                // Check if date is tomorrow
+                const tomorrow = new Date(now);
+                tomorrow.setDate(now.getDate() + 1);
+                if (date.toDateString() === tomorrow.toDateString()) {
+                    return 'Due tomorrow';
+                }
+                
+                // Always include year to avoid confusion with old dates
+                const options = { month: 'short', day: 'numeric', year: 'numeric' };
+                
+                return 'Due ' + date.toLocaleDateString('en-US', options);
+            } catch (e) {
+                console.error('Error formatting date:', e, dateString);
+                return 'Date error';
+            }
+        }
+        
+        // Function to check if date is overdue
+        function isOverdue(dateString) {
+            if (!dateString) return false;
+            
+            try {
+                // Parse date string to date object
+                const date = new Date(dateString);
+                
+                // Get current date for comparison
+                const now = new Date();
+                
+                // Make sure date is valid
+                if (isNaN(date.getTime())) {
+                    console.error('Invalid date string:', dateString);
+                    return false;
+                }
+
+                // For comparison clarity, set both dates to end of day in local timezone
+                // This avoids issues with time portion of the date making something due "today" appear overdue
+                const dateOnly = new Date(date.getFullYear(), date.getMonth(), date.getDate(), 23, 59, 59);
+                const nowOnly = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0);
+                
+                // Simple year and month comparison to guarantee old dates are marked overdue
+                if (date.getFullYear() < now.getFullYear()) {
+                    console.log('Date is from a previous year, marking as overdue:', dateString);
+                    return true;
+                }
+                
+                if (date.getFullYear() === now.getFullYear() && 
+                    date.getMonth() < now.getMonth()) {
+                    console.log('Date is from a previous month this year, marking as overdue:', dateString);
+                    return true;
+                }
+                
+                // For same month, compare just the date portion (ignoring time)
+                // This handles the case where the date is today but time has passed
+                const isDateOverdue = dateOnly < nowOnly;
+                
+                // Debug log for date comparison
+                console.log('Date comparison:', {
+                    dateString: dateString,
+                    itemDate: date.toISOString(),
+                    dateOnly: dateOnly.toISOString(),
+                    year: date.getFullYear(),
+                    month: date.getMonth() + 1, // +1 because getMonth() is 0-indexed
+                    day: date.getDate(),
+                    currentDate: now.toISOString(),
+                    nowOnly: nowOnly.toISOString(),
+                    currentYear: now.getFullYear(),
+                    currentMonth: now.getMonth() + 1,
+                    currentDay: now.getDate(),
+                    isOverdue: isDateOverdue
+                });
+                
+                return isDateOverdue;
+            } catch (e) {
+                console.error('Error comparing dates:', e);
+                return false;
+            }
+        }
+        
+        // Function to populate a tab with to-do items
+        function populateTab(tabId, items) {
+            // Extract the content element ID
+            let contentId = tabId;
+            if (tabId === 'assigned-tab' || tabId === 'missing-tab' || tabId === 'done-tab') {
+                // For these tabs, the content is directly inside this element
+                contentId = tabId;
+            } else if (tabId === 'assigned' || tabId === 'missing' || tabId === 'done') {
+                // For backward compatibility
+                contentId = `${tabId}-tab`;
+            } else if (tabId === 'to-review') {
+                // Special case for to-review
+                contentId = 'to-review-content';
+            }
+            
+            const contentElement = document.getElementById(contentId);
+            
+            if (!contentElement) {
+                console.error(`Tab content element not found: ${contentId}`);
+                return;
+            }
+            
+            if (!items || items.length === 0) {
+                console.log(`No items for tab: ${tabId}`);
+                contentElement.innerHTML = `
+                    <div class="empty-state">
+                        <img src="/static/add-file-icon.svg" alt="Empty state">
+                        <h3>Nothing ${tabId.includes('review') ? 'to review' : 'on your to-do list'} right now</h3>
+                        <p>${tabId.includes('review') ? 'All submitted work has been reviewed' : 'Check back later for new assignments'}</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            console.log(`Populating ${tabId} tab with ${items.length} items`);
+            let html = '';
+            
+            items.forEach((item, index) => {
+                try {
+                    // Debug log item with detailed date information
+                    const parsedDate = item.due_date ? new Date(item.due_date) : null;
+                    console.log(`Processing ${tabId} item ${index}:`, {
+                        ...item,
+                        parsedDate: parsedDate ? parsedDate.toISOString() : null,
+                        year: parsedDate ? parsedDate.getFullYear() : null,
+                        month: parsedDate ? parsedDate.getMonth() + 1 : null,
+                        day: parsedDate ? parsedDate.getDate() : null,
+                        isValidDate: parsedDate ? !isNaN(parsedDate.getTime()) : false
+                    });
+                    
+                    if (!item || typeof item !== 'object') {
+                        console.error(`Invalid item at index ${index} in ${tabId}:`, item);
+                        return; // Skip this item
+                    }
+                    
+                    // Ensure the item has a valid ID
+                    if (!item.id) {
+                        console.error(`Item at index ${index} in ${tabId} has no ID:`, item);
+                        return; // Skip items without IDs
+                    }
+                    
+                    // Apply overdue styling based on tab and item properties:
+                    // - Missing tab: Always show as overdue (red)
+                    // - Assigned tab: Never show as overdue (normal color)
+                    // - Done tab: Never show as overdue (completed items)
+                    // - To Review tab: Show as overdue if the due date is overdue or item was moved from missing
+                    let isDueOverdue;
+                    
+                    switch (tabId) {
+                        case 'missing':
+                        case 'missing-tab':
+                            // Missing items are always overdue (not submitted, past due date)
+                            isDueOverdue = true;
+                            break;
+                        case 'assigned':
+                        case 'assigned-tab':
+                            // Assigned items are never displayed as overdue (even if the due date is soon)
+                            isDueOverdue = false;
+                            break;
+                        case 'done':
+                        case 'done-tab':
+                            // Done items are never displayed as overdue (they're completed)
+                            isDueOverdue = false;
+                            break;
+                        case 'to-review':
+                        case 'to-review-content':
+                            // For items to review, show as overdue if the actual date is overdue or item was moved from missing
+                            isDueOverdue = (item.has_due_date && isOverdue(item.due_date)) || item.moved_from_missing;
+                            break;
+                        default:
+                            // Default case uses isOverdue function
+                            isDueOverdue = item.has_due_date && isOverdue(item.due_date);
+                    }
+                    
+                    const dueClass = isDueOverdue ? 'overdue' : '';
+                    
+                    // Set appropriate icon based on item type
+                    let iconClass = '';
+                    let iconType = 'assignment';
+                    
+                    if (item.type === 'exam' || item.type === 'exam_grading') {
+                        iconClass = 'exam';
+                        iconType = 'description';
+                    } else if (item.type === 'assignment_review') {
+                        iconClass = 'review';
+                        iconType = 'rate_review';
+                    }
+                    
+                    const className = item.classroom_name || `Class ${item.classroom_id}`;
+                    const safeTitle = item.title || "Untitled";
+                    
+                    // Format due date display - always include year for clarity
+                    const dueDateDisplay = item.has_due_date && item.due_date ? formatDate(item.due_date) : 'No due date';
+                    
+                    // Format additional display info for teacher in to-review section
+                    let teacherNotes = '';
+                    if ((tabId === 'to-review-content' || tabId === 'to-review')) {
+                        if (item.moved_from_missing) {
+                            teacherNotes = '<span style="color: #ea4335; margin-left: 8px;">(Past Due - Needs Review)</span>';
+                        } else if (item.moved_from_assigned) {
+                            teacherNotes = '<span style="color: #1a73e8; margin-left: 8px;">(Active Assignment)</span>';
+                        }
+                    }
+                    
+                    // Add link to the appropriate page based on item type
+                    let itemLink = '#';
+                    let additionalInfo = '';
+                    
+                    if (item.type === 'assignment') {
+                        itemLink = `/static/assignment.htm?id=${item.id}`;
+                    } else if (item.type === 'exam') {
+                        itemLink = `/static/exam.htm?id=${item.id}`;
+                    } else if (item.type === 'exam_grading') {
+                        itemLink = `/static/exam.htm?id=${item.id}&grading=true`;
+                        if (item.ungraded_count && item.scripts_count) {
+                            additionalInfo = `<span class="badge">${item.ungraded_count}/${item.scripts_count} to grade</span>`;
+                        }
+                    } else if (item.type === 'assignment_review') {
+                        itemLink = `/static/assignment.htm?id=${item.id}&review=true`;
+                        if (item.ungraded_count && item.submissions_count) {
+                            additionalInfo = `<span class="badge">${item.ungraded_count}/${item.submissions_count} to grade</span>`;
+                        }
+                    }
+                    
+                    html += `
+                        <div class="todo-item" data-class-id="${item.classroom_id}" data-class-name="${className}" data-item-id="${item.id}">
+                            <div class="todo-item-left">
+                                <div class="todo-icon ${iconClass}">
+                                    <span class="material-icons">${iconType}</span>
+                                </div>
+                                <div class="todo-details">
+                                    <h3><a href="${itemLink}" style="color: inherit; text-decoration: none;">${safeTitle}</a></h3>
+                                    <p>${getItemTypeName(item.type)} • ${className} ${additionalInfo}</p>
+                                </div>
+                            </div>
+                            <div class="todo-item-right">
+                                <span class="due-date ${dueClass}">${dueDateDisplay} ${teacherNotes}</span>
+                            </div>
+                        </div>
+                    `;
+                } catch (err) {
+                    console.error(`Error rendering item ${index} in ${tabId}:`, err);
+                }
+            });
+            
+            contentElement.innerHTML = html || `
+                <div class="empty-state">
+                    <h3>Error displaying items</h3>
+                    <p>Please try refreshing the page.</p>
+                </div>
+            `;
+        }
+        
+        // Function to get human-readable item type name
+        function getItemTypeName(type) {
+            switch(type) {
+                case 'assignment':
+                    return 'Assignment';
+                case 'exam':
+                    return 'Exam';
+                case 'exam_grading':
+                    return 'Exam Grading';
+                case 'assignment_review':
+                    return 'Assignment Review';
+                default:
+                    return type ? type.charAt(0).toUpperCase() + type.slice(1) : 'Unknown';
+            }
+        }
+        
+        // Function to populate class dropdown
+        function populateClassDropdown(data) {
+            // Combine all items to extract unique class IDs and names
+            const allItems = [
+                ...(data.assigned || []),
+                ...(data.missing || []),
+                ...(data.done || []),
+                ...(data.to_review || [])
+            ];
+            
+            // Create a map of classroom ids to names
+            const classMap = {};
+            allItems.forEach(item => {
+                if (item.classroom_id && item.classroom_name) {
+                    classMap[item.classroom_id] = item.classroom_name;
+                } else if (item.classroom_id) {
+                    classMap[item.classroom_id] = `Class ${item.classroom_id}`;
+                }
+            });
+            
+            // Extract unique class IDs
+            const classIds = [...new Set(allItems.map(item => item.classroom_id))].filter(id => id !== undefined);
+            
+            console.log('Unique class IDs found:', classIds);
+            console.log('Class name mapping:', classMap);
+            
+            // Clear previous options
+            const classOptions = document.getElementById('class-options');
+            classOptions.innerHTML = '';
+            
+            // Add "All classes" option first
+            const allClassesOption = document.createElement('div');
+            allClassesOption.className = 'dropdown-option';
+            allClassesOption.setAttribute('data-class-id', 'all');
+            allClassesOption.textContent = 'All classes';
+            
+            allClassesOption.addEventListener('click', function() {
+                // Update dropdown text
+                document.querySelector('.dropdown-select span:first-child').textContent = this.textContent;
+                
+                // Close dropdown
+                document.getElementById('class-options').classList.remove('active');
+                
+                // Show all items
+                filterByClass('all');
+            });
+            
+            classOptions.appendChild(allClassesOption);
+            
+            // Add class options with actual class names
+            if (classIds.length > 0) {
+                classIds.forEach(classId => {
+                    if (classId === undefined || classId === null) return;
+                    
+                    const option = document.createElement('div');
+                    option.className = 'dropdown-option';
+                    option.setAttribute('data-class-id', classId);
+                    option.textContent = classMap[classId] || `Class ${classId}`;
+                    
+                    option.addEventListener('click', function() {
+                        // Update dropdown text
+                        document.querySelector('.dropdown-select span:first-child').textContent = this.textContent;
+                        
+                        // Close dropdown
+                        document.getElementById('class-options').classList.remove('active');
+                        
+                        // Filter items by class ID
+                        filterByClass(classId);
+                    });
+                    
+                    classOptions.appendChild(option);
+                });
+            } else {
+                console.log('No classes found to populate dropdown');
+            }
+        }
+        
+        // Function to filter items by class ID
+        function filterByClass(classId) {
+            console.log(`Filtering todo items by class ID: ${classId}`);
+            const items = document.querySelectorAll('.todo-item');
+            let hasVisibleAssignedItems = false;
+            let hasVisibleMissingItems = false;
+            let hasVisibleDoneItems = false;
+            let hasVisibleToReviewItems = false;
+            
+            // Check if user is a teacher (professor or TA) based on the window variable or placeholders
+            const hasPlaceholders = document.querySelector('.todo-item[data-placeholder="true"]') !== null;
+            const isTeacher = window.isTeacher || hasPlaceholders;
+            
+            // Get content containers
+            const toReviewSection = document.getElementById('to-review-section');
+            const toReviewContent = document.getElementById('to-review-content');
+            const assignedTab = document.getElementById('assigned-tab');
+            const missingTab = document.getElementById('missing-tab');
+            const doneTab = document.getElementById('done-tab');
+            
+            // Clear console to make new filtering logs more visible
+            console.clear();
+            console.log(`Starting new filter for class ID: ${classId} at ${new Date().toISOString()}`);
+            console.log(`Found ${items.length} todo items to filter (isTeacher: ${isTeacher})`);
+
+            // Clear any existing empty states in all tabs to start fresh
+            [toReviewContent, assignedTab, missingTab, doneTab].forEach(container => {
+                if (container) {
+                    const emptyState = container.querySelector('.empty-state');
+                    if (emptyState) {
+                        console.log(`Removing existing empty state from ${container.id}`);
+                        emptyState.remove();
+                    }
+                }
+            });
+            
+            // First pass: count visible items without modifying display yet
+            items.forEach(item => {
+                const itemClassId = item.getAttribute('data-class-id');
+                const itemTitle = item.querySelector('.todo-details h3 a')?.textContent || 'Unknown';
+                const parentContent = item.closest('.tab-content') || item.closest('#to-review-content');
+                // Convert both to strings for reliable comparison, or check if we're showing all classes
+                const isVisible = (classId === 'all' || String(itemClassId) === String(classId));
+                const isPlaceholder = item.getAttribute('data-placeholder') === 'true';
+                
+                // Debug log each item
+                console.log(`Item: "${itemTitle}", class ID: ${itemClassId}, selected class: ${classId}, visible: ${isVisible}, placeholder: ${isPlaceholder}`);
+                
+                if (isVisible && !isPlaceholder) {
+                    // Track which tabs have visible items
+                    if (parentContent) {
+                        const contentId = parentContent.id;
+                        if (contentId === 'assigned-tab') hasVisibleAssignedItems = true;
+                        else if (contentId === 'missing-tab') hasVisibleMissingItems = true;
+                        else if (contentId === 'done-tab') hasVisibleDoneItems = true;
+                        else if (contentId === 'to-review-content') hasVisibleToReviewItems = true;
+                    }
+                }
+            });
+            
+            // Second pass: update visibility based on the counts
+            items.forEach(item => {
+                const itemClassId = item.getAttribute('data-class-id');
+                const isVisible = (classId === 'all' || String(itemClassId) === String(classId));
+                const isPlaceholder = item.getAttribute('data-placeholder') === 'true';
+                
+                // Always hide placeholders (they're just for tracking class IDs)
+                if (isPlaceholder) {
+                    item.style.display = 'none';
+                } else {
+                    item.style.display = isVisible ? 'flex' : 'none';
+                }
+            });
+            
+            console.log(`Class filter: ${classId}, visible items: assigned=${hasVisibleAssignedItems}, missing=${hasVisibleMissingItems}, done=${hasVisibleDoneItems}, to-review=${hasVisibleToReviewItems}`);
+            
+            // Update visibility of the to-review section            
+            // For teachers (professors or TAs), always show the to-review section
+            if (isTeacher) {
+                // For teachers, always display the section even if empty
+                toReviewSection.style.display = 'block';
+                
+                if (!hasVisibleToReviewItems) {
+                    // If no items visible for this class, show empty state
+                    let emptyMessage = 'Nothing to review right now';
+                    if (classId !== 'all') {
+                        // Try to get the class name from dropdown
+                        const dropdownOption = document.querySelector(`.dropdown-option[data-class-id="${classId}"]`);
+                        const className = dropdownOption ? dropdownOption.textContent : `Class ${classId}`;
+                        emptyMessage = `Nothing to review in ${className}`;
+                    }
+                    
+                    toReviewContent.innerHTML += `
+                        <div class="empty-state">
+                            <img src="/static/add-file-icon.svg" alt="Empty state">
+                            <h3>${emptyMessage}</h3>
+                            <p>All submitted work has been reviewed</p>
+                        </div>
+                    `;
+                }
+            } else {
+                // For students, only show section if there are items
+                if (hasVisibleToReviewItems) {
+                    toReviewSection.style.display = 'block';
+                    // Remove empty state if we have visible items
+                    const emptyState = toReviewContent.querySelector('.empty-state');
+                    if (emptyState) emptyState.remove();
+                } else {
+                    toReviewSection.style.display = 'none';
+                }
+            }
+            
+            // Update visibility of the assigned section
+            const assignedSection = document.getElementById('assigned-section');
+            const hasAssignedItems = hasVisibleAssignedItems || hasVisibleMissingItems || hasVisibleDoneItems;
+            
+            if (hasAssignedItems) {
+                // Show section if there are visible items in any tab
+                assignedSection.style.display = 'block';
+            } else {
+                assignedSection.style.display = 'none';
+            }
+            
+            // Check each tab and update empty state as needed
+            updateTabEmptyState('assigned-tab', hasVisibleAssignedItems);
+            updateTabEmptyState('missing-tab', hasVisibleMissingItems);
+            updateTabEmptyState('done-tab', hasVisibleDoneItems);
+            
+            // Show "all caught up" message if both sections are hidden
+            if (!isTeacher && document.getElementById('to-review-section').style.display === 'none' && 
+                document.getElementById('assigned-section').style.display === 'none') {
+                console.log('No work found, showing "all caught up" message');
+                document.getElementById('no-work-message').style.display = 'block';
+            } else {
+                document.getElementById('no-work-message').style.display = 'none';
+            }
+            
+            // Apply initial filtering for teacher (only once on first load)
+            if (!window.initialFilterApplied) {
+                console.log('Applying initial filtering for teacher view');
+                window.initialFilterApplied = true;
+                // Don't try to modify a non-existent element
+            }
+        }
+        
+        // Function to update empty state for a tab
+        function updateTabEmptyState(tabId, hasVisibleItems) {
+            const contentElement = document.getElementById(tabId);
+            if (!contentElement) return;
+            
+            if (!hasVisibleItems) {
+                // If there are no visible items, show empty state
+                if (!contentElement.querySelector('.empty-state')) {
+                    const tabName = tabId.replace('-tab', '');
+                    contentElement.innerHTML += `
+                        <div class="empty-state">
+                            <img src="/static/add-file-icon.svg" alt="Empty state">
+                            <h3>Nothing ${tabName === 'to-review' ? 'to review' : 'on your to-do list'} right now</h3>
+                            <p>${tabName === 'to-review' ? 'All submitted work has been reviewed' : 'Check back later for new assignments'}</p>
+                        </div>
+                    `;
+                }
+            } else {
+                // If there are visible items, remove empty state
+                const emptyState = contentElement.querySelector('.empty-state');
+                if (emptyState) {
+                    emptyState.remove();
+                }
+            }
+        }
+
+        // Modify the load function to handle the new section structure
+        async function loadToDoList() {
+            try {
+                // Show loading spinners
+                document.getElementById('assigned-loading').style.display = 'flex';
+                document.getElementById('missing-loading').style.display = 'flex';
+                document.getElementById('done-loading').style.display = 'flex';
+                document.getElementById('to-review-loading').style.display = 'flex';
+                
+                // Clear previous content
+                document.getElementById('assigned-content').innerHTML = '';
+                document.getElementById('missing-content').innerHTML = '';
+                document.getElementById('done-content').innerHTML = '';
+                document.getElementById('to-review-content').innerHTML = '';
+                
+                // Hide sections initially
+                document.getElementById('assigned-section').style.display = 'none';
+                document.getElementById('to-review-section').style.display = 'none';
+                document.getElementById('no-work-message').style.display = 'none';
+                
+                // Get the access_token from cookies if available
+                const cookies = document.cookie.split(';').reduce((acc, cookie) => {
+                    const [key, value] = cookie.trim().split('=');
+                    acc[key] = value;
+                    return acc;
+                }, {});
+                
+                const accessToken = cookies.access_token || '';
+                
+                // Fetch user info to determine role
+                const userInfoResponse = await fetch('/get-info', {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Authorization': accessToken ? `Bearer ${accessToken}` : ''
+                    },
+                    credentials: 'include'
+                });
+                
+                let userInfo = {};
+                if (userInfoResponse.ok) {
+                    userInfo = await userInfoResponse.json();
+                    console.log('User info received:', userInfo);
+                }
+                
+                // For any user with teaching capabilities (professor or TA), always fetch their courses from dashboard 
+                let dashboardClasses = [];
+                let allUserClasses = new Map(); // Map to store class ID -> class info
+                let isTeacher = userInfo.is_professor || false; // Default to false, will update after dashboard fetch
+                
+                // Always fetch dashboard data to get all associated courses for any user (student, TA, professor)
+                try {
+                    const dashboardResponse = await fetch('/dashboard', {
+                        method: 'GET',
+                        headers: {
+                            'Accept': 'application/json',
+                            'Authorization': accessToken ? `Bearer ${accessToken}` : ''
+                        },
+                        credentials: 'include'
+                    });
+                    
+                    if (dashboardResponse.ok) {
+                        const dashboardData = await dashboardResponse.json();
+                        console.log('Dashboard data:', dashboardData);
+                        
+                        // If user has teaching courses, they are either a professor or TA
+                        if (dashboardData.teaching_courses && dashboardData.teaching_courses.length > 0) {
+                            isTeacher = true; // Mark as a teacher (professor or TA)
+                            console.log('User has teaching courses - treating as teacher');
+                            
+                            dashboardData.teaching_courses.forEach(course => {
+                                dashboardClasses.push(course);
+                                allUserClasses.set(course.id, course);
+                            });
+                        } else {
+                            console.log('User has no teaching courses');
+                            isTeacher = false;
+                        }
+                        
+                        // Get enrolled courses for any user type
+                        if (dashboardData.enrolled_courses && dashboardData.enrolled_courses.length > 0) {
+                            dashboardData.enrolled_courses.forEach(course => {
+                                dashboardClasses.push(course);
+                                allUserClasses.set(course.id, course);
+                            });
+                        }
+                        
+                        console.log(`Found ${allUserClasses.size} unique classes from dashboard`);
+                    }
+                } catch (error) {
+                    console.error('Error fetching dashboard data:', error);
+                }
+                
+                // Export isTeacher to window scope for other functions to use
+                window.isTeacher = isTeacher;
+                console.log(`User is teacher: ${isTeacher}`);
+                
+                // Fetch to-do data from API
+                console.log('Fetching todo data...');
+                const response = await fetch('/todo', {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json',
+                        'Authorization': accessToken ? `Bearer ${accessToken}` : ''
+                    },
+                    credentials: 'include'
+                });
+                
+                if (!response.ok) {
+                    console.error('API Error:', response.status, response.statusText);
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                console.log('Todo data received:', data);
+                
+                // Process each item to ensure it has the required properties
+                const processItems = (items) => {
+                    if (!items || !items.length) return [];
+                    
+                    return items.map(item => ({
+                        ...item,
+                        // Ensure has_due_date is a boolean based on due_date presence
+                        has_due_date: item.has_due_date !== undefined ? !!item.has_due_date : !!item.due_date,
+                        // Ensure submitted property exists
+                        submitted: !!item.submitted
+                    }));
+                };
+                
+                // Enhanced debug logging for date issues
+                const logItemDetails = (items) => {
+                    if (!items || !items.length) return [];
+                    
+                    return items.map(item => ({
+                        id: item.id,
+                        title: item.title,
+                        type: item.type,
+                        due_date: item.due_date,
+                        has_due_date: item.has_due_date !== undefined ? !!item.has_due_date : !!item.due_date,
+                        submitted: !!item.submitted,
+                        parsedDate: item.due_date ? new Date(item.due_date).toISOString() : null,
+                        isOverdue: item.due_date ? isOverdue(item.due_date) : false
+                    }));
+                };
+                
+                // Process the data to ensure all items have required properties
+                const processedData = {
+                    assigned: processItems(data.assigned),
+                    missing: processItems(data.missing),
+                    done: processItems(data.done),
+                    to_review: processItems(data.to_review)
+                };
+                
+                console.log('Assigned items details:', logItemDetails(processedData.assigned));
+                console.log('Missing items details:', logItemDetails(processedData.missing));
+                console.log('Done items details:', logItemDetails(processedData.done));
+                console.log('To Review items details:', logItemDetails(processedData.to_review));
+                
+                // Hide loading spinners
+                document.getElementById('assigned-loading').style.display = 'none';
+                document.getElementById('missing-loading').style.display = 'none';
+                document.getElementById('done-loading').style.display = 'none';
+                document.getElementById('to-review-loading').style.display = 'none';
+                
+                // Ensure data has all required arrays
+                const safeData = {
+                    assigned: Array.isArray(processedData.assigned) ? processedData.assigned : [],
+                    missing: Array.isArray(processedData.missing) ? processedData.missing : [],
+                    done: Array.isArray(processedData.done) ? processedData.done : [],
+                    to_review: Array.isArray(processedData.to_review) ? processedData.to_review : []
+                };
+                
+                // Special handling for teachers: check for missing items that should be visible in to-review
+                if (isTeacher) {
+                    // For teachers, ensure exams/assignments with past due dates are properly included in to-review
+                    // Make a copy of missing items for teachers, as these may need review
+                    const missingItemsForTeacher = JSON.parse(JSON.stringify(safeData.missing || []));
+                    
+                    // Add missing assignments/exams to to-review if they're from the teacher's classes
+                    missingItemsForTeacher.forEach(item => {
+                        // Check if the item belongs to a class where the user is a teacher
+                        // Use a more reliable check - if the user is a teacher as determined earlier,
+                        // then treat all items from classes they're associated with as needing review
+                        const classIdStr = String(item.classroom_id);
+                        const userHasThisClass = allUserClasses.has(item.classroom_id);
+                        
+                        // Log detailed information about each item for debugging
+                        console.log(`Processing missing item for teacher review: ${item.title}`, {
+                            classroom_id: item.classroom_id,
+                            classIdStr: classIdStr,
+                            userHasThisClass: userHasThisClass,
+                            itemType: item.type,
+                            dueDate: item.due_date,
+                            isInAllUserClasses: allUserClasses.has(item.classroom_id)
+                        });
+                        
+                        // More permissive rule: If user is a teacher and has this class in their classes, show it in review
+                        if (userHasThisClass) {
+                            // Check if this item isn't already in the to_review list
+                            const alreadyInReview = safeData.to_review.some(reviewItem => 
+                                reviewItem.id === item.id && reviewItem.type === item.type);
+                            
+                            if (!alreadyInReview) {
+                                console.log(`Adding missed item to review section (teacher view): ${item.title} (${item.type})`);
+                                // Add a flag to know this was moved from missing
+                                safeData.to_review.push({
+                                    ...item,
+                                    moved_from_missing: true
+                                });
+                            }
+                        }
+                    });
+                    
+                    // ALSO add assigned items to to-review (these might be submitted future assignments)
+                    const assignedItemsForTeacher = JSON.parse(JSON.stringify(safeData.assigned || []));
+                    assignedItemsForTeacher.forEach(item => {
+                        const userHasThisClass = allUserClasses.has(item.classroom_id);
+                        
+                        if (userHasThisClass) {
+                            // Check if this item isn't already in the to_review list
+                            const alreadyInReview = safeData.to_review.some(reviewItem => 
+                                reviewItem.id === item.id && reviewItem.type === item.type);
+                            
+                            if (!alreadyInReview) {
+                                console.log(`Adding assigned item to review section (teacher view): ${item.title} (${item.type})`);
+                                safeData.to_review.push({
+                                    ...item,
+                                    moved_from_assigned: true
+                                });
+                            }
+                        }
+                    });
+                    
+                    // Log the new to-review list after potential additions
+                    console.log('Enhanced to-review list for teacher:', logItemDetails(safeData.to_review));
+                }
+                
+                // Create the combined class list - including dashboard classes and todo classes
+                if (isTeacher) {
+                    // Create class options from dashboard data
+                    const classOptions = document.getElementById('class-options');
+                    classOptions.innerHTML = '';
+                    
+                    // Add "All classes" option first
+                    const allClassesOption = document.createElement('div');
+                    allClassesOption.className = 'dropdown-option';
+                    allClassesOption.setAttribute('data-class-id', 'all');
+                    allClassesOption.textContent = 'All classes';
+                    allClassesOption.addEventListener('click', function() {
+                        document.querySelector('.dropdown-select span:first-child').textContent = this.textContent;
+                        document.getElementById('class-options').classList.remove('active');
+                        filterByClass('all');
+                    });
+                    classOptions.appendChild(allClassesOption);
+                    
+                    // Get classes from todo items and add to the map if not already present
+                    const todoItems = [
+                        ...safeData.assigned,
+                        ...safeData.missing,
+                        ...safeData.done,
+                        ...safeData.to_review
+                    ];
+                    
+                    todoItems.forEach(item => {
+                        if (item && item.classroom_id && item.classroom_name) {
+                            if (!allUserClasses.has(item.classroom_id)) {
+                                allUserClasses.set(item.classroom_id, {
+                                    id: item.classroom_id,
+                                    name: item.classroom_name
+                                });
+                            }
+                        }
+                    });
+                    
+                    // Now add all classes to the dropdown
+                    console.log(`Adding ${allUserClasses.size} classes to dropdown for teacher`);
+                    allUserClasses.forEach((classInfo, classId) => {
+                        const option = document.createElement('div');
+                        option.className = 'dropdown-option';
+                        option.setAttribute('data-class-id', classId);
+                        option.textContent = classInfo.name || `Class ${classId}`;
+                        
+                        option.addEventListener('click', function() {
+                            document.querySelector('.dropdown-select span:first-child').textContent = this.textContent;
+                            document.getElementById('class-options').classList.remove('active');
+                            filterByClass(classId);
+                        });
+                        
+                        classOptions.appendChild(option);
+                    });
+                    
+                    // Check if to-review section should be displayed
+                    const hasToReviewItems = safeData.to_review && safeData.to_review.length > 0;
+                    console.log(`To-review section has ${safeData.to_review.length} items`);
+                    
+                    // Always show to-review section for teachers (professors or TAs) who have teaching courses
+                    document.getElementById('to-review-section').style.display = 'block';
+                    
+                    if (hasToReviewItems) {
+                        // Sort to-review items by due date (most urgent first)
+                        safeData.to_review.sort((a, b) => {
+                            // If either item is moved from missing, prioritize it
+                            if (a.moved_from_missing && !b.moved_from_missing) return -1;
+                            if (!a.moved_from_missing && b.moved_from_missing) return 1;
+                            
+                            // Otherwise sort by due date if both have one
+                            if (a.due_date && b.due_date) {
+                                return new Date(a.due_date) - new Date(b.due_date);
+                            }
+                            
+                            // If only one has a due date, prioritize the one with a due date
+                            if (a.due_date && !b.due_date) return -1;
+                            if (!a.due_date && b.due_date) return 1;
+                            
+                            // If neither has a due date, leave them in the original order
+                            return 0;
+                        });
+                        
+                        // If there are items, populate them
+                        populateTab('to-review-content', safeData.to_review);
+                    } else {
+                        // If no items, display empty message
+                        const toReviewContent = document.getElementById('to-review-content');
+                        toReviewContent.innerHTML = `
+                            <div class="empty-state">
+                                <img src="/static/add-file-icon.svg" alt="Empty state">
+                                <h3>Nothing to review right now</h3>
+                                <p>All submitted work has been reviewed</p>
+                            </div>
+                        `;
+                    }
+                    
+                    // Check for student role items - teachers can also be enrolled in courses
+                    const hasStudentItems = safeData.assigned.length > 0 || safeData.missing.length > 0 || safeData.done.length > 0;
+                    
+                    // Show assigned section if there are student items
+                    if (hasStudentItems) {
+                        console.log('Teacher also has student items - showing assigned section');
+                        document.getElementById('assigned-section').style.display = 'block';
+                        populateTab('assigned-tab', safeData.assigned);
+                        populateTab('missing-tab', safeData.missing);
+                        populateTab('done-tab', safeData.done);
+                    } else {
+                        // Hide assigned section if no student items
+                        console.log('Teacher has no student items - hiding assigned section');
+                        document.getElementById('assigned-section').style.display = 'none';
+                    }
+                    
+                    // Create empty placeholders for classes with no to-review items
+                    if (allUserClasses.size > 0) {
+                        // For each class, check if it has any to-review items
+                        allUserClasses.forEach((classInfo, classId) => {
+                            const hasItemsInClass = safeData.to_review.some(item => item.classroom_id == classId);
+                            
+                            // If no items exist for this class, add a hidden placeholder with the right class ID
+                            if (!hasItemsInClass) {
+                                console.log(`Adding hidden placeholder for class ${classInfo.name} (id: ${classId})`);
+                                
+                                const placeholder = document.createElement('div');
+                                placeholder.className = 'todo-item';
+                                placeholder.setAttribute('data-class-id', classId);
+                                placeholder.setAttribute('data-placeholder', 'true');
+                                placeholder.style.display = 'none'; // Hide it by default
+                                
+                                document.getElementById('to-review-content').appendChild(placeholder);
+                            }
+                        });
+                    }
+                } else {
+                    // Regular dropdown population for students
+                    
+                    // Create class options from dashboard and todo data
+                    const classOptions = document.getElementById('class-options');
+                    classOptions.innerHTML = '';
+                    
+                    // Add "All classes" option first
+                    const allClassesOption = document.createElement('div');
+                    allClassesOption.className = 'dropdown-option';
+                    allClassesOption.setAttribute('data-class-id', 'all');
+                    allClassesOption.textContent = 'All classes';
+                    allClassesOption.addEventListener('click', function() {
+                        document.querySelector('.dropdown-select span:first-child').textContent = this.textContent;
+                        document.getElementById('class-options').classList.remove('active');
+                        filterByClass('all');
+                    });
+                    classOptions.appendChild(allClassesOption);
+                    
+                    // Get classes from todo items
+                    const todoItems = [
+                        ...safeData.assigned,
+                        ...safeData.missing,
+                        ...safeData.done,
+                        ...safeData.to_review
+                    ];
+                    
+                    todoItems.forEach(item => {
+                        if (item && item.classroom_id && item.classroom_name) {
+                            if (!allUserClasses.has(item.classroom_id)) {
+                                allUserClasses.set(item.classroom_id, {
+                                    id: item.classroom_id,
+                                    name: item.classroom_name
+                                });
+                            }
+                        }
+                    });
+                    
+                    // Add all classes to the dropdown
+                    console.log(`Adding ${allUserClasses.size} classes to dropdown for student`);
+                    allUserClasses.forEach((classInfo, classId) => {
+                        const option = document.createElement('div');
+                        option.className = 'dropdown-option';
+                        option.setAttribute('data-class-id', classId);
+                        option.textContent = classInfo.name || `Class ${classId}`;
+                        
+                        option.addEventListener('click', function() {
+                            document.querySelector('.dropdown-select span:first-child').textContent = this.textContent;
+                            document.getElementById('class-options').classList.remove('active');
+                            filterByClass(classId);
+                        });
+                        
+                        classOptions.appendChild(option);
+                    });
+                    
+                    // Check for student role items
+                    const hasStudentItems = safeData.assigned.length > 0 || safeData.missing.length > 0 || safeData.done.length > 0;
+                    console.log(`Student section has items: ${hasStudentItems} (assigned: ${safeData.assigned.length}, missing: ${safeData.missing.length}, done: ${safeData.done.length})`);
+                    
+                    // Only show relevant sections based on item presence
+                    if (hasStudentItems) {
+                        console.log('Showing assigned section with student items');
+                        document.getElementById('assigned-section').style.display = 'block';
+                        populateTab('assigned-tab', safeData.assigned);
+                        populateTab('missing-tab', safeData.missing);
+                        populateTab('done-tab', safeData.done);
+                    }
+                    
+                    // Check for review items specifically
+                    const hasToReviewItems = safeData.to_review && safeData.to_review.length > 0;
+                    
+                    if (hasToReviewItems) {
+                        console.log('Showing to-review section with items');
+                        document.getElementById('to-review-section').style.display = 'block';
+                        populateTab('to-review-content', safeData.to_review);
+                    } else {
+                        // Don't show empty to-review section
+                        document.getElementById('to-review-section').style.display = 'none';
+                    }
+                    
+                    // If neither section has items, show the "all caught up" message
+                    if (!hasStudentItems && !hasToReviewItems) {
+                        console.log('No work found, showing "all caught up" message');
+                        document.getElementById('no-work-message').style.display = 'block';
+                    }
+                }
+                
+                // Apply initial filtering only once on page load
+                if (!window.initialFilterApplied) {
+                    console.log('Applying initial filtering');
+                    window.initialFilterApplied = true;
+                    filterByClass('all');
+                }
+                
+            } catch (error) {
+                console.error('Error loading to-do list:', error);
+                
+                // Hide loading spinners
+                document.getElementById('assigned-loading').style.display = 'none';
+                document.getElementById('missing-loading').style.display = 'none';
+                document.getElementById('done-loading').style.display = 'none';
+                document.getElementById('to-review-loading').style.display = 'none';
+                
+                // Show error message
+                const errorMessage = `${error.message || 'Please try again later'}. If this persists, try logging out and logging back in.`;
+                
+                document.getElementById('assigned-content').innerHTML = `
+                    <div class="empty-state">
+                        <h3>Error loading to-do list</h3>
+                        <p>${errorMessage}</p>
+                    </div>
+                `;
+                
+                document.getElementById('missing-content').innerHTML = `
+                    <div class="empty-state">
+                        <h3>Error loading to-do list</h3>
+                        <p>${errorMessage}</p>
+                    </div>
+                `;
+                
+                document.getElementById('done-content').innerHTML = `
+                    <div class="empty-state">
+                        <h3>Error loading to-do list</h3>
+                        <p>${errorMessage}</p>
+                    </div>
+                `;
+                
+                document.getElementById('to-review-content').innerHTML = `
+                    <div class="empty-state">
+                        <h3>Error loading to-do list</h3>
+                        <p>${errorMessage}</p>
+                    </div>
+                `;
+                
+                // Show appropriate sections based on user role when error occurs
+                if (window.isTeacher) {
+                    // For teachers, show the to-review section instead of assigned
+                    document.getElementById('to-review-section').style.display = 'block';
+                    document.getElementById('assigned-section').style.display = 'none';
+                } else {
+                    // For students, show the assigned section
+                    document.getElementById('assigned-section').style.display = 'block';
+                    document.getElementById('to-review-section').style.display = 'none';
+                }
+            }
+        }
+    </script>
+</body>
+</html> 
