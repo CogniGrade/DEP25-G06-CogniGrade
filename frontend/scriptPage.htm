@@ -8,43 +8,71 @@
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
   <style>
-    /* Add or modify existing modal styles */
+    /* Modal Styles */
     .modal {
-      /* Your existing modal styles */
-      z-index: 100; /* Ensure modals appear above other content */
+      display: none;
+      position: fixed;
+      z-index: 100;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+      background-color: rgba(0,0,0,0.4);
+      animation: fadeIn 0.3s ease;
     }
-
+    
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    
     .modal-content {
-      /* Your existing modal content styles */
-      max-height: 80vh; /* Limit height */
-      overflow-y: auto; /* Add scroll if content overflows */
+      background-color: #fff;
+      margin: 8% auto;
+      padding: 24px;
+      border-radius: 12px;
+      width: 80%;
+      max-width: 800px;
+      max-height: 80vh;
+      overflow-y: auto;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+      animation: slideIn 0.3s ease;
     }
-
+    
+    @keyframes slideIn {
+      from { transform: translateY(-20px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+    
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid #eaedf0;
+    }
+    
+    .modal-header h3 {
+      color: #344054;
+      font-size: 18px;
+      margin: 0;
+    }
+    
     .close {
-      /* Your existing close button styles */
-    }
-
-    /* Style for the new view detail buttons */
-    .view-detail-btn {
-      background: none;
-      border: none;
-      color: #488aec; /* Example color */
+      color: #9aa5b1;
+      font-size: 24px;
+      font-weight: bold;
       cursor: pointer;
-      padding: 2px 5px;
-      font-size: 0.9em;
-      margin-left: 5px;
-      vertical-align: middle; /* Align icon nicely with text */
+      transition: color 0.2s ease;
+    }
+    
+    .close:hover {
+      color: #344054;
     }
 
-    .view-detail-btn:hover {
-      color: #366abf; /* Darker hover color */
-    }
-
-    /* Ensure table cells accommodate buttons */
-    .evaluation-table td {
-      vertical-align: middle; /* Align content vertically */
-    }
-    /* Styling for the dropdown container */
+    /* Dropdown and Navigation */
     #doc-dropdown-container {
       text-align: right;
       margin: 20px 20px 10px 20px;
@@ -55,7 +83,6 @@
       border: 1px solid #ccc;
       border-radius: 4px;
     }
-    /* Navigation button styling placed over the viewer-image container */
     .nav-btn {
       position: absolute;
       top: 50%;
@@ -83,21 +110,216 @@
     .right-btn {
       right: 10px;
     }
-    /* Evaluation table styling */
-    .evaluation-table {
-      width: 90%;
-      margin: 20px auto;
-      border-collapse: collapse;
+
+    /* Card Layout */
+    .evaluation-cards {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      margin: 20px;
     }
-    .evaluation-table th,
-    .evaluation-table td {
-      border: 1px solid #ccc;
-      padding: 8px;
+    
+    .card {
+      background-color: #fff;
+      border-radius: 10px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      overflow: hidden;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    
+    .card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(0,0,0,0.12);
+    }
+    
+    /* Tab Navigation */
+    .card-tabs {
+      display: flex;
+      border-bottom: 1px solid #eaedf0;
+      background-color: #fafbfc;
+    }
+    
+    .card-tab {
+      padding: 12px 16px;
+      cursor: pointer;
+      color: #667682;
+      font-weight: 500;
+      font-size: 14px;
+      border-bottom: 2px solid transparent;
+      transition: all 0.2s ease;
+      flex: 1;
       text-align: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
     }
-    .evaluation-table th {
-      background-color: #f0f0f0;
+    
+    .card-tab.active {
+      color: #488aec;
+      border-bottom-color: #488aec;
+      background-color: rgba(72, 138, 236, 0.05);
     }
+    
+    .card-tab:hover:not(.active) {
+      color: #385e9d;
+      background-color: rgba(72, 138, 236, 0.02);
+    }
+    
+    .card-tab .icon {
+      font-size: 14px;
+    }
+    
+    /* Tab Content */
+    .tab-content {
+      display: none;
+      padding: 16px;
+      line-height: 1.5;
+    }
+    
+    .tab-content.active {
+      display: block;
+      animation: fadeIn 0.3s ease;
+    }
+    
+    .tab-content p {
+      color: #4d5a68;
+      font-size: 14px;
+      white-space: pre-wrap;
+      margin: 0;
+    }
+    
+    /* Card Footer */
+    .card-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 16px;
+      background-color: #f8fafc;
+      border-top: 1px solid #eaedf0;
+    }
+    
+    .marks {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .marks-badge {
+      background-color: #488aec;
+      color: white;
+      padding: 4px 8px;
+      border-radius: 16px;
+      font-size: 13px;
+      font-weight: 500;
+    }
+    
+    .marks-label {
+      color: #4d5a68;
+      font-size: 14px;
+    }
+    
+    .post-query-btn {
+      background-color: #488aec;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: background-color 0.2s ease;
+    }
+    
+    .post-query-btn:hover {
+      background-color: #3a75cb;
+    }
+    
+    /* Query Form */
+    #queryText {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #d1d9e2;
+      border-radius: 6px;
+      resize: vertical;
+      min-height: 120px;
+      font-family: 'Poppins', sans-serif;
+      font-size: 14px;
+      margin-bottom: 16px;
+    }
+    
+    #queryText:focus {
+      outline: none;
+      border-color: #488aec;
+      box-shadow: 0 0 0 3px rgba(72, 138, 236, 0.2);
+    }
+    
+    #sendQueryBtn {
+      background-color: #488aec;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 500;
+      transition: background-color 0.2s ease;
+    }
+    
+    #sendQueryBtn:hover {
+      background-color: #3a75cb;
+    }
+    
+    .tag {
+      display: inline-block;
+      background-color: #e9f0fe;
+      color: #488aec;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+      margin-right: 8px;
+      margin-bottom: 8px;
+    }
+    
+    .empty-state {
+      text-align: center;
+      padding: 24px;
+      color: #778490;
+    }
+    
+    h3.section-title {
+      text-align: center;
+      margin: 20px 0;
+      color: #344054;
+      font-size: 20px;
+    }
+
+    /* Image view button style */
+    .view-image-btn {
+      display: inline-flex;
+      align-items: center;
+      background-color: #e9f0fe;
+      color: #488aec;
+      border: none;
+      padding: 4px 10px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 13px;
+      margin-top: 10px;
+      transition: all 0.2s ease;
+    }
+    
+    .view-image-btn:hover {
+      background-color: #d1e3fd;
+      color: #3a75cb;
+    }
+    
+    .view-image-btn i {
+      margin-right: 5px;
+  }
   </style>
 </head>
 <body>
@@ -110,7 +332,7 @@
 
     <!-- Main Content -->
     <main class="content">
-      <!-- Dropdown Container placed below topbar and above viewer banner -->
+      <!-- Dropdown Container -->
       <div id="doc-dropdown-container">
         <select id="docTypeSelect" onchange="loadDocument()">
           <!-- Options will be populated dynamically -->
@@ -119,92 +341,58 @@
 
       <!-- Script Viewer -->
       <div class="viewer-container">
-        <!-- Left side: Viewer Image Container with navigation buttons overlaid -->
         <div class="viewer-image" style="position: relative;">
-          <!-- Container for the injected PDF or image content -->
           <div id="docContent" style="width:100%; height:100%;"></div>
           <button id="prevDocBtn" class="nav-btn left-btn"><i class="fas fa-chevron-left"></i></button>
           <button id="nextDocBtn" class="nav-btn right-btn"><i class="fas fa-chevron-right"></i></button>
         </div>
-
-        <!-- Right side: Text/Notes/Analysis -->
-        <div class="viewer-text">
-          <!-- The extracted text content will be injected here dynamically -->
-        </div>
+        <!-- <div class="viewer-text"></div> -->
       </div>
 
-      <!-- Evaluation Table -->
-      <h3 style="text-align: center;">Question-wise Marks</h3>
-      <table class="evaluation-table">
-        <thead>
-          <tr>
-            <th>Question</th>
-            <th>Marks</th>
-            <th>Reasoning</th>
-            <th>Action</th>
-          </tr>
-        </thead>
-        <tbody id="evaluationBody">
-          <!-- Rows will be populated dynamically -->
-        </tbody>
-      </table>
+      <!-- Evaluation Cards -->
+      <h3 class="section-title">
+        <i class="fas fa-award" style="margin-right: 8px;"></i>
+        Question-wise Evaluation Results
+      </h3>
+      <div id="evaluationCards" class="evaluation-cards"></div>
     </main>
   </div>
 
-  <!-- Modal for Post/Edit Query -->
-  <div id="queryModal" class="modal" style="display:none;">
+  <!-- Query Modal -->
+  <div id="queryModal" class="modal">
     <div class="modal-content">
-      <span class="close" onclick="closeModal()">&times;</span>
-      <h3>Post Your Query</h3>
+      <div class="modal-header">
+        <h3>Post Your Query</h3>
+        <span class="close" onclick="closeModal()">&times;</span>
+      </div>
       <textarea id="queryText" placeholder="Write your query here..."></textarea>
-      <br>
       <button id="sendQueryBtn" onclick="sendQuery()">Send</button>
     </div>
   </div>
 
-  <div id="questionModal" class="modal" style="display:none;">
+  <!-- Detail Modal -->
+  <div id="detailModal" class="modal">
     <div class="modal-content">
-      <span class="close" onclick="closeDetailModal('questionModal')">&times;</span>
-      <h3>Full Question</h3>
-      <div id="fullQuestionText" style="white-space: pre-wrap;"></div> {/* Use pre-wrap to preserve formatting */}
-    </div>
-  </div>
-  
-  <div id="reasoningModal" class="modal" style="display:none;">
-    <div class="modal-content">
-      <span class="close" onclick="closeDetailModal('reasoningModal')">&times;</span>
-      <h3>Grading Reasoning</h3>
-      <div id="fullReasoningText" style="white-space: pre-wrap;"></div> {/* Use pre-wrap */}
+      <div class="modal-header">
+        <h3 id="detailModalTitle">Details</h3>
+        <span class="close" onclick="closeDetailModal()">&times;</span>
+      </div>
+      <div id="detailModalContent" style="white-space: pre-wrap;"></div>
     </div>
   </div>
 
   <!-- JavaScript -->
   <script src="load-components.js"></script>
-  <!-- Marked Library -->
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <script src="authorize.js"></script>
   <script>
-    // Utility: Get query parameter
+    // Utility Functions
     function getQueryParameter(param) {
       const params = new URLSearchParams(window.location.search);
       return params.get(param);
     }
-    
-    // authFetch(`/process-response-text-image/${getQueryParameter('exam_id')}`, {
-    //   method: 'POST',
-    //   headers: { "Content-Type": "application/json" }
-    // })
-    //   .then(res => res.json())
-    //   .then(processData => {
-    //     console.log("Processing complete:", processData);
-    //     alert("Responses processed successfully!");
-    //   })
-    //   .catch(error => {
-    //     console.error("One or more operations failed:", error);
-    //     alert("Processing failed for one or more responses.");
-    //   });
 
-    // Load available document types from backend and populate the dropdown
+      // Document Loading Functions
     function loadAvailableDocuments() {
       const examId = getQueryParameter('exam_id');
       if (!examId) {
@@ -231,8 +419,8 @@
         })
         .catch(error => console.error("Error loading available documents:", error));
     }
+      
 
-    // Load the document details based on the selected option
     function loadDocument() {
       const examId = getQueryParameter('exam_id');
       const select = document.getElementById("docTypeSelect");
@@ -274,8 +462,8 @@
         docContent.appendChild(img);
       }
       
-      const viewerTextContainer = document.querySelector(".viewer-text");
-      viewerTextContainer.innerHTML = marked.parse(doc.extracted_text || "");
+      // const viewerTextContainer = document.querySelector(".viewer-text");
+      // viewerTextContainer.innerHTML = marked.parse(doc.extracted_text || "");
       
       updateNavButtons();
     }
@@ -292,9 +480,188 @@
       nextBtn.disabled = (window.currentDocIndex === window.documents.length - 1);
     }
 
+    // Function to show answer image in modal
+    function viewAnswerImage(questionId, type) {
+      // Here you would normally fetch the image URL for this answer
+      // For demonstration, we'll just show a placeholder modal with a message
+      const title = type === 'correct' ? 'Correct Answer Image' : 'Your Answer Image';
+      const content = `
+            ## ${title}
+            ![${title}](/api/placeholder/600/400)`;
+      
+      openDetailModal(title, content);
+    }
+
+    // Evaluation Data Loading
+    function loadEvaluationData() {
+      const examId = getQueryParameter('exam_id');
+      authFetch(`/student/exam/${examId}/evaluation`)
+        .then(response => response.json())
+        .then(data => {
+          const container = document.getElementById("evaluationCards");
+          container.innerHTML = "";
+          
+          if (!data || data.length === 0) {
+            container.innerHTML = '<div class="empty-state">No evaluation data available</div>';
+            return;
+          }
+          
+          data.forEach(row => {
+            // Create card element
+            const card = document.createElement('div');
+            card.className = 'card';
+            
+            // Card tabs
+            const cardTabs = document.createElement('div');
+            cardTabs.className = 'card-tabs';
+            cardTabs.innerHTML = `
+              <div class="card-tab active" data-tab="question-${row.question_id}" data-card="${row.question_id}">
+                <i class="fas fa-question-circle icon"></i> Question
+              </div>
+              <div class="card-tab" data-tab="correctAnswer-${row.question_id}" data-card="${row.question_id}">
+                <i class="fas fa-check-circle icon"></i> Correct Answer
+              </div>
+              <div class="card-tab" data-tab="reasoning-${row.question_id}" data-card="${row.question_id}">
+                <i class="fas fa-brain icon"></i> Reasoning
+              </div>
+              <div class="card-tab" data-tab="yourAnswer-${row.question_id}" data-card="${row.question_id}">
+                <i class="fas fa-pen-alt icon"></i> Your Answer
+              </div>
+            `;
+            
+            // Card content area with tab contents
+            const cardContent = document.createElement('div');
+            cardContent.className = 'card-content';
+            cardContent.innerHTML = `
+              <div id="question-${row.question_id}" class="tab-content active">
+                <p>${row.full_question_text || 'Question not available'}</p>
+                <div style="text-align: right; margin-top: 8px;">
+                  <span class="tag">Question ID: ${row.question_id}</span>
+                </div>
+              </div>
+              <div id="correctAnswer-${row.question_id}" class="tab-content">
+                <p>${row.correct_answer || 'Correct answer not provided'}</p>
+                <button class="view-image-btn" onclick="viewAnswerImage('${row.question_id}', 'correct')">
+                  <i class="fas fa-image"></i> View Answer Scheme Image
+                </button>
+              </div>
+              <div id="yourAnswer-${row.question_id}" class="tab-content">
+                <p>${row.student_answer || 'No answer provided'}</p>
+                <button class="view-image-btn" onclick="viewAnswerImage('${row.question_id}', 'your')">
+                  <i class="fas fa-image"></i> View Your Answer Image
+                </button>
+              </div>
+              <div id="reasoning-${row.question_id}" class="tab-content">
+                <p>${row.reasoning || 'No reasoning provided'}</p>
+              </div>
+            `;
+            
+            // Card footer
+            const cardFooter = document.createElement('div');
+            cardFooter.className = 'card-footer';
+            cardFooter.innerHTML = `
+              <div class="marks">
+                <span class="marks-badge">${row.marks_obtained || '0'}/${row.max_marks}</span>
+                <span class="marks-label">Marks</span>
+              </div>
+              <button class="post-query-btn" onclick="openModal('${row.question_id}', '${row.query || ''}')">
+                <i class="fas fa-comment-dots"></i> ${row.query ? 'Edit Query' : 'Post Query'}
+              </button>
+            `;
+            
+            // Assemble the card
+            card.appendChild(cardTabs);
+            card.appendChild(cardContent);
+            card.appendChild(cardFooter);
+            
+            // Add the card to the container
+            container.appendChild(card);
+            
+            // Add event listeners for tabs
+            const tabs = card.querySelectorAll('.card-tab');
+            tabs.forEach(tab => {
+              tab.addEventListener('click', function() {
+                const cardId = this.getAttribute('data-card');
+                
+                // Remove active class from all tabs in this card
+                const allCardTabs = document.querySelectorAll(`.card-tab[data-card="${cardId}"]`);
+                allCardTabs.forEach(t => t.classList.remove('active'));
+                
+                // Add active class to clicked tab
+                this.classList.add('active');
+                
+                // Hide all tab contents in this card
+                const cardTabContents = document.querySelectorAll(`[id^="question-${cardId}"], [id^="correctAnswer-${cardId}"], [id^="yourAnswer-${cardId}"], [id^="reasoning-${cardId}"]`);
+                cardTabContents.forEach(content => content.classList.remove('active'));
+                
+                // Show the relevant tab content
+                const tabId = this.getAttribute('data-tab');
+                document.getElementById(tabId).classList.add('active');
+              });
+            });
+          });
+        })
+        .catch(error => console.error("Error loading evaluation data:", error));
+    }
+
+    // Modal Functions
+    let currentQuestion = null;
+
+    function openModal(questionId, existingQuery) {
+      currentQuestion = questionId;
+      document.getElementById("queryText").value = existingQuery || "";
+      document.getElementById("queryModal").style.display = "block";
+    }
+
+    function closeModal() {
+      document.getElementById("queryModal").style.display = "none";
+    }
+    
+    function openDetailModal(title, content) {
+      document.getElementById("detailModalTitle").textContent = title;
+      document.getElementById("detailModalContent").innerHTML = marked.parse(content || "");
+      document.getElementById("detailModal").style.display = "block";
+    }
+    
+    function closeDetailModal() {
+      document.getElementById("detailModal").style.display = "none";
+    }
+
+    function sendQuery() {
+      const query = document.getElementById("queryText").value.trim();
+      if (query === "") {
+        alert("Please write a query before sending.");
+        return;
+      }
+      const examId = getQueryParameter('exam_id');
+      const payload = {
+        question_id: currentQuestion,
+        query: query
+      };
+      authFetch(`/student/exam/${examId}/post-query`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      })
+      .then(response => {
+        if (!response.ok) throw new Error("Failed to post query");
+        return response.json();
+      })
+      .then(data => {
+        alert(data.message);
+        loadEvaluationData();
+        closeModal();
+      })
+      .catch(error => {
+        console.error("Error posting query:", error);
+        alert("Error posting query.");
+      });
+    }
+
+    // Event Listeners
     document.addEventListener("DOMContentLoaded", function() {
       loadAvailableDocuments();
-      loadEvaluationTable();
+      loadEvaluationData();
     });
 
     document.getElementById("prevDocBtn").addEventListener("click", function() {
@@ -311,159 +678,19 @@
       }
     });
 
-    // --- Evaluation Table Functions ---
-    function loadEvaluationTable() {
-      const examId = getQueryParameter('exam_id');
-      authFetch(`/student/exam/${examId}/evaluation`)
-        .then(response => response.json())
-        .then(data => {
-          const tbody = document.getElementById("evaluationBody");
-          tbody.innerHTML = "";
-          data.forEach(row => {
-            const tr = document.createElement("tr");
-
-            // Question Column (truncated text + button)
-            const tdQuestion = document.createElement("td");
-            tdQuestion.textContent = row.text + " "; // Add space before button
-            const viewQuestionBtn = document.createElement("button");
-            viewQuestionBtn.innerHTML = '<i class="fas fa-eye"></i>'; // Example: eye icon
-            viewQuestionBtn.title = "View Full Question";
-            viewQuestionBtn.className = "view-detail-btn"; // Add a class for styling if needed
-            viewQuestionBtn.onclick = function() {
-              openDetailModal('questionModal', 'fullQuestionText', row.full_question_text);
-            };
-            tdQuestion.appendChild(viewQuestionBtn);
-            tr.appendChild(tdQuestion);
-
-            // Marks Column
-            const tdMarks = document.createElement("td");
-            tdMarks.textContent = (row.marks_obtained !== "" ? row.marks_obtained : "0") + "/" + row.max_marks;
-            tr.appendChild(tdMarks);
-
-            // Reasoning Column (button only if reasoning exists)
-            const tdReasoning = document.createElement("td");
-            if (row.reasoning && row.reasoning.trim() !== "") {
-              const viewReasoningBtn = document.createElement("button");
-              viewReasoningBtn.innerHTML = '<i class="fas fa-comment-dots"></i>'; // Example: comment icon
-              viewReasoningBtn.title = "View Reasoning";
-              viewReasoningBtn.className = "view-detail-btn"; // Add a class for styling if needed
-              viewReasoningBtn.onclick = function() {
-                openDetailModal('reasoningModal', 'fullReasoningText', row.reasoning);
-              };
-              tdReasoning.appendChild(viewReasoningBtn);
-            } else {
-              tdReasoning.textContent = "-"; // Indicate no reasoning provided
-            }
-            tr.appendChild(tdReasoning);
-
-
-            // Action Column: Post/Edit Query button
-            const tdAction = document.createElement("td");
-            const btn = document.createElement("button");
-            btn.className = "post-query-btn";
-            btn.id = "query-btn-" + row.question_id;
-            btn.textContent = row.query ? "Edit Query" : "Post Query";
-            btn.onclick = function() {
-              // Pass the existing query text to the modal
-              openModal(row.question_id, row.query);
-            };
-            tdAction.appendChild(btn);
-            tr.appendChild(tdAction);
-
-            tbody.appendChild(tr);
-          });
-        })
-        .catch(error => console.error("Error loading evaluation data:", error));
-    }
-
-    // --- Modal Functions for Viewing Details ---
-    function openDetailModal(modalId, contentElementId, text) {
-      document.getElementById(contentElementId).innerHTML = marked.parse((text || "")); // Use textContent to prevent XSS
-      document.getElementById(modalId).style.display = "block";
-    }
-
-    function closeDetailModal(modalId) {
-      document.getElementById(modalId).style.display = "none";
-      // Optional: Clear the content when closing
-      // if (modalId === 'questionModal') document.getElementById('fullQuestionText').textContent = '';
-      // if (modalId === 'reasoningModal') document.getElementById('fullReasoningText').textContent = '';
-    }
-
-    // --- Existing Modal Functions for Posting Query ---
-    // (Keep your existing openModal, closeModal, sendQuery functions)
-    let currentQuestion = null;
-
-    function openModal(questionId, existingQuery) {
-      currentQuestion = questionId;
-      // Make sure to use the correct ID for the query textarea
-      document.getElementById("queryText").value = existingQuery || "";
-      document.getElementById("queryModal").style.display = "block";
-    }
-
-    function closeModal() { // Ensure this function closes the correct query modal
-      document.getElementById("queryModal").style.display = "none";
-      document.getElementById("queryText").value = "";
-    }
-    // ... (keep sendQuery function) ...
-
-    // Close modals if clicked outside
+    // Close modals when clicking outside
     window.onclick = function(event) {
-      const questionModal = document.getElementById('questionModal');
-      const reasoningModal = document.getElementById('reasoningModal');
-      const queryModal = document.getElementById('queryModal'); // Assuming this is the ID of your query modal
-
-      if (event.target == questionModal) {
-        closeDetailModal('questionModal');
-      } else if (event.target == reasoningModal) {
-        closeDetailModal('reasoningModal');
-      } else if (event.target == queryModal) {
-        closeModal(); // Use the function that closes the query modal
-      }
-    }
-
-    // Make sure the DOMContentLoaded also calls the updated loadEvaluationTable
-    document.addEventListener("DOMContentLoaded", function() {
-        loadAvailableDocuments();
-        loadEvaluationTable(); // Ensure this is called
-    });
-    function sendQuery() {
-      const query = document.getElementById("queryText").value.trim();
-      if (query === "") {
-        alert("Please write a query before sending.");
-        return;
-      }
-      const examId = getQueryParameter('exam_id');
-      const payload = {
-        question_id: currentQuestion,
-        query: query
-      };
-      authFetch(`/student/exam/${examId}/post-query`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify(payload)
-      })
-      .then(response => {
-        if (!response.ok) {
-          throw new Error("Failed to post query");
-        }
-        return response.json();
-      })
-      .then(data => {
-        alert(data.message);
-        // Update the button text for this question to "Edit Query"
-        document.getElementById("query-btn-" + currentQuestion).innerText = "Edit Query";
-        // Optionally, reload the evaluation table to update stored query values
-        loadEvaluationTable();
+      const queryModal = document.getElementById('queryModal');
+      const detailModal = document.getElementById('detailModal');
+      
+      if (event.target == queryModal) {
         closeModal();
-      })
-      .catch(error => {
-        console.error("Error posting query:", error);
-        alert("Error posting query.");
-      });
-    }
+      }
+      
+      if (event.target == detailModal) {
+        closeDetailModal();
+      }
+    };
   </script>
-
 </body>
 </html>

@@ -1,21 +1,31 @@
 /* ===== SCRIPT PAGE ===== */
-.viewer-container {
-    display: flex;
-    max-width: 1200px;
-    height: 80vh;
-    margin: 20px auto;
-    border: 1px solid #ccc;
-    box-shadow: 0 0 10px rgba(0,0,0,0.1);
-    overflow: hidden;
+  /* Update viewer container to use available space */
+  .viewer-container {
+      display: flex;
+      flex: 1; /* Take remaining space */
+      width: 100%; /* Full width */
+      min-height: 600px; /* Minimum height guarantee */
+      max-width: 750px;
+      margin: 20px auto;
+      border: 1px solid #ccc;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      overflow: hidden;
   }
-  
+
+  /* Ensure image container takes full height */
   .viewer-image {
-    flex: 1;
-    overflow-y: auto;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    background-color: #f9f9f9;
+      flex: 1;
+      height: 100%; /* Full height of container */
+      min-height: inherit; /* Inherit min-height */
+      overflow-y: auto;
+      display: flex;
+      background-color: #f9f9f9;
+  }
+
+  /* Explicit height for content wrapper */
+  #docContent {
+      height: 100%;
+      width: 100%;
   }
   
   .viewer-image img {
@@ -25,7 +35,7 @@
     border-radius: 4px;
   }
   
-  .viewer-text {
+  /* .viewer-text {
     flex: 1;
     padding: 20px;
     overflow-y: auto;
@@ -49,7 +59,7 @@
   .viewer-text li {
     margin-bottom: 0.5em;
   }
-  
+   */
   @media (max-width: 768px) {
     .viewer-container {
       flex-direction: column;
