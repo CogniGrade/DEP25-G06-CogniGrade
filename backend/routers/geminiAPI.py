@@ -116,9 +116,9 @@ async def upload_and_extract(
             else:
                 existing = None
 
-            if existing and existing.extracted_text:
-                results.append({"filename": file.filename, "text": existing.extracted_text})
-                continue
+            # if existing and existing.extracted_text:
+            #     results.append({"filename": file.filename, "text": existing.extracted_text})
+            #     continue
 
             result = await db.execute(select(Question).where(Question.exam_id == exam_id))
             questions = result.scalars().all()

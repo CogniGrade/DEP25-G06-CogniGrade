@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Reprocess Questions</title>
+    <style>
+        body { padding: 20px; font-family: Arial, sans-serif; }
+        button { padding: 10px 20px; background: #4CAF50; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        button:hover { background: #45a049; }
+        #status { margin-top: 15px; color: #666; }
+    </style>
+</head>
+<body>
+    <h2>Question Paper Reprocessing</h2>
+    <button onclick="startReprocessing()">Start Reprocessing</button>
+    <div id="status"></div>
+    <script src="authorize.js"></script>
+    <script>
+        function getExamId() {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get('exam_id');
+        }
+
+        async function reExtractText(examId) {
+            const response = await authFetch(`/exams/${examId}/files`);
+            const filesData = await response.json();
+            
+            const questionFiles = filesData.materials
+                .filter(m => m.file_type === 'question_paper');
+
+            const formData = new FormData();
+            formData.append('exam_id', examId);
+            formData.append('file_type', 'question_paper');
+
+            for (const file of questionFiles) {
+                const fileResponse = await fetch(`/api/${file.file_path.replace('./', '')}`);
+                const blob = await fileResponse.blob();
+                const fileObj = new File([blob], file.filename, { type: blob.type });
+                formData.append('files', fileObj);
+            }
+
+            const data = await authFetch('/extract-text', {
+                method: 'POST',
+                body: formData
+            });
+
+            console.log('Text extraction response        1:', data.text);
+        }
+
+        async function updateQuestions(examId) {
+            // Get extracted text
+            try {
+                const response = await authFetch(`/student/exam/${examId}/document/question_paper`);
+                const questionPaper = await response.json();
+                if (!questionPaper || !questionPaper.extracted_text) {
+                console.log("No question papers found to process");
+                return;
+                }
+                const extractedText = questionPaper.extracted_text;
+                console.log('Text extraction response       2 :', extractedText);
+                // Get existing questions
+                const questionsResponse = await authFetch(`/exams/${examId}/questions/all`);
+                const existingQuestions = await questionsResponse.json();
+
+                // Split text into questions using regex
+                const questionPattern = /(?:\*\*)?Question(?:\s*Number)?(?:\*\*)?\s*(?:[:\-]\s*)?(\d+)(\([a-z]\))?(?:\*\*)?\s*([\s\S]*?)(?=(?:\*\*)?Question(?:\s*Number)?(?:\*\*)?\s*(?:[:\-]\s*)?\d+(?:\([a-z]\))?(?:\*\*)?|$)/g;
+                let match;
+                const parsedQuestions = {};
+                while ((match = questionPattern.exec(extractedText)) !== null) {
+                    const questionNumber = match[1];
+                    const text = match[3].trim();
+                    parsedQuestions[questionNumber] = text;
+                }
+
+                for (const question of existingQuestions) {
+                    console.log("Question: ", question.question_number, " Text: ", parsedQuestions[question.question_number]);
+                    if (parsedQuestions[question.question_number]) {
+                        const updateResponse = await authFetch(`/exams/${examId}/questions/${question.id}`, {
+                            method: "PATCH",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ text: parsedQuestions[question.question_number] })
+                        });
+                        if (!updateResponse.ok) {
+                            console.error(`Failed to update question ${question.question_number}`);
+                        }
+                    }
+                }
+                console.log("Question papers processed and questions updated");
+            } catch (error) {
+                console.error("Error processing question papers:", error);
+                throw new Error("Failed to process question papers");
+            }
+        }
+
+        async function startReprocessing() {
+            const examId = getExamId();
+            if (!examId) return alert('Missing exam_id in URL');
+            
+            try {
+                document.getElementById('status').textContent = 'Re-extracting text...';
+                await reExtractText(examId);
+                
+                document.getElementById('status').textContent = 'Updating questions...';
+                await updateQuestions(examId);
+                
+                document.getElementById('status').textContent = 'Successfully updated all questions!';
+            } catch (error) {
+                document.getElementById('status').textContent = `Error: ${error.message}`;
+            }
+        }
+    </script>
+</body>
+</html>
