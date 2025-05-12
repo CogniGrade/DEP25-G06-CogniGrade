@@ -186,6 +186,7 @@ Extraction Task
 2) Preserve verbatim: spacing, bullets, numbering style, arrows, algebraic notation, code blocks, annotations, and any explicit mark numbers.
 3) Skip any strikethrough or scribbled-out text. Ignore non-question text (headings, page numbers, general instructions).
 4) If the document contains both printed questions and handwritten answers, focus solely on extracting the printed questions.
+5) Give output in Markdown Format, do not use JSON formatting.
 
 Output Structure
 ---
@@ -198,7 +199,8 @@ If Q has parts, nest them under Q:
     Part Q.b  (Add Partial Marks - n if available)
     <exact text of sub-question b>
     ...
----"""
+---
+"""
             elif file_type_enum == FileTypeEnum.answer_sheet:
                 prompt = """
 Task: Your only job is to extract the handwritten answer sections(messy handwriting, handwritten code possible) written by a student, preserving formatting, layout, code spacing, arrows, bullet points, and linking annotations.
@@ -217,6 +219,7 @@ Example - "Question Number - 1(a)" if a question is labelled as 1 and has a subp
 8. Recheck the extracted answer to ensure it is the exact same as the student's answer, and that it is not missing any part of the answer. If you find any missing part, add it to the extracted answer.
 9. In case of any objective question, look for ticks or circles marking the selected option, which should be then extracted.
 10. Pay attention to boxes, lines, etc while formatting handwritten answer.
+11. Give output in Markdown Format, do not use JSON formatting.
 """
             elif file_type_enum in [FileTypeEnum.solution_script, FileTypeEnum.marking_scheme]:
 #                 prompt = """
@@ -261,6 +264,7 @@ Extraction Instructions:
 4. Do not alter content—no corrections, just copy formatting verbatim.
 5. Skip any strikethrough or scribbled-out text (and their marks).
 6. Ignore any extraneous text not directly part of a solution or its marks.
+7) Give output in Markdown Format, do not use JSON formatting.
 
 Output format for each extracted question:
 ---
@@ -278,7 +282,7 @@ If Q has parts, nest them under Q:
             model = get_model()
             response = await asyncio.to_thread(model.generate_content, (sample_file, prompt))
             extracted_text = response.text if response.text else "No text extracted."
-
+            
             if existing:
                 existing.extracted_text = extracted_text
                 await db.commit()
@@ -738,7 +742,7 @@ Reason: Some Text"""]
         response = await asyncio.to_thread(model.generate_content, prompt_content)
         result_text = response.text
         
-        print("Question Num: ", question.question_number, "\nAns: ", result_text)
+        # print("Question Num: ", question.question_number, "\nAns: ", result_text)
         
         grade = None
         reason = ""
@@ -949,7 +953,7 @@ Separate each question with a blank line.
                 model.generate_content,
                 [f for (_, f) in uploaded] + [prompt]
             )
-            print("Response: ", response.text)
+            # print("Response: ", response.text)
         except Exception as e:
             logger.error(f"LLM call failed: {e}", exc_info=True)
             return {}

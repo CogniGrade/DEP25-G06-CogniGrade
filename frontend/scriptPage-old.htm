@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Script Viewer</title>
+  <link rel="stylesheet" href="student-styles.css" />
+  <link rel="stylesheet" href="professor-styles.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <style>
+    /* Add or modify existing modal styles */
+    .modal {
+      /* Your existing modal styles */
+      z-index: 100; /* Ensure modals appear above other content */
+    }
+
+    .modal-content {
+      /* Your existing modal content styles */
+      max-height: 80vh; /* Limit height */
+      overflow-y: auto; /* Add scroll if content overflows */
+    }
+
+    .close {
+      /* Your existing close button styles */
+    }
+
+    /* Style for the new view detail buttons */
+    .view-detail-btn {
+      background: none;
+      border: none;
+      color: #488aec; /* Example color */
+      cursor: pointer;
+      padding: 2px 5px;
+      font-size: 0.9em;
+      margin-left: 5px;
+      vertical-align: middle; /* Align icon nicely with text */
+    }
+
+    .view-detail-btn:hover {
+      color: #366abf; /* Darker hover color */
+    }
+
+    /* Ensure table cells accommodate buttons */
+    .evaluation-table td {
+      vertical-align: middle; /* Align content vertically */
+    }
+    /* Styling for the dropdown container */
+    #doc-dropdown-container {
+      text-align: right;
+      margin: 20px 20px 10px 20px;
+    }
+    #doc-dropdown-container select {
+      padding: 8px 12px;
+      font-size: 16px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    /* Navigation button styling placed over the viewer-image container */
+    .nav-btn {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      background-color: rgba(72,138,236,0.8);
+      color: #fff;
+      border: none;
+      padding: 10px;
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 1.5rem;
+      transition: background-color 0.3s ease;
+      z-index: 10;
+    }
+    .nav-btn:hover:not(:disabled) {
+      background-color: rgba(56,114,198,0.9);
+    }
+    .nav-btn:disabled {
+      background-color: #ccc;
+      cursor: not-allowed;
+    }
+    .left-btn {
+      left: 10px;
+    }
+    .right-btn {
+      right: 10px;
+    }
+    /* Evaluation table styling */
+    .evaluation-table {
+      width: 90%;
+      margin: 20px auto;
+      border-collapse: collapse;
+    }
+    .evaluation-table th,
+    .evaluation-table td {
+      border: 1px solid #ccc;
+      padding: 8px;
+      text-align: center;
+    }
+    .evaluation-table th {
+      background-color: #f0f0f0;
+    }
+  </style>
+</head>
+<body>
+  <!-- Topbar -->
+  <div id="topbar-container"></div>
+  
+  <div class="dashboard-container">
+    <!-- Sidebar -->
+    <div id="sidebar-container"></div>  
+
+    <!-- Main Content -->
+    <main class="content">
+      <!-- Dropdown Container placed below topbar and above viewer banner -->
+      <div id="doc-dropdown-container">
+        <select id="docTypeSelect" onchange="loadDocument()">
+          <!-- Options will be populated dynamically -->
+        </select>
+      </div>
+
+      <!-- Script Viewer -->
+      <div class="viewer-container">
+        <!-- Left side: Viewer Image Container with navigation buttons overlaid -->
+        <div class="viewer-image" style="position: relative;">
+          <!-- Container for the injected PDF or image content -->
+          <div id="docContent" style="width:100%; height:100%;"></div>
+          <button id="prevDocBtn" class="nav-btn left-btn"><i class="fas fa-chevron-left"></i></button>
+          <button id="nextDocBtn" class="nav-btn right-btn"><i class="fas fa-chevron-right"></i></button>
+        </div>
+
+        <!-- Right side: Text/Notes/Analysis -->
+        <div class="viewer-text">
+          <!-- The extracted text content will be injected here dynamically -->
+        </div>
+      </div>
+
+      <!-- Evaluation Table -->
+      <h3 style="text-align: center;">Question-wise Marks</h3>
+      <table class="evaluation-table">
+        <thead>
+          <tr>
+            <th>Question</th>
+            <th>Marks</th>
+            <th>Reasoning</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody id="evaluationBody">
+          <!-- Rows will be populated dynamically -->
+        </tbody>
+      </table>
+    </main>
+  </div>
+
+  <!-- Modal for Post/Edit Query -->
+  <div id="queryModal" class="modal" style="display:none;">
+    <div class="modal-content">
+      <span class="close" onclick="closeModal()">&times;</span>
+      <h3>Post Your Query</h3>
+      <textarea id="queryText" placeholder="Write your query here..."></textarea>
+      <br>
+      <button id="sendQueryBtn" onclick="sendQuery()">Send</button>
+    </div>
+  </div>
+
+  <div id="questionModal" class="modal" style="display:none;">
+    <div class="modal-content">
+      <span class="close" onclick="closeDetailModal('questionModal')">&times;</span>
+      <h3>Full Question</h3>
+      <div id="fullQuestionText" style="white-space: pre-wrap;"></div> {/* Use pre-wrap to preserve formatting */}
+    </div>
+  </div>
+  
+  <div id="reasoningModal" class="modal" style="display:none;">
+    <div class="modal-content">
+      <span class="close" onclick="closeDetailModal('reasoningModal')">&times;</span>
+      <h3>Grading Reasoning</h3>
+      <div id="fullReasoningText" style="white-space: pre-wrap;"></div> {/* Use pre-wrap */}
+    </div>
+  </div>
+
+  <!-- JavaScript -->
+  <script src="load-components.js"></script>
+  <!-- Marked Library -->
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script src="authorize.js"></script>
+  <script>
+    // Utility: Get query parameter
+    function getQueryParameter(param) {
+      const params = new URLSearchParams(window.location.search);
+      return params.get(param);
+    }
+    
+    // authFetch(`/process-response-text-image/${getQueryParameter('exam_id')}`, {
+    //   method: 'POST',
+    //   headers: { "Content-Type": "application/json" }
+    // })
+    //   .then(res => res.json())
+    //   .then(processData => {
+    //     console.log("Processing complete:", processData);
+    //     alert("Responses processed successfully!");
+    //   })
+    //   .catch(error => {
+    //     console.error("One or more operations failed:", error);
+    //     alert("Processing failed for one or more responses.");
+    //   });
+
+    // Load available document types from backend and populate the dropdown
+    function loadAvailableDocuments() {
+      const examId = getQueryParameter('exam_id');
+      if (!examId) {
+        console.error("Exam ID not found in URL");
+        return;
+      }
+      authFetch(`/student/exam/${examId}/available-documents`)
+        .then(response => response.json())
+        .then(data => {
+          const select = document.getElementById("docTypeSelect");
+          select.innerHTML = "";
+          for (const option in data) {
+            const opt = document.createElement("option");
+            opt.value = option;
+            opt.text = option.replace(/-/g, " ");
+            select.appendChild(opt);
+          }
+          if (data["answer_script"]) {
+            select.value = "answer_script";
+          } else {
+            select.selectedIndex = 0;
+          }
+          loadDocument();
+        })
+        .catch(error => console.error("Error loading available documents:", error));
+    }
+
+    // Load the document details based on the selected option
+    function loadDocument() {
+      const examId = getQueryParameter('exam_id');
+      const select = document.getElementById("docTypeSelect");
+      const docType = select.value;
+      authFetch(`/student/exam/${examId}/document/${encodeURIComponent(docType)}`)
+        .then(response => {
+          if (!response.ok) throw new Error("Document not found");
+          return response.json();
+        })
+        .then(data => {
+          let docs = data.documents ? data.documents : [data];
+          window.documents = docs;
+          window.currentDocIndex = 0;
+          updateViewerContent();
+        })
+        .catch(error => console.error("Error loading document:", error));
+    }
+
+    function updateViewerContent() {
+      if (!window.documents || window.documents.length === 0) return;
+      const doc = window.documents[window.currentDocIndex];
+      const docContent = document.getElementById("docContent");
+      docContent.innerHTML = "";
+      
+      let isPdf = doc.file_path && doc.file_path.toLowerCase().endsWith(".pdf");
+      
+      if (isPdf) {
+        const iframe = document.createElement("iframe");
+        iframe.src = "/api/" + doc.file_path.replace("./", "");
+        iframe.style.width = "100%";
+        iframe.style.height = "100%";
+        iframe.style.border = "none";
+        iframe.style.zIndex = "1";
+        docContent.appendChild(iframe);
+      } else {
+        const img = document.createElement("img");
+        img.src = "/api/" + doc.file_path.replace("./", "");
+        img.alt = "Document Preview";
+        docContent.appendChild(img);
+      }
+      
+      const viewerTextContainer = document.querySelector(".viewer-text");
+      viewerTextContainer.innerHTML = marked.parse(doc.extracted_text || "");
+      
+      updateNavButtons();
+    }
+
+    function updateNavButtons() {
+      const prevBtn = document.getElementById("prevDocBtn");
+      const nextBtn = document.getElementById("nextDocBtn");
+      if (!window.documents || window.documents.length === 0) {
+        prevBtn.disabled = true;
+        nextBtn.disabled = true;
+        return;
+      }
+      prevBtn.disabled = (window.currentDocIndex === 0);
+      nextBtn.disabled = (window.currentDocIndex === window.documents.length - 1);
+    }
+
+    document.addEventListener("DOMContentLoaded", function() {
+      loadAvailableDocuments();
+      loadEvaluationTable();
+    });
+
+    document.getElementById("prevDocBtn").addEventListener("click", function() {
+      if (window.documents && window.documents.length > 0 && window.currentDocIndex > 0) {
+        window.currentDocIndex--;
+        updateViewerContent();
+      }
+    });
+
+    document.getElementById("nextDocBtn").addEventListener("click", function() {
+      if (window.documents && window.documents.length > 0 && window.currentDocIndex < window.documents.length - 1) {
+        window.currentDocIndex++;
+        updateViewerContent();
+      }
+    });
+
+    // --- Evaluation Table Functions ---
+    function loadEvaluationTable() {
+      const examId = getQueryParameter('exam_id');
+      authFetch(`/student/exam/${examId}/evaluation`)
+        .then(response => response.json())
+        .then(data => {
+          const tbody = document.getElementById("evaluationBody");
+          tbody.innerHTML = "";
+          data.forEach(row => {
+            const tr = document.createElement("tr");
+
+            // Question Column (truncated text + button)
+            const tdQuestion = document.createElement("td");
+            tdQuestion.textContent = row.text + " "; // Add space before button
+            const viewQuestionBtn = document.createElement("button");
+            viewQuestionBtn.innerHTML = '<i class="fas fa-eye"></i>'; // Example: eye icon
+            viewQuestionBtn.title = "View Full Question";
+            viewQuestionBtn.className = "view-detail-btn"; // Add a class for styling if needed
+            viewQuestionBtn.onclick = function() {
+              openDetailModal('questionModal', 'fullQuestionText', row.full_question_text);
+            };
+            tdQuestion.appendChild(viewQuestionBtn);
+            tr.appendChild(tdQuestion);
+
+            // Marks Column
+            const tdMarks = document.createElement("td");
+            tdMarks.textContent = (row.marks_obtained !== "" ? row.marks_obtained : "0") + "/" + row.max_marks;
+            tr.appendChild(tdMarks);
+
+            // Reasoning Column (button only if reasoning exists)
+            const tdReasoning = document.createElement("td");
+            if (row.reasoning && row.reasoning.trim() !== "") {
+              const viewReasoningBtn = document.createElement("button");
+              viewReasoningBtn.innerHTML = '<i class="fas fa-comment-dots"></i>'; // Example: comment icon
+              viewReasoningBtn.title = "View Reasoning";
+              viewReasoningBtn.className = "view-detail-btn"; // Add a class for styling if needed
+              viewReasoningBtn.onclick = function() {
+                openDetailModal('reasoningModal', 'fullReasoningText', row.reasoning);
+              };
+              tdReasoning.appendChild(viewReasoningBtn);
+            } else {
+              tdReasoning.textContent = "-"; // Indicate no reasoning provided
+            }
+            tr.appendChild(tdReasoning);
+
+
+            // Action Column: Post/Edit Query button
+            const tdAction = document.createElement("td");
+            const btn = document.createElement("button");
+            btn.className = "post-query-btn";
+            btn.id = "query-btn-" + row.question_id;
+            btn.textContent = row.query ? "Edit Query" : "Post Query";
+            btn.onclick = function() {
+              // Pass the existing query text to the modal
+              openModal(row.question_id, row.query);
+            };
+            tdAction.appendChild(btn);
+            tr.appendChild(tdAction);
+
+            tbody.appendChild(tr);
+          });
+        })
+        .catch(error => console.error("Error loading evaluation data:", error));
+    }
+
+    // --- Modal Functions for Viewing Details ---
+    function openDetailModal(modalId, contentElementId, text) {
+      document.getElementById(contentElementId).innerHTML = marked.parse((text || "")); // Use textContent to prevent XSS
+      document.getElementById(modalId).style.display = "block";
+    }
+
+    function closeDetailModal(modalId) {
+      document.getElementById(modalId).style.display = "none";
+      // Optional: Clear the content when closing
+      // if (modalId === 'questionModal') document.getElementById('fullQuestionText').textContent = '';
+      // if (modalId === 'reasoningModal') document.getElementById('fullReasoningText').textContent = '';
+    }
+
+    // --- Existing Modal Functions for Posting Query ---
+    // (Keep your existing openModal, closeModal, sendQuery functions)
+    let currentQuestion = null;
+
+    function openModal(questionId, existingQuery) {
+      currentQuestion = questionId;
+      // Make sure to use the correct ID for the query textarea
+      document.getElementById("queryText").value = existingQuery || "";
+      document.getElementById("queryModal").style.display = "block";
+    }
+
+    function closeModal() { // Ensure this function closes the correct query modal
+      document.getElementById("queryModal").style.display = "none";
+      document.getElementById("queryText").value = "";
+    }
+    // ... (keep sendQuery function) ...
+
+    // Close modals if clicked outside
+    window.onclick = function(event) {
+      const questionModal = document.getElementById('questionModal');
+      const reasoningModal = document.getElementById('reasoningModal');
+      const queryModal = document.getElementById('queryModal'); // Assuming this is the ID of your query modal
+
+      if (event.target == questionModal) {
+        closeDetailModal('questionModal');
+      } else if (event.target == reasoningModal) {
+        closeDetailModal('reasoningModal');
+      } else if (event.target == queryModal) {
+        closeModal(); // Use the function that closes the query modal
+      }
+    }
+
+    // Make sure the DOMContentLoaded also calls the updated loadEvaluationTable
+    document.addEventListener("DOMContentLoaded", function() {
+        loadAvailableDocuments();
+        loadEvaluationTable(); // Ensure this is called
+    });
+    function sendQuery() {
+      const query = document.getElementById("queryText").value.trim();
+      if (query === "") {
+        alert("Please write a query before sending.");
+        return;
+      }
+      const examId = getQueryParameter('exam_id');
+      const payload = {
+        question_id: currentQuestion,
+        query: query
+      };
+      authFetch(`/student/exam/${examId}/post-query`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(payload)
+      })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error("Failed to post query");
+        }
+        return response.json();
+      })
+      .then(data => {
+        alert(data.message);
+        // Update the button text for this question to "Edit Query"
+        document.getElementById("query-btn-" + currentQuestion).innerText = "Edit Query";
+        // Optionally, reload the evaluation table to update stored query values
+        loadEvaluationTable();
+        closeModal();
+      })
+      .catch(error => {
+        console.error("Error posting query:", error);
+        alert("Error posting query.");
+      });
+    }
+  </script>
+
+</body>
+</html>

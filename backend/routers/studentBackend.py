@@ -8,6 +8,7 @@ from backend.models.files import Material, AnswerScript, FileTypeEnum
 from backend.utils.security import get_current_user_required
 from backend.models.tables import QuestionResponse, Question  # Ensure Question is imported
 import re
+import json
 router = APIRouter(prefix="/student", tags=["studentBackend"])
 
 @router.get("/exam/{exam_id}/available-documents")
@@ -158,40 +159,62 @@ async def get_exam_evaluation(
     Also returns the marks obtained (if any) and any query raised.
     """
     pattern = re.compile(r"Max(?:imum)?\s*Marks\s*(?:[:\-]\s*)?\d+", re.IGNORECASE)
+    
+    # Fetch questions for the exam
     result = await db.execute(
         select(Question)
         .where(Question.exam_id == exam_id)
         .order_by(Question.question_number)
     )
     questions = result.scalars().all()
+
+    # Fetch student responses for these questions
+    result = await db.execute(
+        select(QuestionResponse)
+        .where(
+            QuestionResponse.question_id.in_([q.id for q in questions]),
+            QuestionResponse.student_id == current_user.id
+        )
+    )
+    responses = result.scalars().all()
+    response_dict = {r.question_id: r for r in responses}
+
     evaluation = []
     for q in questions:
-        result = await db.execute(select(QuestionResponse).where(
-            QuestionResponse.question_id == q.id,
-            QuestionResponse.student_id == current_user.id
-        ))
-        response = result.scalars().first()
+        response = response_dict.get(q.id)
         marks_obtained = response.marks_obtained if response and response.marks_obtained is not None else ""
         query_text = response.query if response and response.query else ""
-        # Remove "Max(imum) Marks" substring
+        
+        # Clean and format question text
         clean_text = re.sub(pattern, "", q.text).strip()
-        # Remove markdown formatting
-        clean_text = strip_markdown(clean_text)
-        # Prepend the question number in the format "QX) "
         full_text = f"Q{q.question_number}) " + clean_text
-        # Truncate to 50 characters if needed
         truncated_text = full_text if len(full_text) <= 50 else full_text[:50] + "..."
         reasoning_text = response.reasoning if response and response.reasoning else ""
-        
+
+        # Parse correct answer images from Question table
+        ms_table_images = json.loads(q.ms_table_images) if q.ms_table_images else []
+        ms_diagram_images = json.loads(q.ms_diagram_images) if q.ms_diagram_images else []
+        correct_answer_images = ms_table_images + ms_diagram_images
+
+        # Parse student answer images from QuestionResponse table
+        ans_table_images = json.loads(response.ans_table_images) if response and response.ans_table_images else []
+        ans_diagram_images = json.loads(response.ans_diagram_images) if response and response.ans_diagram_images else []
+        student_answer_images = ans_table_images + ans_diagram_images
+
+        # Build evaluation entry
         evaluation.append({
             "question_id": q.id,
             "question_number": q.question_number,
-            "text": truncated_text, # Keep truncated text for the main display
-            "full_question_text": q.text, # Add the full question text
+            "text": truncated_text,
+            "full_question_text": full_text,
             "max_marks": q.max_marks,
             "marks_obtained": marks_obtained,
-            "reasoning": reasoning_text, # Add the reasoning text
-            "query": query_text
+            "reasoning": reasoning_text,
+            "query": query_text,
+            "correct_answer": q.ideal_marking_scheme,
+            "correct_answer_images": correct_answer_images,
+            "student_answer": response.answer_text if response else "",
+            "student_answer_images": student_answer_images
         })
     return evaluation
 
