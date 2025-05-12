@@ -360,7 +360,7 @@
 </head>
 <body>
   <div id="topbar-container"></div>
-  <div class="settings-container">
+  <div class="dashboard-container">
     <div id="sidebar-container"></div>
     <main class="content">
       <h1>Settings</h1>
@@ -584,7 +584,7 @@
             const initials = getInitials(data.user.full_name);
             profileImg.src = generateAvatar(initials);
           } else {
-            profileImg.src = "../" + data.user.profile_picture.replace("./", "");
+            profileImg.src = "/api/" + data.user.profile_picture.replace("./", "");
           }
 
           profileImg.alt = "Profile Picture";
