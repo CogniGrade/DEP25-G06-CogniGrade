@@ -398,7 +398,7 @@ h1 {
 }
 
 /* Logo and Branding */
-.logo-container {
+/* .logo-container {
     display: flex;
     align-items: center;
     gap: 8px;
@@ -407,8 +407,20 @@ h1 {
 .logo {
     height: 36px;
     border-radius: 8px;
+} */
+.logo {
+    font-family: 'Poppins', serif;
+    font-weight: 600;
+    font-size: 1.7rem;
+    color: #212ff3;
+    display: flex;
+    align-items: center;
+    letter-spacing: 1px;
 }
-
+.logo i {
+    margin-right: 10px;
+    color: #212ff3;
+}
 .brand-name {
     font-family: 'Poppins', sans-serif;
     font-weight: 700;
