@@ -7,13 +7,32 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
   <link rel="stylesheet" href="professor-styles.css">
   <link rel="stylesheet" href="crop-edit.css">
+  <style>
+     #earlyAccessMsg{
+      display:none;
+      flex-direction: column;
+      height:100%;
+      width:100%;
+      justify-content: center;
+      /* transform: translate(-50%, -50%); */
+      text-align: center;
+      font-family: 'Poppins', sans-serif;
+    }
+    #earlyAccessMsg h2{
+      margin-bottom: 5;
+    }
+  </style tyle>
 </head>
 <body>
   <div id="topbar-container"></div>
   <div class="dashboard-container">
     <div id="sidebar-container"></div>
     <main class="content">
-      <div class="container"> 
+      <section id = "earlyAccessMsg">
+        <h2>Answer Sheet Not Yet Available</h2>
+        <p>The professor has not uploaded your answer sheet yet. Kindly check back later.</p>
+      </section>
+      <div class="container" id="container"> 
         <div id="top-controls">
            
             <div class="control-group">
@@ -82,8 +101,17 @@
       const examId = getQueryParam('exam_id');
       await fetchExamStage();
       console.log("Current Exam Stage:", currentStage);
-
-      await initialise_crop_edit(examId);    
+      if(currentStage < 7){
+        console.log("HEY");
+        document.getElementById("earlyAccessMsg").style.display = "flex";
+        document.getElementById("container").style.display = "none";
+      }
+      else{
+        console.log("NO");
+        document.getElementById("earlyAccessMsg").style.display = "none";
+        document.getElementById("container").style.display = "flex";
+        await initialise_crop_edit(examId);      
+      }
     });
   </script>
   <script src = "crop-edit.js"></script>

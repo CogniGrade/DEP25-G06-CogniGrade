@@ -412,22 +412,22 @@ async function saveAllChanges(examId) {
 
     try {
         // Show loading state
-        const saveBtn = document.getElementById('save-all-btn');
+        const saveBtn = document.getElementById('questionLabelsDone');
         const originalBtnText = saveBtn.innerHTML;
         saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
         saveBtn.disabled = true;
 
         // Send updates to backend
         const response = await authFetch(`/exams/${examId}/questions/parts`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ updates })
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ updates })
         });
 
         if (!response.ok) {
-        throw new Error(`Failed to save changes (${response.status})`);
+            throw new Error(`Failed to save changes (${response.status})`);
         }
 
         showAlert('All changes saved successfully!', 'success');

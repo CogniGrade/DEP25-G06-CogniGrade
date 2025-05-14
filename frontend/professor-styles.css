@@ -348,7 +348,7 @@ h1 {
 
 .content > section.active {
     display: block;
-    flex: 1; /* Takes remaining height after other elements like back-button-container */
+    /* flex: 1; Takes remaining height after other elements like back-button-container */
 }
 
 

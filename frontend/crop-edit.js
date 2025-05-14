@@ -144,7 +144,7 @@ async function initialise_crop_edit(examId){
     //   });
     // });
   
-  }
+}
 
 function openEditOrderModal() {
     const modal = document.getElementById("edit-modal");
@@ -826,6 +826,10 @@ function loadImageFromDataUrl(dataUrl) {
 }
 
 async function handleSubmit(examId){
+  const submitBtn = document.getElementById('submit-btn');
+  const originalBtnText = submitBtn.innerHTML;        
+  submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
+  submitBtn.disabled = true;
   // Process each question response before sending.
   const processedResponses = await Promise.all(
     questionResponses.map(async (response, idx) => {
@@ -909,16 +913,25 @@ async function handleSubmit(examId){
       );
       await procRes.json();
       alert("Responses submitted and processed successfully!");
-
+      
       await postExamStage(7); // Update the exam stage to 7 (Grading Started)
-
+      
+      submitBtn.innerHTML = originalBtnText;
+      submitBtn.disabled = false;
+      
       window.location.href = `scriptPage.htm?exam_id=${examId}`;
     } catch(err) {
       console.error("Processing/Extraction error:", err);
       alert("Processing/Extraction of text from individual question images failed.");
+
+      submitBtn.innerHTML = originalBtnText;
+      submitBtn.disabled = false;
     }
   } else {
     // Dropdown mode: skip processing step
     alert("Responses submitted successfully!");
+    submitBtn.innerHTML = originalBtnText;
+    submitBtn.disabled = false;
   }
+  
 }

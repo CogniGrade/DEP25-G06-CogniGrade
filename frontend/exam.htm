@@ -22,7 +22,8 @@
 
     /* General Upload Section Styles */
     .upload-section {
-      flex: 1;
+      display: none;
+      /* flex: 1; */
       margin: 20px 0;
       padding: 20px;
       border: 1px solid #ddd;
@@ -462,7 +463,7 @@
     }
 
     .button-row {
-      display: flex;
+      display: none; 
       justify-content: flex-end;
       gap: 10px;
       margin: 20px 0 0 0;
@@ -673,7 +674,7 @@
 
 
       <!-- STEP 4: show marking + solution side-by-side -->
-      <div id="final-upload-section" style="display:none; display:flex; gap:20px;">
+      <div id="final-upload-section" style="display:none; gap:20px;">
         <section class="upload-section" id="upload-marking">
           <h2>Upload Marking Scheme</h2>
           <!-- your existing marking upload HTML here -->
@@ -712,6 +713,11 @@
             </button>
           </div>
         </section>
+        <section class="submission-message" id = "submitMsg">
+          <h1>Congratulations!</h1>
+          <p>Exam submitted, Automatic Grading will begin once students annotate their answer scripts.</p>
+        </section>
+        
       </div>
       <div class="button-row" id="final-process-row" style="justify-content:flex-end; display:none;">
         <button class="btn-submit" id="finalProcessBtn">Process</button>
@@ -1114,8 +1120,10 @@
       }
 
       const submitBtn = document.getElementById("submitBtn");
+      
+      const originalBtnText = submitBtn.innerHTML;        
       submitBtn.disabled = true;
-      submitBtn.innerText = "Processing...";
+      submitBtn.innerHTML = "<i class='fas fa-spinner fa-spin'></i> Processing...";
 
       try {
         // Function to check if section has extracted text
@@ -1166,7 +1174,7 @@
         alert("An error occurred during processing: " + err.message);
       } finally {
         submitBtn.disabled = false;
-        submitBtn.innerText = "Submit";
+        submitBtn.innerHTML = originalBtnText;
       }
     }
     // Process question paper files: extract and store questions
@@ -2201,7 +2209,7 @@
     const uploadStudent = document.getElementById('upload-student');
     const finalBtnRow = document.getElementById('finalBtnRow');
     const backBtn = document.getElementById('backBtn');
-
+    const submitMsg = document.getElementById('submitMsg');
  
     async function setStage(stage) {
         const examId = getQueryParam('exam_id');
@@ -2226,6 +2234,7 @@
         uploadStudent.style.display = 'none';
         finalBtnRow.style.display = 'none';
         backBtn.style.display = 'none';
+        submitMsg.style.display = 'none';
 
         const originalContainer = document.querySelector('.back-button-container');
 
@@ -2270,17 +2279,7 @@
             backBtn.style.display = 'block';
             uploadStudent.classList.add('active');
         } else if (stage === 6) {
-            document.getElementById('upload-student').style.display = "none";
-            document.getElementById('finalBtnRow').style.display = "none";
-
-            // 2) Inject a full-screen, centered message
-            const msg = document.createElement('div');
-            msg.className = 'submission-message';
-            msg.innerHTML = `
-              <h1>Congratulations!</h1>
-              <p>Exam submitted, Automatic Grading will begin once students annotate their answer scripts.</p>
-            `;
-            document.querySelector(".content").appendChild(msg);
+            submitMsg.style.display = "flex";
             backBtn.style.display = 'block';  
         } else if (stage >= 7) {
             window.location.href = `exam-stats.htm?exam_id=${examId}`;
@@ -2334,7 +2333,7 @@
           return;
         }
         await loadQuestions(examId);
-        document.getElementById('save-all-btn').addEventListener('click', () => saveAllChanges(examId));
+        // document.getElementById('save-all-btn').addEventListener('click', () => saveAllChanges(examId));
         saveAllFiles();
         await setStage(1);
       } catch (err) {
@@ -2347,6 +2346,7 @@
     });
 
     document.getElementById('questionLabelsDone').addEventListener('click', async () => {
+      await saveAllChanges(getQueryParam('exam_id'))
       await setStage(2);
     });
 
