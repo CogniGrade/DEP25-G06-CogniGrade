@@ -57,7 +57,7 @@ app.include_router(studentEdit.router)  # <-- Added new studentEdit endpoints
 app.include_router(user_routes.router)  # <-- Added new user endpoints
 @app.get("/")
 async def root(request: Request):
-    return JSONResponse({"message": "Welcome to the Institute Classroom Portal API. Please login."})
+    return RedirectResponse(url="/static/login.htm")
 
 @app.get("/health")
 async def health_check():
