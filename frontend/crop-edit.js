@@ -314,9 +314,7 @@ function renderPage(page) {
 function startSelection(event) {
   isSelecting = true;
   regionSelections.forEach(region => {
-    if(region.partSelect) region.partSelect.style.pointerEvents = 'none';
-    region.selectEl.style.pointerEvents = 'none';
-    region.deleteButton.style.pointerEvents = 'none';
+    region.partSelect.style.pointerEvents = 'none';
   });
   currentOverlay = event.currentTarget;
   if (cutMode === 'box') {
@@ -355,12 +353,6 @@ function updateSelection(event) {
     currentSelectionBox.style.width = width + 'px';
     currentSelectionBox.style.height = height + 'px';
     currentBoxRect = { minX, minY, width, height };
-  } else if (cutMode === 'freehand') {
-    const freehandCanvas = currentOverlay.querySelector('.freehand-canvas');
-    const ctx = freehandCanvas.getContext('2d');
-    ctx.lineTo(event.offsetX, event.offsetY);
-    ctx.stroke();
-    pathPoints.push({ x: event.offsetX, y: event.offsetY });
   }
 }
 
@@ -368,7 +360,7 @@ function endSelection() {
   if (!isSelecting) return;
   isSelecting = false;
   regionSelections.forEach(region => {
-    if(region.partSelect) region.partSelect.style.pointerEvents = 'auto';
+    region.partSelect.style.pointerEvents = 'auto';
     region.selectEl.style.pointerEvents = 'auto';
     region.deleteButton.style.pointerEvents = 'auto';
   });
@@ -518,9 +510,7 @@ function addRegionSelection(regionRect, dataURL, overlay, type, freehandData) {
   }
 
   marker.style.pointerEvents = 'none';
-  selectEl.style.pointerEvents = 'auto';
-  deleteBtn.style.pointerEvents = 'auto';
-
+  
   overlay.appendChild(marker);
   regionSelections.push({
     regionId,

@@ -4,49 +4,71 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Cognigrade Login</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="login-styles.css">
-  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+  
 </head>
 <body>
-  <section class="left-section">
-    <h1 class="brand-name" style="font-family: 'Playfair Display', serif; font-style: italic; font-weight: 400;">COGNIGRADE</h1>
-  </section>
-  <section class="right-section">
-    <div class="login-container">
-      <div class="email-login">
-        <h2 style="font-size: 3rem;">Log In</h2>
-        <p style="font-size: 0.8rem;">Don't have an account? <a href="signup.htm">Sign Up</a></p>
-        <form id="loginForm">
-          <input type="email" id="email" name="email" placeholder="Enter your email" required autocomplete="email" style="text-align: center;">
-          <input type="password" id="password" name="password" placeholder="Enter your password" required autocomplete="current-password" style="text-align: center;">
-          <div class="options-container">
-            <div class="checkbox-remember">
-              <input type="checkbox" id="remember" name="remember" />
-              <label for="remember">Remember me</label>
-            </div>
-            <a href="reset-password.htm" class="forgot-password">Forgot Password?</a>
+  <div class="login-wrapper">
+    <section class="left-section">
+      <div class="brand-container">
+        <div class="logo">
+          <div class="logo-icon">
+            <i class="fas fa-graduation-cap"></i>
           </div>
-          <div id="error-message" class="error-message"></div>
-          <button type="submit">Sign in with Email</button>
-        </form>
+          <h1 class="brand-name">CogniGrade</h1>
+          <p class="tagline">Elevate your learning experience</p>
+        </div>
       </div>
-      <span>or</span>
-      <div class="social-login" role="group" aria-label="More login options">
-        <button onclick="window.location.href='/login/google'" class="google-btn">
-          <img src="google-logo.png" alt="Google">
-          Sign in with Google
-        </button>
+    </section>
+    <section class="right-section">
+      <div class="login-container">
+        <div class="email-login">
+          <h2>Welcome Back</h2>
+          <p class="subtitle">Don't have an account? <a href="signup.htm">Sign Up</a></p>
+          <form id="loginForm">
+            <div class="input-group">
+              <input type="email" id="email" name="email" placeholder="Email address" required autocomplete="email">
+              <i class="fas fa-envelope input-icon"></i>
+            </div>
+            <div class="input-group">
+              <input type="password" id="password" name="password" placeholder="Password" required autocomplete="current-password">
+              <i class="fas fa-lock input-icon"></i>
+            </div>
+            <div class="options-container">
+              <div class="checkbox-remember">
+                <div class="checkbox-container">
+                  <input type="checkbox" id="remember" name="remember">
+                  <label for="remember">Remember me</label>
+                </div>
+              </div>
+              <a href="reset-password.htm" class="forgot-password">Forgot Password?</a>
+            </div>
+            <div id="error-message" class="error-message"></div>
+            <button type="submit" class="primary-btn">Sign in</button>
+          </form>
+        </div>
+        <div class="divider">
+          <span>or continue with</span>
+        </div>
+        <div class="social-login" role="group" aria-label="More login options">
+          <button onclick="window.location.href='/api/login/google'" class="google-btn">
+            <img src="google-logo.png" alt="Google">
+            Google
+          </button>
+        </div>
       </div>
-    </div>
-    <footer>
-      <a href="#">Terms of Use</a> | <a href="#">Privacy Policy</a>
-    </footer>
-  </section>
+      <footer>
+        <a href="#">Terms of Use</a> | <a href="#">Privacy Policy</a>
+      </footer>
+    </section>
+  </div>
+  <script src="authorize.js"></script>
   <script>
-    
     document.addEventListener("visibilitychange", function() {
       if (document.visibilityState === "visible") {
-        fetch("/check-session")
+        authFetch("/check-session")
           .then(response => {
             if (response.ok) {
               // User is logged in, redirect to dashboard
@@ -66,7 +88,7 @@
       const errorMessage = document.getElementById('error-message');
       errorMessage.textContent = '';
       try {
-        const response = await fetch("/login", {
+        const response = await authFetch("/login", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ email, password, remember })
@@ -83,6 +105,5 @@
       }  
     });
   </script>
-
 </body>
 </html>
