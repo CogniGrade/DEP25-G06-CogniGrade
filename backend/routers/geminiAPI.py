@@ -164,64 +164,39 @@ async def upload_and_extract(
             with open(file_location, "wb") as f:
                 f.write(await file.read())
 
-            logger.info(f"Uploading {file.filename} to Gemini...")
-
             print(leaf_labels)
             # Upload file to Gemini AI.
             sample_file = genai.upload_file(path=file_location, display_name=file.filename)
 
             # Build prompt based on file type.
             if file_type_enum == FileTypeEnum.question_paper:
-                logger.info("Question Paper detected.")
-#                 prompt = """
-# Task: Extract the printed questions from the provided document. Also, label each extracted question with its maximum marks if mentioned.
+                prompt = """
+Task: Extract the printed questions from the provided document. Also, label each extracted question with its maximum marks if mentioned.
 
-# Instructions:
-# 1. Ensure that every complete printed question present in the document is extracted.
-# 2. Question Labeling:
-#     - Question Labeling: Label as "Question Number - X Max Marks - Y" (visible) or "Question Number - [X] Max Marks - Y" (unclear/absent/expected), where X is the Question Number, and Y is the marks for that question. For subparts, label as "Question Number - X(subpart)". Extract all answers even with duplicate question numbers.
-#     Example - "Question Number - 1(a) Max Marks - 10" if a question is labelled as 1 and has a subpart (a), and maximum marks of 10.
+Instructions:
+1. Ensure that every complete printed question present in the document is extracted.
+2. Question Labeling:
+    - Question Labeling: Label as "Question Number : X, Max Marks : Y" (visible) or "Question Number : [X] Max Marks - Y" (unclear/absent/expected), where X is the Question Number, and Y is the marks for that question. For subparts, label as "Question Number - X(subpart)". Extract all answers even with duplicate question numbers.
+    Example - "Question Number : 1(a), Max Marks : 10" if a question is labelled as 1 and has a subpart (a), and maximum marks of 10.
     
-#     - Two or more questions can have the same Question Number, extract as is, do not skip any question.
-#     (a) Part 1...
-#     (b) Part 2..." and so on.
+    - Two or more questions can have the same Question Number, extract as is, do not skip any question.
+    (a) Part 1...
+    (b) Part 2..." and so on.
 
-# 3. Max marks for any question can be inferred by looking up the marks distribution scheme in the instructions section of the question paper, or if explicitly mentioned beside the question)
-# 4. After the Question Labels, the actual question text should be extracted.
-# 5. If the document contains both printed questions and handwritten answers, focus solely on extracting the printed questions.
-# 6. Do not extract any printed text that is not part of any question (e.g., instructions, headings, page numbers).
-# """
-                prompt = f"""You are given a document containing printed exam questions and a list of reference labels
-{leaf_labels}
-- each in the form Question.Part.Subpart. Your job is to extract every question (and its sub-parts) matching these labels, preserving all formatting, layout cues, and any mark allocations.
-
-Extraction Task
-
-1) Locate each question (and sub-part) in the document by matching against the given labels as closely as possible.
-2) Preserve verbatim: spacing, bullets, numbering style, arrows, algebraic notation, code blocks, annotations, and any explicit mark numbers.
-3) Skip any strikethrough or scribbled-out text. Ignore non-question text (headings, page numbers, general instructions).
-4) If the document contains both printed questions and handwritten answers, focus solely on extracting the printed questions.
-
-Output Structure
----
-For each top-level question Q:
-    Question Number - Q  Max Marks - M
-
-If Q has parts, nest them under Q:
-    Part Q.a  (Add Partial Marks - m if available)
-    <exact text of sub-question a>
-    Part Q.b  (Add Partial Marks - n if available)
-    <exact text of sub-question b>
-    ...
----"""
+3. Max marks for any question can be inferred by looking up the marks distribution scheme in the instructions section of the question paper, or if explicitly mentioned beside the question)
+4. After the Question Labels, the actual question text should be extracted.
+5. If the document contains both printed questions and handwritten answers, focus solely on extracting the printed questions.
+6. Do not extract any printed text that is not part of any question (e.g., instructions, headings, page numbers).
+"""
+                
             elif file_type_enum == FileTypeEnum.answer_sheet:
                 prompt = """
 Task: Your only job is to extract the handwritten answer sections(messy handwriting, handwritten code possible) written by a student, preserving formatting, layout, code spacing, arrows, bullet points, and linking annotations.
 Do not correct student's answer. Don't change the student's answer at all. Do not answer the question yourself.
 Instructions:
 1. **Extract All Answers:** Ensure every complete handwritten answer is extracted. Very importantly, do not yourself correct any question.
-2. Question Labeling: Label as "Question Number - X" (visible) or "Question Number - [X]" (unclear/absent/expected), where X is the Question Number. For subparts, label as "Question Number - X(subpart)". Extract all answers even with duplicate question numbers.
-Example - "Question Number - 1(a)" if a question is labelled as 1 and has a subpart (a).
+2. Question Labeling: Label as "Question Number: X" (visible) or "Question Number: [X]" (unclear/absent/expected), where X is the Question Number. For subparts, label as "Question Number - X(subpart)". Extract all answers even with duplicate question numbers.
+Example - "Question Number : 1(a)" if a question is labelled as 1 and has a subpart (a).
 3. **Completion Questions:**
     - **Identify Initial Part:** For completion questions ("Complete...", "Fill in..."), find the provided initial answer. Look for three dots "...", blanks "___" or other visual cues.
     - **Concatenate:** Combine the initial part with the student's completion, preserving formatting.
@@ -234,61 +209,28 @@ Example - "Question Number - 1(a)" if a question is labelled as 1 and has a subp
 10. Pay attention to boxes, lines, etc while formatting handwritten answer.
 """
             elif file_type_enum in [FileTypeEnum.solution_script, FileTypeEnum.marking_scheme]:
-#                 prompt = """
-# Task: Extract solution/marking scheme sections with associated marks, preserving formatting, layout, code spacing, arrows, bullet points, and linking annotations.
+                prompt = """
+Task: Extract solution/marking scheme sections with associated marks, preserving formatting, layout, code spacing, arrows, bullet points, and linking annotations.
 
-# Context: Analyze solution scripts or marking schemes (handwritten possible). Sections may include question numbers, or full question texts also, along with mark allocations. Extract all solutions/marking points and their marks, handling non-sequential links and specific format instructions.
+Context: Analyze solution scripts or marking schemes (handwritten possible). Sections may include question numbers, or full question texts also, along with mark allocations. Extract all solutions/marking points and their marks, handling non-sequential links and specific format instructions.
 
-# Instructions:
+Instructions:
 
-# 1. **Extract All with Marks:** Extract every complete solution/marking point. If marks are explicitly mentioned for any part, extract that mark information and associate it. Review layout to ensure all sections and their marks are captured and correctly labeled.
+1. **Extract All with Marks:** Extract every complete solution/marking point. If marks are explicitly mentioned for any part, extract that mark information and associate it. Review layout to ensure all sections and their marks are captured and correctly labeled.
 
-# 2. **Understand Question Context:** Read the question number or full question alongside each solution. Understand the context and any format instructions within the question to guide extraction.
+2. **Understand Question Context:** Read the question number or full question alongside each solution. Understand the context and any format instructions within the question to guide extraction.
 
-# 3. **Labeling (Including Marks):**
-#     - Label with "Question Number - X" if clear, where X is the Question Number.
-#     - Label with "Question Number - [X]" if unclear or absent, where X is the Question Number.
-#     - Two or more questions can have the same Question Number, extract as is, do not skip any question's answer.
-# 4. **Differentiate and Associate Marks:** Use spatial cues and markers to identify distinct solution sections and their corresponding marks.
+3. **Labeling (Including Marks):**
+    - Label with "Question Number: X" if clear, where X is the Question Number.
+    - Label with "Question Number : [X]" if unclear or absent, where X is the Question Number.
+    - Two or more questions can have the same Question Number, extract as is, do not skip any question's answer.
+4. **Differentiate and Associate Marks:** Use spatial cues and markers to identify distinct solution sections and their corresponding marks.
 
-# 5. **Formatting:** Preserve original structure and formatting, including mark placements. Do not correct content.
+5. **Formatting:** Preserve original structure and formatting, including mark placements. Do not correct content.
 
-# 6. **Ignore Struck-Out Content:** Omit any strikethrough or scribbled content, including marks.
+6. **Ignore Struck-Out Content:** Omit any strikethrough or scribbled content, including marks.
 
-# 7. **Ignore Irrelevant Text:** Extract only solution content and associated marks directly related to questions.
-# """
-                prompt = f"""You are given a marking scheme/solution script from which you have to extract text.
-                The structure of the marking scheme should roughly follow the following questions and parts hierarchy:
-{leaf_labels}
-
-The labels are given in the format Question.Part.Subpart, that is, the parent questions are separated from their children by points '.'. 
-
-Task:
-  Using these given labels as reference, locate and extract the solution or marking-scheme section—complete with its mark allocation, as well as possile. Preserve:
-  - original formatting (spacing, bullets, arrows, code blocks, annotations)
-  - layout and spatial cues
-  - any explicit mark numbers
-
-Extraction Instructions:
-1. Group Question.parts under a single Question
-2. If marks are mentioned, capture them and associate them with the exact text.
-3. Retain any question context you see (e.g. “Question Number - X”).
-4. Do not alter content—no corrections, just copy formatting verbatim.
-5. Skip any strikethrough or scribbled-out text (and their marks).
-6. Ignore any extraneous text not directly part of a solution or its marks.
-
-Output format for each extracted question:
----
-For each top-level question Q:
-    Question Number - Q  Max Marks - M
-If Q has parts, nest them under Q:
-    Part Q.a  (Add Partial Marks - m if available)
-    <exact text of sub-question a>
-    Part Q.b  (Add Partial Marks - n if available)
-    <exact text of sub-question b>
-    ...
----
-
+7. **Ignore Irrelevant Text:** Extract only solution content and associated marks directly related to questions.
 """
             # Use the selected model (and corresponding API key) to generate content.
             response = get_model().generate_content((sample_file, prompt))
@@ -629,171 +571,6 @@ Reason: Some Text"""
     except Exception as e:
         logger.error(f"Error in grade_question: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Error grading question: {str(e)}")
-    
-
-@router.post("/grade-question-with-diagram")
-async def grade_question_with_diagram(
-    request: dict,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user_required)
-):
-    print("diagram grade")
-    try:
-        # Extract data from the request payload.
-        ideal_answer = request.get("ideal_answer")
-        marking_scheme = request.get("marking_scheme")
-        exam_id = request.get("exam_id")
-        student_id = request.get("student_id")
-        question_id = request.get("question_id")
-        
-        qr = db.query(QuestionResponse).filter(
-            QuestionResponse.question_id == question_id,
-            QuestionResponse.student_id == student_id
-        ).first()
-        student_answer = qr.answer_text if qr else None
-        ans_table_images = json.loads(qr.ans_table_images) if (qr and qr.ans_table_images) else None
-        ans_diagram_images = json.loads(qr.ans_diagram_images) if (qr and qr.ans_diagram_images) else None
-
-        
-        # print(student_answer, ans_table_images, ans_diagram_images, ideal_answer, marking_scheme) 
-        if (not student_answer and len(ans_table_images) == 0 and len(ans_diagram_images) == 0):# or (not ideal_answer and not marking_scheme):
-            raise HTTPException(status_code=400, detail="Missing required parameters. Provide student_answer and at least one of ideal_answer or marking_scheme.")
-        
-        async def upload_file(entry):
-            try:
-                uploaded_file = await asyncio.to_thread(
-                    genai.upload_file,
-                    path=entry,
-                    display_name=os.path.basename(entry)
-                )
-                print(f"Successfully uploaded: {entry} -> {uploaded_file.name}")
-                return entry, uploaded_file
-            except Exception as e:
-                logger.error(f"Error uploading file {entry['img_path']}: {str(e)}", exc_info=True)
-                return None
-
-        tasks = [upload_file(table) for table in ans_table_images] + [upload_file(diagram) for diagram in ans_diagram_images]
-        results = await asyncio.gather(*tasks, return_exceptions=True)
-        uploaded_files = [(entry, uploaded_file) for entry, uploaded_file in results if entry is not None]
-        # Fetch the particular question from the database.
-        question = db.query(Question).filter(
-            Question.id == question_id,
-            Question.exam_id == exam_id
-        ).first()
-        ms_table_images = json.loads(question.ms_table_images) if (question and question.ms_table_images) else None
-        ms_diagram_images = json.loads(question.ms_diagram_images) if (question and question.ms_diagram_images) else None
-        
-        if not question:
-            raise HTTPException(status_code=404, detail="Question not found.")
-        
-        def check_image_presence(diagram_images, table_images):
-            image_present = True
-            table_present = False
-            diagram_present = False
-            if diagram_images and table_images and (len(diagram_images) * len(table_images)) != 0:
-                diagram_present = True
-                table_present = True
-            elif diagram_images and (len(diagram_images) != 0):
-                diagram_present = True
-            elif table_images and (len(table_images) != 0):
-                table_present = True
-            else:
-                image_present = False
-            return image_present, table_present, diagram_present
-
-        ans_image_present, ans_table_present, ans_diagram_present = check_image_presence(ans_diagram_images, ans_table_images)
-        ms_image_present, ms_table_present, ms_diagram_present = check_image_presence(ms_diagram_images, ms_table_images)
-
-        
-        # Build the prompt based on available data.
-        if (marking_scheme or ms_image_present) and ideal_answer:
-            prompt_content = [f"""Question: {question.text}
-
-This is the correct marking scheme: {f'{marking_scheme}, with' if marking_scheme else "look at"} {f" the attached {'diagrams and tables' if ms_diagram_present and ms_table_present else 'diagrams' if ms_diagram_present else 'table' if ms_table_present else ''}" if ms_image_present else ""}"""] + [f for (_, f) in uploaded_files] + [f"""
-
-Ideal Answer: {ideal_answer}
-
-Grade the following student answer: {f'{student_answer}, with' if student_answer else "look at"} {f" the attached {'diagrams and tables' if ans_diagram_present and ans_table_present else 'diagrams' if ans_diagram_present else 'table' if ans_table_present else ''}" if ans_image_present else ""}"""] + [f for (_, f) in uploaded_files] + [f"""
-Maximum Marks Possible: {question.max_marks}.
-Output Format:
-Grade: X
-Reason: Some Text"""]
-        elif (marking_scheme or ms_image_present):
-            prompt_content = [f"""Question: {question.text}
-
-This is the correct marking scheme: {f'{marking_scheme}, with' if marking_scheme else "look at"} {f" the attached {'diagrams and tables' if ms_diagram_present and ms_table_present else 'diagrams' if ms_diagram_present else 'table' if ms_table_present else ''}" if ms_image_present else ""}"""] + [f for (_, f) in uploaded_files] + [f"""
-
-Grade the following student answer: {f'{student_answer}, with' if student_answer else "look at"} {f" the attached {'diagrams and tables' if ans_diagram_present and ans_table_present else 'diagrams' if ans_diagram_present else 'table' if ans_table_present else ''}" if ans_image_present else ""}"""] + [f for (_, f) in uploaded_files] + [f"""
-
-Maximum Marks Possible: {question.max_marks}.
-Output Format:
-Grade: X
-Reason: Some Text"""]
-        elif ideal_answer:
-            prompt_content = [f"""Question: {question.text}
-
-Ideal Answer: {ideal_answer}
-
-Grade the following student answer: {f'{student_answer}, with' if student_answer else "look at"} {f" the attached {'diagrams and tables' if ans_diagram_present and ans_table_present else 'diagrams' if ans_diagram_present else 'table' if ans_table_present else ''}" if ans_image_present else ""}"""] + [f for (_, f) in uploaded_files] + [f"""
-
-Maximum Marks Possible: {question.max_marks}.
-Output Format:
-Grade: X/{question.max_marks}, where X is the marks secured.
-Reason: Some Text"""]
-        else:
-            prompt_content = [f"""Question: {question.text}
-
-Grade the following student answer: {f'{student_answer}, with' if student_answer else "look at"} {f" the attached {'diagrams and tables' if ans_diagram_present and ans_table_present else 'diagrams' if ans_diagram_present else 'table' if ans_table_present else ''}" if ans_image_present else ""}"""] + [f for (_, f) in uploaded_files] + [f"""
-
-Maximum Marks Possible: {question.max_marks}.
-Output Format:
-Grade: X/{question.max_marks}, where X is the marks secured.
-Reason: Some Text"""]
-
-        # print(prompt_content)
-        # Use the selected model (and corresponding API key) to generate content.
-        response = get_model().generate_content(prompt_content)
-        result_text = response.text
-        
-        print("Question Num: ", question.question_number, "\nAns: ", result_text)
-        
-        # Parse the API response.
-        grade = None
-        reason = ""
-        if "Grade:" in result_text:
-            grade_line = [line for line in result_text.split('\n') if "Grade:" in line][0]
-            grade_str = grade_line.split("Grade:")[1].strip()
-            try:
-                fraction = grade_str.split()[0]
-                numerator = fraction.split('/')[0]
-                grade = float(numerator)
-            except ValueError:
-                pass
-
-        if "Reason:" in result_text:
-            reason_parts = result_text.split("Reason:")
-            if len(reason_parts) > 1:
-                reason = reason_parts[1].strip()
-        if grade is not None and (grade < 0 or grade > question.max_marks):
-            grade = None
-        
-        # Update or create the corresponding QuestionResponse record.
-        if question_id and student_id and exam_id and grade is not None:
-            existing_response = db.query(QuestionResponse).filter(
-                QuestionResponse.question_id == question_id,
-                QuestionResponse.student_id == student_id
-            ).first()
-            if existing_response:
-                existing_response.marks_obtained = grade
-                existing_response.reasoning = reason
-                db.commit()
-            # Optionally, create a new response record if one does not exist.
-        
-        return {"grade": grade, "reasoning": reason, "raw_response": result_text}
-        
-    except Exception as e:
-        logger.error(f"Error in grade_question: {str(e)}", exc_info=True)
-        raise HTTPException(status_code=500, detail=f"Error grading question: {str(e)}")
 
 ## USED IN RE-EVALUATE PARTICULAR ANSWER
 async def extract_single_answer_text(
@@ -959,12 +736,12 @@ Task: Each image shows a student’s handwritten answer with its Question Number
 4) Return:
 
 Question Number [question_number]
-Answer: [text]          ← if no sub-parts
+Answer - [text]          ← if no sub-parts
 
 —or—
 
-Question Number [question_number]
-Part: [part_label] - Answer: [text]
+Question Number [question_number] -
+Part - [part_label] , Answer - [text]
 ...
 
 Separate each question with a blank line.
@@ -1125,14 +902,14 @@ Each image has a unique key.
 
 Your task is to extract and clearly structure the marking scheme details from each image.
 For each image, follow this format strictly:
-Key: <key>
+Key- <key>
 [Extracted marking scheme details here]
 
 If the marking scheme includes multiple criteria or parts, list each one on a new line using the format:
 Key: <key>
-Question Number [Question Number] - [extracted text]
-Part: [part number] - Details: [extracted text]
-Part: [part number] - Details: [extracted text]
+Question Number [Question Number] : [extracted text]
+Part: [part number] , Details: [extracted text]
+Part: [part number] , Details: [extracted text]
 ...
 
 If the image contains a single cohesive marking scheme, simply output the full details under the key.
@@ -1244,7 +1021,7 @@ async def grade_exam(
         }
 
         # 4) call into your existing grading logic
-        grade_res = await grade_question_with_diagram(req, db, current_user)
+        grade_res = await grade_question(req, db, current_user)
 
         results.append({
             "question_number": question.question_number,

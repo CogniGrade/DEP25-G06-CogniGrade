@@ -11,7 +11,7 @@ from backend.models.users import User
 from backend.utils.security import get_current_user_required
 
 # Import the external grading function from your geminiAPI module.
-from backend.routers.geminiAPI import grade_question, grade_question_with_diagram, extract_single_answer_text
+from backend.routers.geminiAPI import grade_question, extract_single_answer_text
 
 import re
 
@@ -281,7 +281,7 @@ async def send_for_reevaluation(
         "question_id": question_id,
     }, db, current_user)
     # Call grade_question directly.
-    result = await grade_question_with_diagram({
+    result = await grade_question({
         "exam_id": exam_id,
         "student_id": student_id,
         "question_id": question_id,
