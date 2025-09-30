@@ -1,7 +1,6 @@
 # App
 
-Cognigrade App - Automated Handwritten Answer Script Grading for Schools & Colleges
-
+Cognigrade App - Automated Handwritten Answer Script Grading for Schools & College
 Techstack - Python FastAPI, SQLite3, JavaScript, HTML, CSS
 Team Members - Hemlata Gautam, Ankush Naskar, Ashish Gupta, Deepanshu Garg
 
@@ -23,5 +22,6 @@ How to run:
 2) python -m uvicorn backend.main:app
 
 Go to URL http://127.0.0.1:8000/ (or as indicated in command line)
+
 
 
