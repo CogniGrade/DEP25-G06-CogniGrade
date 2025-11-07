@@ -10,7 +10,7 @@
   <link rel="stylesheet" href="crop-edit.css" />
   <!-- <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin> -->
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
     integrity="sha512-9usAa10IRO0HhonpyAIVpjrylPvoDwiPUiKdWk5t3PyolY1cOd4DSE0Ga+ri4AuTroPR5aQvXU9xC6qOPnzFeg=="
     crossorigin="anonymous" referrerpolicy="no-referrer" />
@@ -22,7 +22,6 @@
 
     /* General Upload Section Styles */
     .upload-section {
-      display: none;
       /* flex: 1; */
       margin: 20px 0;
       padding: 20px;
@@ -462,7 +461,7 @@
       background-color: #c0392b;
     }
 
-    .button-row {
+    /* .button-row {
       display: none; 
       justify-content: flex-end;
       gap: 10px;
@@ -478,7 +477,7 @@
       transition: background-color 0.3s ease;
       display: inline-flex;
       align-items: center;
-    }
+    } */
 
     /* Save Files Button - green theme */
     .btn-save {
@@ -502,13 +501,14 @@
 
     /* Submit Button - blue theme */
     .btn-submit {
-      background-color: #008CBA;
-      color: white;
+      /* background-color: #008CBA;
+      color: white; */
+      font-size:17px;
     }
 
-    .btn-submit:hover {
+    /* .btn-submit:hover {
       background-color: #007bb5;
-    }
+    } */
 
 
     
@@ -712,13 +712,9 @@
               EXTRACT TEXT
             </button>
           </div>
-        </section>
-        <section class="submission-message" id = "submitMsg">
-          <h1>Congratulations!</h1>
-          <p>Exam submitted, Automatic Grading will begin once students annotate their answer scripts.</p>
-        </section>
-        
+        </section>       
       </div>
+
       <div class="button-row" id="final-process-row" style="justify-content:flex-end; display:none;">
         <button class="btn-submit" id="finalProcessBtn">Process</button>
       </div>
@@ -747,6 +743,11 @@
         <button id="submitBtn" class="btn-submit" onclick="submitExam()">Submit</button>
       </div>
       
+  
+      <section class="submission-message" id = "submitMsg">
+        <h1>Congratulations!</h1>
+        <p>Exam submitted, Automatic Grading will begin once students annotate their answer scripts.</p>
+      </section>
       
 
     </main>
@@ -2250,7 +2251,7 @@
             backBtn.style.display = 'block';
             partLabelSection.classList.add('active');
         } else if (stage === 2) {
-            finalUploadSection.style.display = 'flex';
+            finalUploadSection.style.display = 'block';
             finalProcessRow.style.display = 'flex';
             backBtn.style.display = 'block';
             finalUploadSection.classList.add('active');

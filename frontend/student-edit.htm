@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>Student-Edit | AutoGrade</title>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
   <link rel="stylesheet" href="professor-styles.css">
   <link rel="stylesheet" href="crop-edit.css">
@@ -21,7 +21,7 @@
     #earlyAccessMsg h2{
       margin-bottom: 5;
     }
-  </style tyle>
+  </style>
 </head>
 <body>
   <div id="topbar-container"></div>
@@ -101,16 +101,30 @@
       const examId = getQueryParam('exam_id');
       await fetchExamStage();
       console.log("Current Exam Stage:", currentStage);
-      if(currentStage < 7){
+      if(currentStage < 6){
         console.log("HEY");
         document.getElementById("earlyAccessMsg").style.display = "flex";
         document.getElementById("container").style.display = "none";
       }
-      else{
-        console.log("NO");
+      else
+      {
+        const res = await authFetch(`/exams/${examId}/submission_status`);
+        if (!res.ok) {
+          alert("Could not fetch status", await res.text());
+          return;
+        }
+        const { status } = await res.json();
+        console.log("Submission Status:", status);
         document.getElementById("earlyAccessMsg").style.display = "none";
-        document.getElementById("container").style.display = "flex";
-        await initialise_crop_edit(examId);      
+        if(status == "pending"){
+          document.getElementById("container").style.display = "flex";
+          await initialise_crop_edit(examId);      
+        }else if(status == "graded"){
+          window.location.href = `scriptPage.htm?exam_id=${examId}`;
+        }else{
+          alert("Invalid submission status");
+          return;
+        }
       }
     });
   </script>

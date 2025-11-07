@@ -191,7 +191,7 @@ Extraction Task
 Output Structure
 ---
 For each top-level question Q:
-    Question Number - Q  Max Marks - M
+    Question Number - Q
 
 If Q has parts, nest them under Q:
     Part Q.a  (Add Partial Marks - m if available)
@@ -260,11 +260,12 @@ Task:
 Extraction Instructions:
 1. Group Question.parts under a single Question
 2. If marks are mentioned, capture them and associate them with the exact text.
-3. Retain any question context you see (e.g. “Question Number - X”).
+3. Retain any question number you see (e.g. “Question Number - X”).
 4. Do not alter content—no corrections, just copy formatting verbatim.
 5. Skip any strikethrough or scribbled-out text (and their marks).
 6. Ignore any extraneous text not directly part of a solution or its marks.
-7) Give output in Markdown Format, do not use JSON formatting.
+7. Focus solely on extracting the marking-scheme/solutions. Do not extract any question text even if it is present in the document.
+8. Give output in Markdown Format, do not use JSON formatting.
 
 Output format for each extracted question:
 ---
@@ -665,6 +666,7 @@ async def grade_question_with_diagram(
         ms_diagram_images = json.loads(question.ms_diagram_images) if (question and question.ms_diagram_images) else None
         
         if not question:
+            print("\n\n\nOH NOOOOOOO ERROR \n\n\n")
             raise HTTPException(status_code=404, detail="Question not found.")
         
         def check_image_presence(diagram_images, table_images):
@@ -699,7 +701,10 @@ If the marking scheme doesn't specify mark distribution, grade proportionally ba
 Maximum Marks Possible: {question.max_marks}.
 Output Format:
 Grade: X
-Reason: Some Text"""]
+Reason: Some Text
+
+Make sure this output format is exactly followed, that is, the overall Grade: for the question should be exactly be in the first line of your response, and then the Reason can be from second line onwards.
+"""]
         elif (marking_scheme or ms_image_present):
             prompt_content = [f"""Question: {question.text}
 
@@ -712,7 +717,10 @@ If the marking scheme doesn't specify mark distribution, grade proportionally ba
 Maximum Marks Possible: {question.max_marks}.
 Output Format:
 Grade: X
-Reason: Some Text"""]
+Reason: Some Text
+
+Make sure this output format is exactly followed, that is, the overall Grade: for the question should be exactly be in the first line of your response, and then the Reason can be from second line onwards.
+"""]
         elif ideal_answer:
             prompt_content = [f"""Question: {question.text}
 
@@ -725,7 +733,10 @@ Give marks proportionally based on the level of correctness—giving higher mark
 Maximum Marks Possible: {question.max_marks}.
 Output Format:
 Grade: X/{question.max_marks}, where X is the marks secured.
-Reason: Some Text"""]
+Reason: Some Text
+
+Make sure this output format is exactly followed, that is, the overall Grade: for the question should be exactly be in the first line of your response, and then the Reason can be from second line onwards.
+"""]
         else:
             prompt_content = [f"""Question: {question.text}
 
@@ -734,15 +745,19 @@ Grade the following student answer: {f'{student_answer}, with' if student_answer
 Give marks proportionally based on the level of correctness—giving higher marks for more accurate and complete answers, and lower marks for partially correct or incomplete ones. Don't be too strict, nor too lenient.
                                                                                                                                                                                                                                                                                                                                                  
 Maximum Marks Possible: {question.max_marks}.
+
 Output Format:
 Grade: X/{question.max_marks}, where X is the marks secured.
-Reason: Some Text"""]
+Reason: Some Text
+
+Make sure this output format is exactly followed, that is, the overall Grade: for the question should be exactly be in the first line of your response, and then the Reason can be from second line onwards.
+"""]
 
         model = get_model()
         response = await asyncio.to_thread(model.generate_content, prompt_content)
         result_text = response.text
         
-        # print("Question Num: ", question.question_number, "\nAns: ", result_text)
+        print("Question Num: ", question.question_number, "\nAns: ", result_text)
         
         grade = None
         reason = ""
@@ -860,12 +875,7 @@ Part: [part_label] - Answer: [text]
         content={"message": "Text extracted successfully again"}
     )
 
-@router.post("/{exam_id}/process-text-images/answer_script")
-async def process_answer_text_image(
-    exam_id: int,
-    db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user_required)
-):
+async def process_answer_text_images_logic(exam_id: int, student_id: int, db: AsyncSession):
     # print("\n\n\n\nEXTRACTING answer_text IMAGES\n\n\n\n")
     result = await db.execute(select(Question).where(Question.exam_id == exam_id))
     questions = result.scalars().all()
@@ -876,7 +886,7 @@ async def process_answer_text_image(
 
     result = await db.execute(select(QuestionResponse).where(
         QuestionResponse.question_id.in_(question_number_map.keys()),
-        QuestionResponse.student_id == current_user.id
+        QuestionResponse.student_id == student_id
     ))
     responses = result.scalars().all()
 
@@ -1013,6 +1023,15 @@ Separate each question with a blank line.
     )
 
 
+
+@router.post("/{exam_id}/process-text-images/answer_script")
+async def process_answer_text_image(
+    exam_id: int,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user_required)
+):
+    await process_answer_text_images_logic(exam_id, current_user.id, db)
+    return JSONResponse({"message": "Processed successfully"})
 
 
 ### DUPLICATION DONE TO SOME EXTENT, IMPROVE LATER ###
@@ -1169,16 +1188,8 @@ Images provided with keys: {", ".join(entry['key'] for entry, _ in uploaded_file
         content={"message": f"Processed marking scheme images for {processed_count} questions."}
     )
 
-@router.post("/{exam_id}/grade-exam")
-async def grade_exam(
-    exam_id: int,
-    db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user_required)
-):
-    student_id = current_user.id
-    if not exam_id or not student_id:
-        raise HTTPException(status_code=400, detail="Both exam_id and student_id are required.")
 
+async def grade_exam_logic(exam_id: int, student_id: int, db: AsyncSession):
     result = await db.execute(select(Question).where(Question.exam_id == exam_id))
     questions = result.scalars().all()
     if not questions:
@@ -1193,18 +1204,25 @@ async def grade_exam(
             "student_id": student_id,
             "question_id": question.id
         }
-
-        grade_res = await grade_question_with_diagram(req, db, current_user)
-
+        grade_res = await grade_question_with_diagram(req, db, None)  # No current_user needed
         results.append({
             "question_number": question.question_number,
             "grade": grade_res["grade"],
             "reasoning": grade_res["reasoning"],
             "raw": grade_res["raw_response"]
         })
-
     return {
         "exam_id": exam_id,
         "student_id": student_id,
         "results": results
     }
+
+@router.post("/{exam_id}/grade-exam")
+async def grade_exam(
+    exam_id: int,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user_required)
+):
+    result = await grade_exam_logic(exam_id, current_user.id, db)
+    return result
+

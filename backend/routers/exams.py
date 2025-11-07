@@ -32,17 +32,14 @@ async def get_exam_stage(exam_id: int, db: AsyncSession = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Exam not found")
     return {"exam_stage": exam.exam_stage}
 
-class UpdateExamStageRequest(BaseModel):
-    exam_stage: int  # the new stage to set
-
 @router.post("/exams/{exam_id}/stage")
-async def update_exam_stage(exam_id: int, request: UpdateExamStageRequest, db: AsyncSession = Depends(get_db)):
+async def update_exam_stage(exam_id: int, exam_stage: int, db: AsyncSession = Depends(get_db)):
     result = await db.execute(select(Exam).where(Exam.id == exam_id))
     exam = result.scalars().first()
     if not exam:
         raise HTTPException(status_code=404, detail="Exam not found")
     
-    exam.exam_stage = request.exam_stage
+    exam.exam_stage = exam_stage
     await db.commit()
     await db.refresh(exam)
 

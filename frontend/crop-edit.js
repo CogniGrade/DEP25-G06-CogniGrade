@@ -903,35 +903,59 @@ async function handleSubmit(examId){
   );
   await Promise.all(submitPromises);
 
-  // 3. Only run the “process-text-images” endpoint in Sequential mode
-  if (document_type == 'answer_script') {
-    try{
-      const procRes = await authFetch(`/${examId}/process-text-images/${document_type}`, {
-          method: 'POST',
-          headers: { "Content-Type": "application/json" }
-        }
-      );
-      await procRes.json();
-      alert("Responses submitted and processed successfully!");
+  // 3. Only run the “process-text-images” endpoint if student's answer_script
+  // if (document_type == 'answer_script') {
+  //   try{
+  //     const procRes = await authFetch(`/${examId}/process-text-images/${document_type}`, {
+  //         method: 'POST',
+  //         headers: { "Content-Type": "application/json" }
+  //       }
+  //     );
+  //     await procRes.json();
+  //     alert("Responses submitted and processed successfully!");
       
-      await postExamStage(7); // Update the exam stage to 7 (Grading Started)
+  //     await postExamStage(7); // Update the exam stage to 7 (Grading Started)
       
+  //     submitBtn.innerHTML = originalBtnText;
+  //     submitBtn.disabled = false;
+      
+  //     window.location.href = `scriptPage.htm?exam_id=${examId}`;
+  //   } catch(err) {
+  //     console.error("Processing/Extraction error:", err);
+  //     alert("Processing/Extraction of text from individual question images failed.");
+
+  //     submitBtn.innerHTML = originalBtnText;
+  //     submitBtn.disabled = false;
+  //   }
+  // } else {
+  //   // Dropdown mode: skip processing step
+  //   alert("Responses submitted successfully!");
+  //   submitBtn.innerHTML = originalBtnText;
+  //   submitBtn.disabled = false;
+  // }
+  
+  if (document_type === 'answer_script') {
+    try {
+      const enqueueRes = await authFetch(`/exam/${examId}/enqueue-processing`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      });
+      if (!enqueueRes.ok) {
+        throw new Error('Failed to enqueue processing');
+      }
+      alert('Responses submitted successfully! Processing and grading have been enqueued.');
       submitBtn.innerHTML = originalBtnText;
       submitBtn.disabled = false;
-      
       window.location.href = `scriptPage.htm?exam_id=${examId}`;
-    } catch(err) {
-      console.error("Processing/Extraction error:", err);
-      alert("Processing/Extraction of text from individual question images failed.");
-
+    } catch (err) {
+      console.error('Error enqueuing processing:', err);
+      alert('Failed to enqueue processing.');
       submitBtn.innerHTML = originalBtnText;
       submitBtn.disabled = false;
     }
   } else {
-    // Dropdown mode: skip processing step
-    alert("Responses submitted successfully!");
+    alert('Responses submitted successfully!');
     submitBtn.innerHTML = originalBtnText;
     submitBtn.disabled = false;
   }
-  
 }
