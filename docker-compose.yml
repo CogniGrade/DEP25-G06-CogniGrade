@@ -28,6 +28,18 @@ services:
     networks:
       - internal      
 
+  rabbitmq:
+    image: rabbitmq:3.9-management
+    restart: always
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    networks:
+      - internal
+
   backend:
     build:
       context: ./backend
@@ -36,13 +48,26 @@ services:
     env_file: ./.env
     depends_on:
       - postgres
+      - rabbitmq
     volumes:
       - ./uploads:/app/uploads
       - ./profile_pictures:/app/profile_pictures
-      # - ./data:/app/data
     networks:
       - internal
-    # no ports exposed → only reachable via nginx
+
+  celery_worker:
+    build:
+      context: ./backend
+    command: celery -A backend.tasks:celery_app worker --loglevel=info
+    env_file: ./.env
+    depends_on:
+      - rabbitmq
+      - postgres
+    volumes:
+      - ./uploads:/app/uploads
+      - ./profile_pictures:/app/profile_pictures
+    networks:
+      - internal
 
   frontend:
     build:
@@ -51,7 +76,6 @@ services:
     restart: always
     networks:
       - internal
-    # no ports exposed → only reachable via nginx
 
   nginx:
     image: nginx:alpine

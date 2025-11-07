@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="professor-styles.css">
     <link rel="stylesheet" href="student-styles.css">
     <link rel="stylesheet" href="announcement-styles.css">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         .join-btn {
@@ -237,80 +237,6 @@
         .add-content-btn:hover {
             background-color: #0056b3;
             box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
-        }
-
-        /* Modal styling */
-        .modal {
-            display: none;
-            position: fixed;
-            z-index: 9999;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            overflow: auto;
-            background-color: rgba(0, 0, 0, 0.4);
-        }
-
-        .modal-content {
-            background-color: #fff;
-            margin: 80px auto;
-            padding: 20px;
-            width: 400px;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
-        }
-
-        .modal-content h2 {
-            margin-top: 0;
-            margin-bottom: 10px;
-            font-weight: 500;
-            font-size: 1.25rem;
-        }
-
-        .modal-content label {
-            display: block;
-            margin-top: 10px;
-            font-weight: 500;
-        }
-
-        .modal-content input,
-        .modal-content textarea {
-            width: 100%;
-            margin-top: 5px;
-            padding: 8px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            font-size: 1rem;
-            font-family: inherit;
-        }
-
-        .modal-content textarea {
-            min-height: 100px;
-            resize: vertical;
-        }
-
-        .button-row {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 20px;
-        }
-
-        .button-row button,
-        .button-row a {
-            background-color: #007bff;
-            color: #fff;
-            text-decoration: none;
-            padding: 10px 15px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 1rem;
-        }
-
-        .button-row button:hover,
-        .button-row a:hover {
-            background-color: #0056b3;
         }
 
         /* Assignments tab styling */
@@ -936,34 +862,52 @@
     <div id="addExamModal" class="modal">
         <div class="modal-content">
             <h2>Add New Exam</h2>
-            <label for="examName">Exam Name</label>
-            <input type="text" id="examName" placeholder="e.g. Final Exam">
-            <label for="examDate">Exam Date</label>
-            <input type="date" id="examDate">
-            <label for="totalMarks">Total Marks</label>
-            <input type="number" id="totalMarks" placeholder="e.g. 100">
+            <div class="input-group">
+                <i class="fas fa-file-alt"></i>
+                <input class = "icon-input" type="text" id="examName" placeholder="Enter exam name">
+            </div>
+            <div class="input-group">
+                <i class="fas fa-calendar"></i>
+                <input class = "icon-input" type="date" id="examDate">
+            </div>
+            <div class="input-group">
+                <i class="fas fa-star"></i>
+                <input class = "icon-input" type="number" id="totalMarks" placeholder="Total marks (e.g. 100)">
+            </div>
             <div class="button-row">
-                <button onclick="createExam()">Add Exam</button>
                 <a href="#" onclick="closeAddExamModal()">Cancel</a>
+                <button onclick="createExam()">
+                    <i class="fas fa-plus" style="margin-right: 8px;"></i>
+                    Add Exam
+                </button>
             </div>
         </div>
     </div>
+
 
     <!-- Modal for Adding an Assignment -->
     <div id="addAssignmentModal" class="modal">
         <div class="modal-content">
             <h2>Add New Assignment</h2>
-            <label for="assignmentName">Assignment Title</label>
-            <input type="text" id="assignmentName" placeholder="e.g. Homework 1">
-            <label for="assignmentDescription">Description</label>
-            <textarea id="assignmentDescription" placeholder="Enter assignment instructions here..."></textarea>
-            <label for="assignmentDueDate">Due Date</label>
-            <input type="date" id="assignmentDueDate">
-            <label for="assignmentPoints">Total Points</label>
-            <input type="number" id="assignmentPoints" placeholder="e.g. 100">
+            <div class="input-group">
+                <i class="fas fa-tasks"></i>
+                <input class = "icon-input" type="text" id="assignmentName" placeholder="Enter assignment title">
+            </div>
+            <textarea id="assignmentDescription" placeholder="Enter assignment instructions and details..."></textarea>
+            <div class="input-group">
+                <i class="fas fa-calendar-alt"></i>
+                <input class = "icon-input" type="date" id="assignmentDueDate">
+            </div>
+            <div class="input-group">
+                <i class="fas fa-award"></i>
+                <input class = "icon-input" type="number" id="assignmentPoints" placeholder="Total points (e.g. 100)">
+            </div>
             <div class="button-row">
-                <button onclick="createAssignment()">Add Assignment</button>
                 <a href="#" onclick="closeAddAssignmentModal()">Cancel</a>
+                <button onclick="createAssignment()">
+                    <i class="fas fa-plus" style="margin-right: 8px;"></i>
+                    Add Assignment
+                </button>
             </div>
         </div>
     </div>

@@ -57,3 +57,6 @@ httpx==0.25.1
 # psycopg2-binary
 asyncpg[pool]
 alembic
+
+celery
+amqp

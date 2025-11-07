@@ -36,22 +36,21 @@ async function fetchExamStage() {
 async function postExamStage(stage) {
     const examId = getQueryParam('exam_id');
     try {
-    const response = await authFetch(`/exams/${examId}/stage`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ exam_stage: stage })
-    });
-    if (!response.ok) {
-        throw new Error("Failed to update exam stage");
-    }
-    console.log("Exam stage updated successfully:", stage);
+      const response = await authFetch(
+        `/exams/${examId}/stage?exam_stage=${stage}`,
+        { method: 'POST' }
+      );
+      if (!response.ok) {
+          throw new Error("Failed to update exam stage");
+      }
+      console.log("Exam stage updated successfully:", stage);
     } catch (error) {
-    console.error("Error updating exam stage:", error);
+      console.error("Error updating exam stage:", error);
     }
 
-    if (stage === 7){
-        await gradeExam(examId);
-    }
+    // if (stage === 7){
+    //     await gradeExam(examId);
+    // }
 }
 
 async function updateExamResult() {

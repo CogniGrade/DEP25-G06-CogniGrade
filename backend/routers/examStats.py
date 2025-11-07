@@ -143,7 +143,7 @@ async def edit_marks(
     response.marks_obtained = payload["grade"]
     await db.commit()
     
-    await add_exam_result_internal(exam_id, student_id, db, current_user)
+    await add_exam_result_internal(exam_id, student_id, db) #, current_user)
     
     return {"message": "Marks updated successfully"}
 
@@ -248,7 +248,7 @@ async def update_student_response(
         response.marks_obtained = update_data.get("marks_obtained", response.marks_obtained)
         response.reasoning = update_data.get("reasoning", response.reasoning)
     await db.commit()
-    await add_exam_result_internal(exam_id, student_id, db, current_user)
+    await add_exam_result_internal(exam_id, student_id, db) #, current_user)
     return {"message": "Updated successfully"}
 
 # ---------------------------------------------------------------------------
@@ -290,8 +290,148 @@ async def send_for_reevaluation(
     response.marks_obtained = result.get("grade")
     response.reasoning = result.get("reasoning")
     await db.commit()
-    await add_exam_result_internal(exam_id, student_id, db, current_user)
+    await add_exam_result_internal(exam_id, student_id, db) #, current_user)
     return {"message": "Sent for re-evaluation and exam result updated"}
+
+
+@router.post("/exam/{exam_id}/student/{student_id}/reevaluate_all_questions")
+async def send_all_for_reevaluation(
+    exam_id: int,
+    student_id: int,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user_required)
+):
+    # 1. fetch all questions for this exam
+    questions_result = await db.execute(
+        select(Question).where(Question.exam_id == exam_id)
+    )
+    questions = questions_result.scalars().all()
+    if not questions:
+        raise HTTPException(status_code=404, detail="No questions found for this exam")
+
+    for question in questions:
+        # 2a. fetch the student's response for this question
+        resp_result = await db.execute(
+            select(QuestionResponse).where(
+                QuestionResponse.question_id == question.id,
+                QuestionResponse.student_id == student_id
+            )
+        )
+        response = resp_result.scalars().first()
+        if not response:
+            # skip or throw; here we choose to error out
+            raise HTTPException(
+                status_code=404,
+                detail=f"Response not found for question {question.id}"
+            )
+
+        # 2b. mark it as pending re‑evaluation
+        response.marks_obtained = None
+        response.reasoning = "Sent for re-evaluation"
+        await db.commit()
+
+        # 2c. re‑extract answer text
+        await extract_single_answer_text({
+            "exam_id": exam_id,
+            "student_id": student_id,
+            "question_id": question.id,
+        }, db, current_user)
+
+        # 2d. re‑grade with diagram support
+        grade = await grade_question_with_diagram({
+            "exam_id": exam_id,
+            "student_id": student_id,
+            "question_id": question.id,
+            "ideal_answer": question.ideal_answer,
+            "marking_scheme": question.ideal_marking_scheme
+        }, db, current_user)
+
+        # 2e. update with the new grade
+        response.marks_obtained = grade.get("grade")
+        response.reasoning = grade.get("reasoning")
+        await db.commit()
+
+    # 3. update the overall exam result once all questions are done
+    await add_exam_result_internal(exam_id, student_id, db)
+
+    return {"message": "All questions sent for re‑evaluation and exam result updated"}
+
+
+@router.post("/exam/{exam_id}/question/{question_id}/reevaluate_all_students")
+async def reevaluate_question_for_all_students(
+    exam_id: int,
+    question_id: int,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user_required)
+):
+    # 1. Fetch the question and its exam
+    q_result = await db.execute(select(Question).where(Question.id == question_id, Question.exam_id == exam_id))
+    question = q_result.scalars().first()
+    if not question:
+        raise HTTPException(status_code=404, detail="Question not found")
+
+    exam_result = await db.execute(select(Exam).where(Exam.id == exam_id))
+    exam = exam_result.scalars().first()
+    if not exam:
+        raise HTTPException(status_code=404, detail="Exam not found")
+
+    # 2. Get all enrolled students in the classroom
+    enrollments_result = await db.execute(
+        select(Enrollment).where(
+            Enrollment.classroom_id == exam.classroom_id,
+            Enrollment.role == "student",
+            Enrollment.status == "accepted"
+        )
+    )
+    enrollments = enrollments_result.scalars().all()
+
+    if not enrollments:
+        raise HTTPException(status_code=404, detail="No enrolled students found")
+
+    # 3. Process each student's response
+    for enrollment in enrollments:
+        student_id = enrollment.student_id
+
+        # 3a. Get their response for this question
+        resp_result = await db.execute(
+            select(QuestionResponse).where(
+                QuestionResponse.question_id == question_id,
+                QuestionResponse.student_id == student_id
+            )
+        )
+        response = resp_result.scalars().first()
+        if not response:
+            continue  # Skip if no response exists
+
+        # 3b. Mark for re-evaluation
+        response.marks_obtained = None
+        response.reasoning = "Sent for re-evaluation"
+        await db.commit()
+
+        # 3c. Re-extract and grade
+        await extract_single_answer_text({
+            "exam_id": exam_id,
+            "student_id": student_id,
+            "question_id": question_id,
+        }, db, current_user)
+
+        grade = await grade_question_with_diagram({
+            "exam_id": exam_id,
+            "student_id": student_id,
+            "question_id": question_id,
+            "ideal_answer": question.ideal_answer,
+            "marking_scheme": question.ideal_marking_scheme
+        }, db, current_user)
+
+        # 3d. Save results
+        response.marks_obtained = grade.get("grade")
+        response.reasoning = grade.get("reasoning")
+        await db.commit()
+
+        # 3e. Update exam result for student
+        await add_exam_result_internal(exam_id, student_id, db)
+
+    return {"message": "Re-evaluated this question for all enrolled students"}
 
 @router.get("/exam/{exam_id}/question-metrics")
 async def get_question_metrics(
@@ -330,7 +470,7 @@ async def drop_question(
     responses = result.scalars().all()
     for r in responses:
         r.marks_obtained = 0
-        await add_exam_result_internal(exam_id, r.student_id, db, current_user)
+        await add_exam_result_internal(exam_id, r.student_id, db) #, current_user)
         r.reasoning = "Question Dropped by professor"
     await db.commit()
     return {"message": "Question dropped"}
@@ -353,7 +493,7 @@ async def give_full_marks(
     responses = result.scalars().all()
     for r in responses:
         r.marks_obtained = question.max_marks
-        await add_exam_result_internal(exam_id, r.student_id, db, current_user)
+        await add_exam_result_internal(exam_id, r.student_id, db) #, current_user)
         r.reasoning = "Full marks awarded by professor"
     await db.commit()
     return {"message": "Full marks awarded"}
@@ -390,9 +530,9 @@ async def add_exam_result(
     current_user: User = Depends(get_current_user_required)
 ):
     student_id = student_id or current_user.id
-    return await add_exam_result_internal(exam_id, student_id, db, current_user)
+    return await add_exam_result_internal(exam_id, student_id, db)#, current_user)
 
-async def add_exam_result_internal(exam_id: int, student_id: int, db: AsyncSession, current_user: User):
+async def add_exam_result_internal(exam_id: int, student_id: int, db: AsyncSession):#, current_user: User):
     result = await db.execute(select(Exam).where(Exam.id == exam_id))
     exam = result.scalars().first()
     if not exam:
@@ -415,15 +555,17 @@ async def add_exam_result_internal(exam_id: int, student_id: int, db: AsyncSessi
     
     if exam_result:
         exam_result.marks_obtained = total_marks
-        exam_result.graded_by = current_user.id
+  #      exam_result.graded_by = current_user.id
         exam_result.graded_at = datetime.now(timezone.utc)
+        exam_result.status = "graded"
     else:
         exam_result = ExamResult(
             exam_id=exam_id,
             student_id=student_id,
             marks_obtained=total_marks,
-            graded_by=current_user.id,
-            graded_at=datetime.now(timezone.utc)
+   #         graded_by=current_user.id,
+            graded_at=datetime.now(timezone.utc),
+            status="graded"
         )
         db.add(exam_result)
     
@@ -471,3 +613,23 @@ async def get_student_question_details(
         "grade": response.marks_obtained,
         "response": response.answer_text
     }
+
+
+@router.get("/exams/{exam_id}/submission_status")
+async def get_student_submission_status(
+    exam_id: int,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user_required),
+):
+    q = select(ExamResult.status).where(
+        ExamResult.exam_id    == exam_id,
+        ExamResult.student_id == current_user.id
+    )
+    result = await db.execute(q)
+    status: str | None = result.scalar_one_or_none()
+
+    if status is None:
+        # no submission record yet
+        return {"status": "pending"}
+
+    return {"status": status}

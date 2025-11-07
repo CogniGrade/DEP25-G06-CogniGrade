@@ -7,7 +7,7 @@ import os
 import logging
 
 from backend.database import engine, get_db, Base
-from backend.routers import auth, classes, enrollments, notifications, announcements, exams, geminiAPI, studentBackend, peopleManagement, examStats, user_routes, studentEdit
+from backend.routers import auth, classes, enrollments, notifications, announcements, exams, geminiAPI, studentBackend, peopleManagement, examStats, user_routes, studentEdit, routingTasks
 from backend.config import settings
 
 from fastapi.staticfiles import StaticFiles
@@ -58,10 +58,12 @@ app.include_router(announcements.router)
 app.include_router(exams.router)
 app.include_router(geminiAPI.router)
 app.include_router(peopleManagement.router)
-app.include_router(studentBackend.router)  # <-- Added new student endpoints
-app.include_router(examStats.router)  # <-- Added new exam endpoints
-app.include_router(studentEdit.router)  # <-- Added new studentEdit endpoints
-app.include_router(user_routes.router)  # <-- Added new user endpoints
+app.include_router(studentBackend.router)
+app.include_router(examStats.router)  
+app.include_router(studentEdit.router)  
+app.include_router(user_routes.router)  
+app.include_router(routingTasks.router)
+
 @app.get("/")
 async def root(request: Request):
     return RedirectResponse(url="/login.htm")

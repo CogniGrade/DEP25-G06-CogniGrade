@@ -5,7 +5,7 @@
   <title>Exam Statistics</title>
   
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="professor-styles.css">
   <!-- Chart.js for graphs -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -564,7 +564,7 @@
           <div class="card2" style="margin-top: 24px;">
             <div class="card-header">
               <h3 class="card-title">Student Responses</h3>
-              <button onclick="reevaluateAll()"><i class="fas fa-sync-alt"></i> Re-evaluate All Responses</button>
+              <button onclick="reevaluateAll(this)"><i class="fas fa-sync-alt"></i> Re-evaluate All Responses</button>
             </div>
 
             
@@ -679,7 +679,7 @@
                         <td>${student.total_marks}</td>
                         <td>${student.percentage}%</td>
                         <td>
-                          <button class="btn" onclick="event.stopPropagation(); reevaluateStudent(${student.id});">
+                          <button class="btn" onclick="event.stopPropagation(); reevaluateStudent(this, ${student.id});">
                             Re-Evaluate Student
                           </button>
                         </td>`;
@@ -884,7 +884,10 @@
       document.getElementById('reasoningText-StudentModal').value = question.reasoning || 'No reasoning provided.';
       document.getElementById('idealAnswer-StudentModal').value = question.ideal_answer || 'No reasoning provided.';
       document.getElementById('markingScheme-StudentModal').value = question.marking_scheme || 'No reasoning provided.';
-      document.getElementById('reevaluateBtn').onclick = () => reevaluateAnswer(studentId, questionId);
+      document.getElementById('reevaluateBtn').onclick = function () {
+        reevaluateAnswer(this, studentId, questionId);
+      };
+
     }
 
     // Helper function to update marks on the server
@@ -1156,7 +1159,7 @@
               <td>${qResponse ? qResponse.grade : 'N/A'}</td>
               <td>
                 <button class="view-answer-btn" style = "margin-right:10px" data-student-id="${student.id}" data-question-id="${questionId}">View Answer</button>
-                <button onclick="reevaluateAnswer(${student.id}, ${questionId})">Re-evaluate</button>
+                <button onclick="reevaluateAnswer(this, ${student.id}, ${questionId})">Re-evaluate</button>
               </td>
             `;
             tbody.appendChild(tr);
@@ -1207,55 +1210,75 @@
         })
         .catch(err => console.error("Error saving answer:", err));
     }
-    function reevaluateStudent(studentId) {
+    function reevaluateStudent(button, studentId) {
       if (confirm('Re-evaluate all responses for this student?')) {
+        const originalHTML = button.innerHTML;
+        button.innerHTML = '<i class="fas fa-sync-alt fa-spin"></i> Re-evaluating...';
+        button.disabled = true;
         // Loop over all questions in the exam (assuming questionData is already loaded)
-        questionData.forEach(question => {
-          authFetch(`/exam/${examId}/question/${question.question_id}/student/${studentId}/reevaluate`, { 
-            method: 'POST' 
-          })
-          .then(res => res.json())
-          .then(data => {
-            // Optionally process data.message or log success
-            console.log(`Question ${question.question_id}: `, data.message);
-          })
-          .catch(err => console.error(`Error re-evaluating question ${question.question_id}:`, err));
-        });
-        alert('Re-evaluation initiated for all responses for this student.');
-        setTimeout(() => {
-          // Refresh exam stats so the UI reflects the new evaluations.
-          fetchExamStats();
-        }, 2000);
+        authFetch(`/exam/${examId}/student/${studentId}/reevaluate_all_questions`, { 
+          method: 'POST' 
+        })
+        .then(res => res.json())
+        .then(data => {
+          alert('Re-evaluation Completed for all responses for this student.');
+          loadQuestionMetrics();
+          fetchExamStats();      
+          button.innerHTML = originalHTML;
+          button.disabled = false;  
+        })
+        .catch(err => {
+          alert(`Error re-evaluating all questions:`, err);
+          button.innerHTML = originalHTML;
+          button.disabled = false;  
+        }); 
       }
     }
 
     // Re-evaluate single answer
-    function reevaluateAnswer(studentId, questionId) {
+    function reevaluateAnswer(button, studentId, questionId) {
       if (confirm('Re-evaluate this answer?')) {
+        const originalHTML = button.innerHTML;
+        button.innerHTML = '<i class="fas fa-sync-alt fa-spin"></i> Re-evaluating...';
+        button.disabled = true;
         authFetch(`/exam/${examId}/question/${questionId}/student/${studentId}/reevaluate`, { method: 'POST' })
           .then(res => res.json())
           .then(data => {
-            alert(data.message);
+            alert("Re-evaluation Completed for this answer.");
             loadQuestionMetrics();
             fetchExamStats();
+            button.innerHTML = originalHTML;
+            button.disabled = false;
           })
-          .catch(err => console.error("Error re-evaluating answer:", err));
+          .catch(err => {
+            alert(`Error re-evaluating answer:`, err);
+            button.innerHTML = originalHTML;
+            button.disabled = false;  
+          });
+        
       }
     }
 
     // Re-evaluate all answers for the question
-    function reevaluateAll() {
+    function reevaluateAll(button) {
       const questionId = document.getElementById('questionSelect').value;
       if (confirm('Re-evaluate this question for all students?')) {
-        studentData.forEach(student => {
-          authFetch(`/exam/${examId}/question/${questionId}/student/${student.id}/reevaluate`, { method: 'POST' })
-            .catch(err => console.error("Error re-evaluating:", err));
-        });
-        alert('Re-evaluation initiated for all students');
-        setTimeout(() => {
-          loadQuestionMetrics();
-          fetchExamStats();
-        }, 2000);
+        const originalHTML = button.innerHTML;
+        button.innerHTML = '<i class="fas fa-sync-alt fa-spin"></i> Re-evaluating...';
+        button.disabled = true;
+        authFetch(`/exam/${examId}/question/${questionId}/reevaluate_all_students`, { method: 'POST' })
+          .then(data => {
+            alert('Re-evaluation complete for all students');
+            loadQuestionMetrics();
+            fetchExamStats();
+            button.innerHTML = originalHTML;
+            button.disabled = false;
+          })
+          .catch(err => {
+            alert(`Error re-evaluating all students for this question:`, err);
+            button.innerHTML = originalHTML;
+            button.disabled = false;  
+          });
       }
     }
 

@@ -2,9 +2,10 @@ venv/
 .env
 oldDB/
 classroom.db
-uploads/
+uploads/*
 *.zip
 data/
+data-fin/
 backend/__pycache__/
 backend/routers/__pycache__/
 backend/models/__pycache__/

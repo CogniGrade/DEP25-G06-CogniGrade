@@ -149,6 +149,7 @@ class ExamResult(Base):
     feedback = Column(Text, nullable=True)
     graded_by = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=True)
     graded_at = Column(TIMESTAMP(timezone=True), nullable=True)
+    status = Column(Text, nullable=False, default="pending")
 
     exam = relationship("Exam", back_populates="results")
     student = relationship("User", foreign_keys=[student_id])
